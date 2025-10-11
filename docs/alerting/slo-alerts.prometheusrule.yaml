@@ -1,0 +1,95 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: costscope-slo-alerts
+  labels:
+    app: costscope
+spec:
+  groups:
+  - name: api-availability
+    rules:
+    - alert: CostScopeAPIFastErrorBudgetBurn
+      expr: |
+        # Burn rate over 1h (fast) – target 99.5% (0.5% budget)
+        (1 - (sum(rate(costscope_http_requests_total{code!~"5.."}[5m])) / sum(rate(costscope_http_requests_total[5m]))))
+          / 0.005 > 14
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: Fast error budget burn (API availability)
+        description: API availability burning >14x over last 1h (fast window). Investigate immediately.
+    - alert: CostScopeAPISlowErrorBudgetBurn
+      expr: |
+        (1 - (sum(rate(costscope_http_requests_total{code!~"5.."}[30m])) / sum(rate(costscope_http_requests_total[30m]))))
+          / 0.005 > 7
+      for: 1h
+      labels:
+        severity: warning
+      annotations:
+        summary: Elevated error budget burn (API availability)
+        description: Sustained elevated burn; risk of SLO miss.
+  - name: api-latency
+    rules:
+    - alert: CostScopeAPILatencyHighP95
+      expr: |
+        histogram_quantile(0.95, sum(rate(costscope_http_request_duration_seconds_bucket{route!="/metrics"}[5m])) by (le)) > 0.8
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Elevated API p95 latency
+        description: p95 latency >800ms for 5m.
+    - alert: CostScopeAPILatencySevere
+      expr: |
+        histogram_quantile(0.95, sum(rate(costscope_http_request_duration_seconds_bucket{route!="/metrics"}[2m])) by (le)) > 1.5
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: Severe API p95 latency
+        description: p95 latency >1500ms sustained.
+  - name: converter
+    rules:
+    - alert: CostScopeConverterErrorRatioHigh
+      expr: |
+        (sum(rate(costscope_converter_errors_total[5m])) / sum(rate(costscope_converter_records_total[5m]))) > 0.005
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        summary: Converter error ratio high
+        description: Error ratio >0.5% for 15m.
+    - alert: CostScopeConversionAckLatencyHigh
+      expr: |
+        histogram_quantile(0.95, sum(rate(costscope_conversion_conversion_duration_seconds_bucket[5m])) by (le)) > 5
+      for: 15m
+      labels:
+        severity: warning
+      annotations:
+        summary: Conversion acknowledgement latency high
+        description: p95 ACK latency >5s.
+  - name: auth
+    rules:
+    - alert: CostScopeAuthFailuresSpike
+      expr: |
+        sum(rate(costscope_auth_failures_total[5m])) > 50
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: Authentication failures spike
+        description: Auth failures >50/min (5m) – investigate configuration or attack.
+  - name: unified-mapper
+    rules:
+    - alert: CostScopeUnifiedMapperSlowdown
+      expr: |
+        (sum(rate(costscope_unified_mapper_duration_seconds_sum[10m])) / sum(rate(costscope_unified_mapper_duration_seconds_count[10m])))
+          /
+        (sum(rate(costscope_converter_duration_seconds_sum[10m])) / sum(rate(costscope_converter_duration_seconds_count[10m]))) > 1.15
+      for: 20m
+      labels:
+        severity: warning
+      annotations:
+        summary: Unified mapper slowdown vs legacy
+        description: Unified mapper average duration >15% slower than legacy path.

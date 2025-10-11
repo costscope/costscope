@@ -1,0 +1,38 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security"]
+    commit-message:
+      prefix: "deps"
+    groups:
+      go-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["ci", "dependencies"]
+    commit-message:
+      prefix: "ci-deps"
+    groups:
+      gha-weekly:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "security", "docker"]
+    commit-message:
+      prefix: "docker-deps"
+    groups:
+      docker-minor-patch:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]

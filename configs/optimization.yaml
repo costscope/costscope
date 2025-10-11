@@ -1,0 +1,191 @@
+# Database Optimization Configuration
+environment: production
+data_dir: ./data
+
+core:
+  app_name: costscope
+  version: "1.0.0"
+  log_level: info
+  max_concurrency: 4
+  timeout: "30s"
+database:
+  type: sqlite
+  # Connection pool settings
+  connection_string: ./costscope-optimization.db
+  max_open_connections: 25 # Reduced from default for memory efficiency
+  max_connections: 25
+  max_idle_connections: 5 # Reduced from default
+  connection_max_lifetime: "5m" # Force connection recycling
+  connection_max_idle_time: "1m" # Close idle connections quickly
+  connection_timeout: "10s"
+  query_timeout: "30s"
+
+  # Connection pooling
+  enable_connection_pooling: true
+  pool_size: 10
+
+  # Query optimization
+  enable_query_caching: true
+  cache_ttl: "5m"
+  max_cache_size: 1000
+
+  # Performance monitoring
+  enable_slow_query_log: true
+  slow_query_threshold: "100ms"
+
+# Memory optimization settings
+memory:
+  # Buffer pool configuration
+  buffer_pool_size: 65536 # 64KB buffers
+  enable_object_pooling: true
+
+  # GC optimization
+  gc_target_percent: 100 # Use GOGC environment variable
+  enable_gc_monitoring: true
+
+  # Memory monitoring
+  enable_memory_monitoring: true
+  monitoring_interval: "30s"
+  max_metrics_history: 100
+
+# Performance monitoring
+performance:
+  # Monitoring configuration
+  enable_monitoring: true
+  monitoring_interval: "30s"
+  max_metrics_retention: 100
+
+  # Health check thresholds
+  memory_warning_threshold: 524288000 # 500MB
+  goroutine_warning_threshold: 1000
+  gc_pause_warning_threshold: "10ms"
+  error_rate_warning_threshold: 5.0
+
+  # Request tracking
+  enable_request_tracking: true
+  reset_counters_interval: "1h"
+
+# Build optimization
+build:
+  # Compiler flags
+  enable_optimized_build: true
+  ldflags: "-w -s" # Strip debug info and symbol table
+  cgo_enabled: true # Required for DuckDB
+
+  # Binary optimization
+  enable_binary_compression: false # UPX can cause issues with CGO
+  strip_debug_info: true
+  strip_symbol_table: true
+
+  # Runtime optimization
+  enable_pprof: true # Enable profiling endpoints
+  pprof_host: "localhost:6060"
+
+# Runtime environment optimization
+runtime:
+  # Environment variables for optimization
+  gogc: 100 # GC target percentage (can be overridden)
+  gomemlimit: "" # Memory limit (empty = no limit)
+  gomaxprocs: 0 # Use all available cores
+
+  # Profiling
+  enable_cpu_profiling: false # Enable only when needed
+  enable_memory_profiling: false
+  profile_duration: "30s"
+
+  # Logging optimization
+  log_level: "info"
+  enable_structured_logging: true
+  log_format: "json"
+
+# Security optimization
+security:
+  # Enable security features
+  enable_security_headers: true
+  enable_rate_limiting: true
+  rate_limit_requests_per_minute: 1000
+
+  # TLS optimization
+  enable_tls_optimization: true
+  tls_min_version: "1.2"
+
+  # Input validation
+  enable_input_validation: true
+  max_request_size: 10485760 # 10MB
+  # Token and runtime security defaults for examples
+  encryption_enabled: false
+  tls_enabled: false
+  token_expiry: "3600s"
+  jwt_secret: "optimization-placeholder-secret"
+
+# Specific optimizations for different environments
+environments:
+  development:
+    database:
+      max_open_connections: 10
+      enable_query_caching: false
+    performance:
+      enable_monitoring: true
+      monitoring_interval: "10s"
+    runtime:
+      gogc: 100
+      log_level: "debug"
+
+  staging:
+    database:
+      max_open_connections: 20
+      enable_query_caching: true
+    performance:
+      enable_monitoring: true
+      monitoring_interval: "20s"
+    runtime:
+      gogc: 100
+      log_level: "info"
+
+  production:
+    database:
+      max_open_connections: 25
+      enable_query_caching: true
+    performance:
+      enable_monitoring: true
+      monitoring_interval: "30s"
+    runtime:
+      gogc: 200 # Less aggressive GC for throughput
+      log_level: "warn"
+      enable_cpu_profiling: false
+      enable_memory_profiling: false
+
+# Cost optimization specific settings
+costscope:
+  # FOCUS processing optimization
+  focus:
+    batch_size: 10000 # Process in smaller batches
+    enable_parallel_processing: true
+    max_parallel_workers: 4
+    buffer_size: 65536 # 64KB buffers
+
+  # Streaming optimization
+  streaming:
+    buffer_size: 32768 # 32KB streaming buffers
+    flush_interval: "5s"
+    enable_compression: true
+
+streaming:
+  max_concurrent_jobs: 2
+  default_workers: 1
+  default_memory: 128
+  job_timeout: "300s"
+  progress_interval: "5s"
+
+  # Analytics optimization
+analytics:
+  cache_size: 1000
+  cache_ttl: "10m"
+  enable_result_caching: true
+
+  # Report generation optimization
+reports:
+  max_concurrent_reports: 5
+  report_timeout: "5m"
+  enable_report_caching: true
+  cache_ttl: "1h"

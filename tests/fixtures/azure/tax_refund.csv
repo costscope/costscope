@@ -1,0 +1,2 @@
+BillingAccountId,BillingAccountName,BillingCurrency,SubscriptionId,SubscriptionName,ServiceName,ServiceFamily,ResourceId,ResourceName,ResourceType,Location,Quantity,UnitOfMeasure,CostInBillingCurrency,RetailPrice,UsageStart,UsageEnd,ChargeType
+BA-3,Main,eur,sub-789,Ops,Storage,Storage,/subs/sub-789/rg/rg3/st/st1,st1,Microsoft.Storage/storageAccounts,westus,1,GB,-0.80,0.10,2024-01-03T00:00:00Z,2024-01-03T01:00:00Z,Tax

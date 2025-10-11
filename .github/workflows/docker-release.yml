@@ -1,0 +1,107 @@
+name: Build and smoke-test Docker release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+env:
+  GO_VERSION: "1.24.x"
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Set up Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: "Sanity: go version"
+        run: go version
+      - name: Set version variables
+        id: vars
+        shell: bash
+        run: |
+          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo dev)
+          COMMIT=$(git rev-parse --short=12 HEAD)
+          BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          GOVERSION=$(go version | awk '{print $3}')
+          SOURCE_REPO=$(git config --get remote.origin.url || echo 'https://github.com/your/repo')
+          # Export to environment for subsequent run steps
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "COMMIT=$COMMIT" >> "$GITHUB_ENV"
+          echo "BUILD_DATE=$BUILD_DATE" >> "$GITHUB_ENV"
+          echo "GOVERSION=$GOVERSION" >> "$GITHUB_ENV"
+          echo "SOURCE_REPO=$SOURCE_REPO" >> "$GITHUB_ENV"
+          # Also expose as step outputs for expression usage
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
+          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
+          echo "go_version=$GOVERSION" >> "$GITHUB_OUTPUT"
+          echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
+      - name: Echo computed env
+        run: |
+          echo "VERSION=${{ steps.vars.outputs.version }}"
+          echo "COMMIT=${{ steps.vars.outputs.commit }}"
+          echo "BUILD_DATE=${{ steps.vars.outputs.build_date }}"
+          echo "GOVERSION=${{ steps.vars.outputs.go_version }}"
+          echo "SOURCE_REPO=${{ steps.vars.outputs.source_repo }}"
+
+      - name: Build release binary
+        if: ${{ github.actor != 'nektos/act' }}
+        run: make build-release
+
+      - name: Note ACT environment (skipped release build)
+        if: ${{ github.actor == 'nektos/act' }}
+        run: echo "Running under ACT; skipped make build-release"
+
+      - name: Build Docker image (Dockerfile.release)
+        if: ${{ github.actor != 'nektos/act' }}
+        # pinned docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 — source: https://github.com/docker/build-push-action/commits/v4 (2025-09-28)
+        uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 # v4
+        with:
+          context: .
+          file: Dockerfile.release
+          tags: |
+            costscope:${{ steps.vars.outputs.version }}
+            costscope:latest
+          build-args: |
+            VERSION=${{ steps.vars.outputs.version }}
+            COMMIT=${{ steps.vars.outputs.commit }}
+            BUILD_DATE=${{ steps.vars.outputs.build_date }}
+            GOVERSION=${{ steps.vars.outputs.go_version }}
+            SOURCE_REPO=${{ steps.vars.outputs.source_repo }}
+
+      - name: Inspect image labels
+        if: ${{ github.actor != 'nektos/act' }}
+        run: docker image inspect --format '{{json .Config.Labels}}' costscope:${{ steps.vars.outputs.version }}
+
+      - name: Run version inside image
+        if: ${{ github.actor != 'nektos/act' }}
+        run: docker run --rm --entrypoint ./costscope costscope:${{ steps.vars.outputs.version }} version
+
+      - name: Start container and wait for ready
+        if: ${{ github.actor != 'nektos/act' }}
+        run: |
+          docker run -d --name costscope-test -p 8080:8080 costscope:${{ steps.vars.outputs.version }}
+          for i in $(seq 1 20); do
+            if curl -sS http://127.0.0.1:8080/health/ready >/dev/null 2>&1; then
+              echo "service ready"; break
+            fi
+            echo "waiting for service..."; sleep 3
+          done
+
+      - name: Stop container (always)
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        run: |
+          docker rm -f costscope-test || true
+
+      - name: Note ACT environment (skipped docker build/run)
+        if: ${{ github.actor == 'nektos/act' }}
+        run: echo "Running under ACT; skipped Docker image build and runtime checks"

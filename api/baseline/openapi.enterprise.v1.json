@@ -1,0 +1,188 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CostScope Enterprise API",
+        "description": "Baseline snapshot (enterprise) 2025-08-26. Additive changes only; removals require version bump.",
+        "version": "1.0.0",
+        "contact": {
+            "name": "CostScope API Support",
+            "email": "api-support@costscope.io"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/api/v1",
+            "description": "Development server"
+        },
+        {
+            "url": "https://api.costscope.com/v1",
+            "description": "Production server"
+        }
+    ],
+    "paths": {
+        "/health": {
+            "get": {
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/analytics/summary": {
+            "get": {
+                "summary": "Get cost summary",
+                "responses": {
+                    "200": {
+                        "description": "Summary returned"
+                    }
+                }
+            }
+        },
+        "/analytics/top-services": {
+            "get": {
+                "summary": "Top services by effective cost",
+                "responses": {
+                    "200": {
+                        "description": "Top services list"
+                    }
+                }
+            }
+        },
+        "/analytics/trends": {
+            "get": {
+                "summary": "Cost trends by time",
+                "responses": {
+                    "200": {
+                        "description": "Trend series"
+                    }
+                }
+            }
+        },
+        "/focus/schemas": {
+            "get": {
+                "summary": "List supported FOCUS schema versions",
+                "responses": {
+                    "200": {
+                        "description": "Schemas listed"
+                    }
+                }
+            }
+        },
+        "/focus/conversions": {
+            "post": {
+                "summary": "Submit a FOCUS conversion job",
+                "responses": {
+                    "202": {
+                        "description": "Job accepted"
+                    }
+                }
+            },
+            "get": {
+                "summary": "List active conversion jobs",
+                "responses": {
+                    "200": {
+                        "description": "Active jobs listed"
+                    }
+                }
+            }
+        },
+        "/focus/conversions/{id}": {
+            "get": {
+                "summary": "Get conversion job status",
+                "responses": {
+                    "200": {
+                        "description": "Job status returned"
+                    },
+                    "404": {
+                        "description": "Job not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Cancel a running conversion job",
+                "responses": {
+                    "200": {
+                        "description": "Cancellation acknowledged"
+                    },
+                    "404": {
+                        "description": "Job not found"
+                    }
+                }
+            }
+        },
+        "/focus/conversions/history": {
+            "get": {
+                "summary": "List recent completed conversion jobs",
+                "responses": {
+                    "200": {
+                        "description": "Job history listed"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Envelope": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "nullable": true
+                    },
+                    "error": {
+                        "$ref": "#/components/schemas/EnvelopeError"
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/EnvelopeMeta"
+                    }
+                }
+            },
+            "EnvelopeMeta": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "EnvelopeError": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "EnvelopeHealth": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "security": [],
+    "tags": [
+        {
+            "name": "Health"
+        },
+        {
+            "name": "Analytics"
+        },
+        {
+            "name": "FOCUS"
+        }
+    ]
+}

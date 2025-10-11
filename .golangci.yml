@@ -1,0 +1,36 @@
+version: "2"
+run:
+  timeout: 10m
+  tests: true
+  # Lower concurrency to reduce memory pressure in constrained environments
+  concurrency: 2
+  # Skip directories that don't contain source we want to lint or are heavy/non-Go
+  skip-dirs:
+    - bin
+    - data
+    - docs
+    - examples
+    - tmp
+    - vendor
+    - internal/**/testdata
+
+linters:
+  enable:
+    # Core linters
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+    # Additional quality linters (optional)
+    - goconst
+    - gocyclo
+    - gosec
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace
+# Deprecated historically: deadcode, structcheck, varcheck (coverage by 'unused' and 'staticcheck').
+# NOTE: Any suppression via //nolint:unused MUST include a rationale comment per CONTRIBUTING.md (Lint Suppression Policy).
+# NOTE: Any suppression via //nolint:unused MUST include a rationale comment per CONTRIBUTING.md (Lint Suppression Policy).

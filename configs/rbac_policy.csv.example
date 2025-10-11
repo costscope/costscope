@@ -1,0 +1,11 @@
+; subject, object (path), action(s)
+p, role:admin, /api/v1/*, (GET|POST|PUT|PATCH|DELETE)
+p, role:reader, /api/v1/focus/datasets, (GET)
+p, role:reader, /api/v1/analytics/(metrics|breakdown|anomalies|optimize), (GET)
+p, role:worker, /api/v1/focus/jobs/*, (GET)
+p, role:operator, /api/v1/focus/(convert|analyze|validate), (POST)
+
+; role inheritance
+g, role:admin, role:operator
+g, role:admin, role:reader
+g, role:admin, role:worker

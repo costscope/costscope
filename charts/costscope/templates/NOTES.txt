@@ -1,0 +1,31 @@
+Thank you for installing CostScope!
+
+Release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+1. Access
+   Service (ClusterIP): {{ include "costscope.fullname" . }}:{{ .Values.service.port }}
+   {{- if .Values.ingress.enabled }}
+   Ingress: https://{{ (index .Values.ingress.hosts 0).host }}
+   {{- end }}
+
+2. Health / Metrics
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+   kubectl port-forward deploy/{{ include "costscope.fullname" . }} 8080:8080 &
+   curl -s http://127.0.0.1:8080/health/ready
+   curl -s http://127.0.0.1:8080/metrics | head -20
+
+3. Report Exports (on demand)
+   Supported formats: json, csv, yaml, parquet, pdf (stub), excel (stub), http (push)
+   Example PDF (auto path):
+     kubectl exec -it deploy/{{ include "costscope.fullname" . }} -- \
+       /app/costscope reports generate --type executive-summary --format pdf
+
+4. Configuration
+   Report output dir (inside container): COSTSCOPE_REPORTS_DIR (default costscope-data/reports)
+   JWT secret configured via Kubernetes Secret (key: jwt-secret).
+
+5. Uninstall
+   helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+Enjoy CostScope FinOps insights!

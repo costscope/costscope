@@ -1,0 +1,19 @@
+{
+  "row_count": 3,
+  "sum_effective_cost": 30.0,
+  "sum_list_cost": 30.0,
+  "sum_usage_quantity": 300.0,
+  "charge_category_distribution": {
+    "Usage": 100.0
+  },
+  "pricing_category_distribution": {
+    "Standard": 100.0
+  },
+  "provider_distribution": {
+    "Amazon Web Services": 100.0
+  },
+  "negative_usage_allowed_count": 0,
+  "negative_usage_violation_count": 0,
+  "generated_at": "2025-01-01T00:00:00Z",
+  "violations": []
+}

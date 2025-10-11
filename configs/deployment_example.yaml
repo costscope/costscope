@@ -1,0 +1,343 @@
+# Deployment Automation Configuration Examples
+
+# Top-level environment and data directory required by validator
+environment: development
+data_dir: ./data
+
+# Minimal core block required by validator
+core:
+  app_name: costscope
+  version: "0.0.0"
+  log_level: info
+  max_concurrency: 4
+  timeout: "30s"
+
+# Database example for deployment
+database:
+  type: sqlite
+  connection_string: ./costscope-deployment.db
+  max_connections: 5
+  max_idle_connections: 2
+  connection_timeout: "10s"
+  query_timeout: "30s"
+
+streaming:
+  max_concurrent_jobs: 3
+  default_workers: 2
+  default_memory: 256
+  job_timeout: "300s"
+  progress_interval: "5s"
+
+security:
+  encryption_enabled: false
+  tls_enabled: false
+  token_expiry: "3600s"
+  jwt_secret: "deployment-example-secret"
+
+# Basic deployment automation configuration
+deployment:
+  # Global settings
+  default_timeout: "30m"
+  health_check_interval: "30s"
+  max_concurrent_runs: 5
+  retention_days: 30
+  security_enabled: true
+  timeout: "30s"
+
+  # Notification channels
+  notification_channels:
+    - "slack"
+    - "email"
+
+  # Default environment configurations
+  environments:
+    development:
+      type: "development"
+      namespace: "costscope-dev"
+      cluster: "dev-cluster"
+      region: "us-west-2"
+      provider: "aws"
+      config:
+        replicas: 1
+        cpu_limit: "500m"
+        memory_limit: "512Mi"
+        auto_scale: false
+        monitoring: true
+        debug_enabled: true
+        log_level: "debug"
+        environment_keys:
+          AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+          AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+          AWS_REGION: "${AWS_REGION}"
+        streaming:
+          progress_interval: "5s" # Set to a positive duration
+          max_concurrent_jobs: 3
+
+    staging:
+      type: "staging"
+      namespace: "costscope-staging"
+      cluster: "staging-cluster"
+      region: "us-west-2"
+      provider: "aws"
+      config:
+        replicas: 2
+        cpu_limit: "1000m"
+        memory_limit: "1Gi"
+        auto_scale: true
+        monitoring: true
+        debug_enabled: false
+        log_level: "info"
+
+    production:
+      type: "production"
+      namespace: "costscope-prod"
+      cluster: "prod-cluster"
+      region: "us-east-1"
+      provider: "aws"
+      config:
+        replicas: 5
+        cpu_limit: "2000m"
+        memory_limit: "2Gi"
+        auto_scale: true
+        monitoring: true
+        debug_enabled: false
+        log_level: "warn"
+        ha_enabled: true
+
+  # Pipeline configurations
+  pipeline_defaults:
+    # Default stages for all pipelines
+    stages:
+      - name: "validate"
+        type: "validate"
+        commands:
+          - "make validate"
+          - "go mod verify"
+        timeout: "5m"
+        retry_count: 1
+        environment:
+          GO_ENV: "ci"
+
+      - name: "build"
+        type: "build"
+        commands:
+          - "make build"
+          - "go test -c ./cmd/costscope"
+        timeout: "10m"
+        retry_count: 2
+        dependencies: ["validate"]
+        environment:
+          CGO_ENABLED: "0"
+          GOOS: "linux"
+        artifacts:
+          - "costscope"
+          - "costscope.test"
+
+      - name: "test"
+        type: "test"
+        commands:
+          - "make test"
+          - "go test -v -race ./..."
+        timeout: "15m"
+        retry_count: 1
+        dependencies: ["build"]
+        environment:
+          TEST_ENV: "ci"
+        artifacts:
+          - "coverage.out"
+          - "test-results.xml"
+
+      - name: "security"
+        type: "security"
+        commands:
+          - "make security-scan"
+          - "go run scripts/security_audit.go"
+        timeout: "10m"
+        retry_count: 1
+        dependencies: ["build"]
+        environment:
+          SECURITY_LEVEL: "strict"
+        artifacts:
+          - "security-report.json"
+
+      - name: "quality"
+        type: "quality"
+        commands:
+          - "make lint"
+          - "make duplicates"
+        timeout: "5m"
+        retry_count: 1
+        dependencies: ["build"]
+        parallel: true
+
+      - name: "package"
+        type: "package"
+        commands:
+          - "docker build -t costscope:latest ."
+          - "docker tag costscope:latest costscope:${BUILD_NUMBER}"
+        timeout: "20m"
+        retry_count: 1
+        dependencies: ["test", "security", "quality"]
+        environment:
+          DOCKER_BUILDKIT: "1"
+        artifacts:
+          - "costscope:latest"
+          - "costscope:${BUILD_NUMBER}"
+
+      - name: "deploy"
+        type: "deploy"
+        commands:
+          - "kubectl apply -f k8s/"
+          - "kubectl rollout status deployment/costscope"
+        timeout: "15m"
+        retry_count: 1
+        dependencies: ["package"]
+        environment:
+          KUBECONFIG: "/etc/kubeconfig"
+        condition: "success(test) && success(security)"
+
+    # Default triggers for all pipelines
+    triggers:
+      - type: "push"
+        enabled: true
+        config:
+          branches: ["main", "develop", "release/*"]
+          paths: ["cmd/", "internal/", "go.mod", "go.sum"]
+        filter:
+          exclude_paths: ["docs/", "README.md", "*.md"]
+
+      - type: "pr"
+        enabled: true
+        config:
+          target_branches: ["main", "develop"]
+          actions: ["opened", "synchronize", "reopened"]
+
+      - type: "schedule"
+        enabled: true
+        config:
+          cron: "0 2 * * *" # Daily at 2 AM
+          timezone: "UTC"
+          branch: "main"
+          description: "Nightly build and security scan"
+
+      - type: "tag"
+        enabled: true
+        config:
+          pattern: "v*.*.*"
+          action: "created"
+
+      - type: "manual"
+        enabled: true
+        config:
+          description: "Manual deployment trigger"
+          parameters:
+            environment: ["development", "staging", "production"]
+            version: "string"
+            rollback: "boolean"
+
+      - type: "webhook"
+        enabled: false
+        config:
+          url: "/api/v1/webhooks/deploy"
+          secret: "${WEBHOOK_SECRET}"
+          events: ["deployment", "release"]
+
+  # Health monitoring configuration
+  health_monitoring:
+    enabled: true
+    check_interval: "30s"
+    timeout: "10s"
+
+    # Health check definitions
+    checks:
+      api_health:
+        type: "http"
+        endpoint: "/health"
+        expected_status: 200
+        timeout: "5s"
+
+      database:
+        type: "tcp"
+        endpoint: "costscope-db:5432"
+        timeout: "3s"
+
+      memory_usage:
+        type: "metric"
+        threshold: 80.0
+        warning_threshold: 70.0
+
+      cpu_usage:
+        type: "metric"
+        threshold: 75.0
+        warning_threshold: 60.0
+
+      disk_space:
+        type: "metric"
+        threshold: 85.0
+        warning_threshold: 75.0
+
+  # Deployment strategies
+  deployment_strategies:
+    rolling:
+      description: "Rolling deployment with gradual instance replacement"
+      max_unavailable: 1
+      max_surge: 1
+      timeout: "10m"
+
+    blue_green:
+      description: "Blue-green deployment with zero downtime"
+      green_timeout: "5m"
+      health_check_delay: "30s"
+      cleanup_delay: "2m"
+
+    canary:
+      description: "Canary deployment with gradual traffic shift"
+      initial_percentage: 10
+      increment_percentage: 40
+      final_percentage: 100
+      check_interval: "2m"
+      auto_rollback: true
+
+  # Rollback configuration
+  rollback:
+    auto_rollback_on_failure: true
+    rollback_timeout: "5m"
+    health_check_delay: "30s"
+    retention_count: 5
+
+  # Notification configuration
+  notifications:
+    slack:
+      webhook_url: "${SLACK_WEBHOOK_URL}"
+      channel: "#deployments"
+      username: "CostScope Deploy Bot"
+
+    email:
+      smtp_server: "smtp.company.com"
+      smtp_port: 587
+      from_address: "noreply@company.com"
+      to_addresses: ["devops@company.com"]
+
+    webhook:
+      url: "${WEBHOOK_URL}"
+      headers:
+        Authorization: "Bearer ${WEBHOOK_TOKEN}"
+        Content-Type: "application/json"
+
+  # Security configuration
+  security:
+    enabled: true
+    scan_on_build: true
+    compliance_checks: true
+    vulnerability_threshold: "medium"
+
+    # Security tools
+    tools:
+      - name: "gosec"
+        command: "gosec ./..."
+
+      - name: "govulncheck"
+        command: "govulncheck ./..."
+
+      - name: "docker-scan"
+        command: "docker scan costscope:latest"

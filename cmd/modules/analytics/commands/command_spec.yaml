@@ -1,0 +1,265 @@
+package_name: commands
+package_import: local/costscope/cmd/modules/analytics/commands
+receiver: AnalyticsCommands
+root:
+  use: analytics
+  short: Advanced cost analytics and forecasting
+  long: |
+    Advanced cost analytics with ML-powered forecasting, anomaly detection,
+    and multi-cloud cost optimization capabilities.
+  handler: ""
+  subcommands:
+    - use: analyze
+      short: Analyze cost data with advanced analytics
+      long: |
+        Analyze cost data with type-safe filtering, advanced aggregations,
+        and ML-powered insights. Supports multiple cloud providers and currencies.
+      handler: runAnalyze
+      flags:
+        - name: table
+          type: string
+          default: cost_data
+          usage: Table name for analysis
+        - name: filters
+          type: string
+          default: ""
+          usage: Type-safe filters in JSON format
+        - name: currency
+          type: string
+          default: USD
+          usage: Currency code for analysis
+        - name: group-by
+          type: string
+          default: ""
+          usage: Comma-separated fields to group by
+        - name: sort-order
+          type: string
+          default: desc
+          usage: Sort order (asc/desc)
+        - name: transformations
+          type: string
+          default: ""
+          usage: Data transformation rules in JSON format
+        - name: enable-ml
+          type: bool
+          default: true
+          usage: Enable ML forecasting features
+        - name: enable-caching
+          type: bool
+          default: true
+          usage: Enable performance caching
+        - name: strict-types
+          type: bool
+          default: false
+          usage: Enable strict type checking
+        - name: enable-parallel
+          type: bool
+          default: true
+          usage: Enable parallel processing
+        - name: max-concurrency
+          type: int
+          default: 10
+          usage: Maximum concurrent operations
+        - name: cache-ttl
+          type: duration
+          usage: Cache TTL duration
+        - name: use-focus-engine
+          type: bool
+          default: false
+          usage: Use the FOCUS analysis engine (experimental)
+        - name: focus-forecast-days
+          type: int
+          default: 30
+          usage: Override focus engine forecast horizon (days); precedence flag>YAML>env>default(30)
+        - name: focus-phase-timeout
+          type: duration
+          usage: Per-phase soft timeout for focus engine extended phases (e.g. 1500ms, 2s)
+    - use: forecast
+      short: Generate ML-powered cost forecasts
+      long: |
+        Generate cost forecasts using machine learning algorithms.
+        Includes trend analysis, seasonal patterns, and anomaly detection.
+      handler: runForecast
+      flags:
+        - name: table
+          type: string
+          default: cost_data
+          usage: Table name for analysis
+        - name: filters
+          type: string
+          default: ""
+          usage: Type-safe filters in JSON format
+        - name: currency
+          type: string
+          default: USD
+          usage: Currency code for analysis
+        - name: group-by
+          type: string
+          default: ""
+          usage: Comma-separated fields to group by
+        - name: sort-order
+          type: string
+          default: desc
+          usage: Sort order (asc/desc)
+        - name: transformations
+          type: string
+          default: ""
+          usage: Data transformation rules in JSON format
+        - name: forecast-days
+          type: int
+          default: 30
+          usage: Number of days to forecast
+        - name: include-trends
+          type: bool
+          default: true
+          usage: Include trend analysis
+        - name: detect-anomalies
+          type: bool
+          default: true
+          usage: Enable anomaly detection
+        - name: enable-ml
+          type: bool
+          default: true
+          usage: Enable ML forecasting features
+        - name: enable-caching
+          type: bool
+          default: true
+          usage: Enable performance caching
+        - name: strict-types
+          type: bool
+          default: false
+          usage: Enable strict type checking
+        - name: enable-parallel
+          type: bool
+          default: true
+          usage: Enable parallel processing
+        - name: max-concurrency
+          type: int
+          default: 10
+          usage: Maximum concurrent operations
+        - name: cache-ttl
+          type: duration
+          usage: Cache TTL duration
+    - use: compare
+      short: Compare costs across time periods or providers
+      long: |
+        Compare costs across different time periods, cloud providers,
+        or resource configurations. Generate detailed comparison reports.
+      handler: runCompare
+      flags:
+        - name: table
+          type: string
+          default: cost_data
+          usage: Table name for analysis
+        - name: filters
+          type: string
+          default: ""
+          usage: Type-safe filters in JSON format
+        - name: currency
+          type: string
+          default: USD
+          usage: Currency code for analysis
+        - name: group-by
+          type: string
+          default: ""
+          usage: Comma-separated fields to group by
+        - name: sort-order
+          type: string
+          default: desc
+          usage: Sort order (asc/desc)
+        - name: transformations
+          type: string
+          default: ""
+          usage: Data transformation rules in JSON format
+        - name: compare-period
+          type: string
+          default: ""
+          usage: "Period to compare with (e.g., 'previous-month')"
+        - name: compare-providers
+          type: stringSlice
+          usage: Providers to compare
+        - name: enable-ml
+          type: bool
+          default: true
+          usage: Enable ML forecasting features
+        - name: enable-caching
+          type: bool
+          default: true
+          usage: Enable performance caching
+        - name: strict-types
+          type: bool
+          default: false
+          usage: Enable strict type checking
+        - name: enable-parallel
+          type: bool
+          default: true
+          usage: Enable parallel processing
+        - name: max-concurrency
+          type: int
+          default: 10
+          usage: Maximum concurrent operations
+        - name: cache-ttl
+          type: duration
+          usage: Cache TTL duration
+    - use: export
+      short: Export analytics results to various formats
+      long: |
+        Export analytics results to JSON, CSV, or other formats.
+        Supports filtering and custom output formatting.
+      handler: runExport
+      flags:
+        - name: table
+          type: string
+          default: cost_data
+          usage: Table name for analysis
+        - name: filters
+          type: string
+          default: ""
+          usage: Type-safe filters in JSON format
+        - name: currency
+          type: string
+          default: USD
+          usage: Currency code for analysis
+        - name: group-by
+          type: string
+          default: ""
+          usage: Comma-separated fields to group by
+        - name: sort-order
+          type: string
+          default: desc
+          usage: Sort order (asc/desc)
+        - name: transformations
+          type: string
+          default: ""
+          usage: Data transformation rules in JSON format
+        - name: format
+          type: string
+          default: json
+          usage: Export format (json, csv, yaml)
+        - name: output
+          type: string
+          default: ""
+          usage: Output file path
+        - name: enable-ml
+          type: bool
+          default: true
+          usage: Enable ML forecasting features
+        - name: enable-caching
+          type: bool
+          default: true
+          usage: Enable performance caching
+        - name: strict-types
+          type: bool
+          default: false
+          usage: Enable strict type checking
+        - name: enable-parallel
+          type: bool
+          default: true
+          usage: Enable parallel processing
+        - name: max-concurrency
+          type: int
+          default: 10
+          usage: Maximum concurrent operations
+        - name: cache-ttl
+          type: duration
+          usage: Cache TTL duration

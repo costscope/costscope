@@ -1,0 +1,57 @@
+# .dockerignore for CostScope
+# Reduce Docker build context size and speed up builds.
+
+# VCS
+.git
+.git/**
+.github/**
+
+# Editors/OS
+.vscode/**
+.idea/**
+*.swp
+*.swo
+.DS_Store
+
+# Build artifacts and local binaries
+bin/**
+dist/**
+build/**
+*.log
+coverage.out
+coverage.html
+*.cov
+*.cover
+
+# Temp and caches
+.tmp/**
+tmp/**
+.cache/**
+
+# Local runtime data (not needed in image)
+logs/**
+data/**
+costscope-data/**
+
+# Archives/Backups
+_archive/**
+backups/**
+*.tar
+*.zip
+
+# Docs, examples, tests (not required to compile the binary)
+docs/**
+examples/**
+demo/**
+tests/**
+
+# Monitoring configs (only used by docker-compose)
+monitoring/**
+
+# Compose files (not needed inside the image)
+docker-compose.yml
+docker-compose.yaml
+docker-compose.*.yml
+
+# NOTE: Do NOT ignore the application source or config/
+# Keep: go.mod, go.sum, main.go, cmd/, internal/, configs/, config/

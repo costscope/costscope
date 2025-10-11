@@ -1,0 +1,79 @@
+image:
+  repository: costscope/costscope
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+service:
+  type: ClusterIP
+  port: 8080
+
+probes:
+  scheme: HTTP # or HTTPS when TLS is enabled via service mesh/sidecar or in-app TLS
+
+ingress:
+  enabled: false
+  className: nginx
+  hosts:
+    - host: costscope.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+env:
+  LOG_LEVEL: info
+  ENV: production
+  # JWT secret used for Enterprise API authentication.
+  # REQUIRED in production and must be at least 32 random bytes. The server will refuse to start otherwise.
+  COSTSCOPE_JWT_SECRET: ""
+  # Comma-separated list of allowed CORS origins (e.g., "https://app.example.com,https://admin.example.com").
+  # WARNING: Do not use "*" in production. The server emits a warning when wildcard is used under ENV=production.
+  CORS_ORIGINS: "*"
+  # In-app TLS. When enabled, the Deployment will pass TLS flags to the server and you should set probes.scheme=HTTPS,
+  # or terminate TLS at an ingress/sidecar instead.
+  TLS_ENABLED: false
+  TLS_CERT_FILE: ""
+  TLS_KEY_FILE: ""
+  # TLS hardening (optional). If unset, secure defaults are applied: min 1.2 and modern ECDHE suites.
+  # For TLS 1.3, set TLS_MIN_VERSION: "1.3" (cipher suites list is ignored by Go for TLS 1.3).
+  TLS_MIN_VERSION: "1.2"
+  # Comma-separated TLS 1.2 cipher suites by name (optional; empty = secure defaults).
+  # Examples: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+  TLS_CIPHER_SUITES: ""
+  # Prefer server cipher order when negotiating TLS 1.2 (bool). Defaults to true when omitted.
+  TLS_PREFER_SERVER_CIPHERS: true
+
+serviceMonitor:
+  enabled: true
+  interval: 15s
+
+alerts:
+  enabled: true
+
+prometheus:
+  release: prometheus
+
+postgres:
+  enabled: false
+
+redis:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  # Optionally restrict to a specific namespace name, otherwise any pod in the namespace
+  allowNamespace: ""

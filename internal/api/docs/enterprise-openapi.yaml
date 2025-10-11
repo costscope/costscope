@@ -1,0 +1,855 @@
+openapi: 3.0.0
+info:
+  title: CostScope Enterprise API
+  description: |
+    Complete enterprise API for cloud cost management and FOCUS operations.
+  version: 1.0.0
+servers:
+  - url: "http://localhost:8080/api/v1"
+    description: Development server
+  - url: https://api.costscope.com/v1
+    description: Production server
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeHealth'
+  /analytics/summary:
+    get:
+      tags: [Analytics]
+      summary: Get cost summary from a FOCUS parquet dataset
+      parameters:
+        - in: query
+          name: input
+          required: true
+          schema: { type: string }
+          description: Path/URL to FOCUS parquet file (or set COSTSCOPE_FOCUS_PARQUET)
+      responses:
+        '200':
+          description: Summary returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAnalyticsSummary'
+        '400': { description: Invalid input }
+  /analytics/top-services:
+    get:
+      tags: [Analytics]
+      summary: Top services by effective cost
+      parameters:
+        - in: query
+          name: input
+          required: true
+          schema: { type: string }
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, minimum: 1, default: 5 }
+      responses:
+        '200':
+          description: Top services list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAnalyticsTopServices'
+        '400': { description: Invalid input }
+  /analytics/trends:
+    get:
+      tags: [Analytics]
+      summary: Cost trends by time
+      parameters:
+        - in: query
+          name: input
+          required: true
+          schema: { type: string }
+        - in: query
+          name: granularity
+          required: false
+          schema:
+            type: string
+            enum: [hour, day, week, month, year]
+            default: day
+      responses:
+        '200':
+          description: Trend series
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeAnalyticsTrends'
+        '400': { description: Invalid granularity or input }
+  /focus/schemas:
+    get:
+      tags: [FOCUS]
+      summary: List supported FOCUS schema versions
+      description: Returns supported FOCUS schema identifiers (descending semantic version) with latest alias.
+      responses:
+        '200':
+          description: Schemas listed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items: { type: string }
+                    example: ["focus-1.2", "focus-1.1", "focus-1.0"]
+                  latest:
+                    type: string
+                    example: focus-1.2
+                  count:
+                    type: integer
+                    example: 3
+  # ---------------------------------------------------------------------------------
+  # Asynchronous FOCUS Conversion Jobs (Activation of previously unused ConversionManager APIs)
+  # ---------------------------------------------------------------------------------
+  /focus/conversions:
+    post:
+      tags: [FOCUS]
+      summary: Submit a FOCUS conversion job
+      description: |-
+        Submits an asynchronous conversion job. Returns 202 Accepted with a job identifier.
+        The job can be queried via GET /focus/conversions/{id}. Cancellation is supported
+        while the job is still running.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FocusConversionSubmitRequest'
+      responses:
+        '202':
+          description: Job accepted
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FocusConversionSubmitResponse'
+              example:
+                success: true
+                data:
+                  job_id: job_1737567890123456000
+                  status: accepted
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:17Z
+        '400': { description: Invalid request }
+    get:
+      tags: [FOCUS]
+      summary: List active conversion jobs
+      parameters:
+        - in: query
+          name: provider
+          required: false
+          schema: { type: string }
+          description: Optional provider filter (aws|azure|gcp)
+      responses:
+        '200':
+          description: Active jobs listed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          jobs:
+                            type: array
+                            items: { $ref: '#/components/schemas/FocusConversionJob' }
+                          total: { type: integer }
+              example:
+                success: true
+                data:
+                  jobs:
+                    - id: job_1737567890123456000
+                      status: running
+                      started_at: 2025-08-24T10:20:17Z
+                      progress:
+                        mapped_records: 125000
+                        percent_complete: 42.7
+                        effective_cost_sum: 12345.67
+                    - id: job_1737567000000000000
+                      status: queued
+                      started_at: null
+                      progress: {}
+                  total: 2
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:18Z
+  /focus/conversions/{id}:
+    get:
+      tags: [FOCUS]
+      summary: Get conversion job status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job status returned
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FocusConversionJobDetailed'
+              example:
+                success: true
+                data:
+                  id: job_1737567890123456000
+                  status: running
+                  started_at: 2025-08-24T10:20:17Z
+                  progress:
+                    mapped_records: 150000
+                    percent_complete: 51.3
+                    effective_cost_sum: 15000.42
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:19Z
+        '404': { description: Job not found }
+    delete:
+      tags: [FOCUS]
+      summary: Cancel a running conversion job
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Cancellation acknowledged
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id: { type: string }
+                          status: { type: string, example: cancelled }
+              example:
+                success: true
+                data:
+                  id: job_1737567890123456000
+                  status: cancelled
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:20Z
+        '404': { description: Job not found or not cancellable }
+  /focus/conversions/history:
+    get:
+      tags: [FOCUS]
+      summary: List recent completed conversion jobs
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, minimum: 1 }
+          description: Maximum number of history entries to return
+      responses:
+        '200':
+          description: Job history listed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          history:
+                            type: array
+                            items: { $ref: '#/components/schemas/FocusConversionHistoryEntry' }
+                          total: { type: integer }
+              example:
+                success: true
+                data:
+                  history:
+                    - id: job_1737567000000000000
+                      input_file: s3://bucket/cur-2025-08.csv.gz
+                      output_file: costscope-data/focus/cur-2025-08.parquet
+                      success: true
+                      duration_ms: 48210
+                      records_in: 350000
+                      records_out: 350000
+                    - id: job_1737566500000000000
+                      input_file: /data/aws-cur.csv.gz
+                      output_file: costscope-data/focus/aws-cur.parquet
+                      success: false
+                      duration_ms: 1023
+                      records_in: 0
+                      records_out: 0
+                  total: 2
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:21Z
+  # ---------------------------------------------------------------------------------
+  # Reports Export Metadata (additive endpoints)
+  # ---------------------------------------------------------------------------------
+  /reports/exports:
+    get:
+      tags: [Reports]
+      summary: List exported report metadata
+      description: Returns persisted export metadata when configured. Supports optional filtering & pagination.
+      parameters:
+        - in: query
+          name: format
+          required: false
+          schema: { type: string, enum: [json, csv, yaml, pdf, excel, parquet] }
+        - in: query
+          name: after
+          required: false
+          schema: { type: string, format: date-time }
+        - in: query
+          name: before
+          required: false
+          schema: { type: string, format: date-time }
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, minimum: 1, default: 50 }
+        - in: query
+          name: offset
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Export metadata listed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          exports:
+                            type: array
+                            items: { $ref: '#/components/schemas/ReportExportMetadata' }
+                          count: { type: integer }
+              example:
+                success: true
+                data:
+                  exports:
+                    - id: rpt-exp-123
+                      path: costscope-data/reports/20250824-101500-report.json
+                      format: json
+                      size_bytes: 1280
+                      checksum_sha256: 7c0f9d...
+                      created_at: 2025-08-24T10:15:00Z
+                      output_dir_source: yaml
+                  count: 1
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:30Z
+  /reports/exports/{id}/verify:
+    get:
+      tags: [Reports]
+      summary: Verify exported report integrity
+      description: Recomputes SHA256 checksum for a local export and compares with stored checksum.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Envelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id: { type: string }
+                          status: { type: string, enum: [ok, mismatch] }
+                          actual_checksum: { type: string }
+              example:
+                success: true
+                data:
+                  id: rpt-exp-123
+                  status: ok
+                  actual_checksum: 7c0f9d...
+                error: null
+                meta:
+                  timestamp: 2025-08-24T10:20:31Z
+  /streaming/jobs:
+    post:
+      tags: [Streaming]
+      summary: Start a streaming job (enterprise-only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source: { type: string, description: Path/URL to source data }
+                destination: { type: string, description: Output path/URL }
+                operation:
+                  type: string
+                  enum: [convert, analyze, validate, diff, merge, compress]
+                config:
+                  type: object
+                  properties:
+                    chunk_size_mb: { type: integer, minimum: 1, default: 100 }
+                    parallel_workers: { type: integer, minimum: 1, default: 4 }
+                    compression_enabled: { type: boolean, default: true }
+                    checkpoint_enabled: { type: boolean, default: true }
+                    validation_enabled: { type: boolean, default: false }
+                    retry_on_error: { type: boolean, default: true }
+                    max_retry_attempts: { type: integer, minimum: 0, default: 3 }
+      responses:
+        '201':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string, enum: [pending, running] }
+                  operation: { type: string }
+        '400': { description: Invalid request }
+        '501': { description: Not implemented in community/slim builds }
+    get:
+      tags: [Streaming]
+      summary: List streaming jobs
+      responses:
+        '200':
+          description: Jobs listed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        source: { type: string }
+                        destination: { type: string }
+                        status: { type: string }
+                        operation: { type: string }
+                        progress: { type: number, format: float }
+                  total: { type: integer }
+        '501': { description: Not implemented in community/slim builds }
+  /streaming/jobs/{job_id}:
+    get:
+      tags: [Streaming]
+      summary: Get streaming job
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Job details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  status: { type: string }
+                  operation: { type: string }
+                  progress: { type: number }
+                  bytes: { type: integer }
+                  total_bytes: { type: integer }
+                  started_at: { type: string, format: date-time }
+                  completed_at: { type: string, format: date-time, nullable: true }
+        '404': { description: Not found }
+        '501': { description: Not implemented in community/slim builds }
+    delete:
+      tags: [Streaming]
+      summary: Delete (cancel) a streaming job
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Deleted }
+        '404': { description: Not found }
+        '501': { description: Not implemented in community/slim builds }
+  /streaming/jobs/{job_id}/start:
+    post:
+      tags: [Streaming]
+      summary: Resume a paused job
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '202': { description: Resumed }
+        '404': { description: Not found }
+        '409': { description: Invalid state }
+        '501': { description: Not implemented in community/slim builds }
+  /streaming/jobs/{job_id}/stop:
+    post:
+      tags: [Streaming]
+      summary: Cancel a running job
+      parameters:
+        - in: path
+          name: job_id
+          required: true
+          schema: { type: string }
+      responses:
+        '202': { description: Cancellation requested }
+        '404': { description: Not found }
+        '409': { description: Invalid state }
+        '501': { description: Not implemented in community/slim builds }
+  paths:
+    /api/v1/integration/webhook/create:
+      post:
+        summary: Integration action webhook.create
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/list:
+      post:
+        summary: Integration action webhook.list
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/test:
+      post:
+        summary: Integration action webhook.test
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/delete:
+      post:
+        summary: Integration action webhook.delete
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/delivery/list:
+      post:
+        summary: Integration action webhook.delivery.list
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/delivery/retry:
+      post:
+        summary: Integration action webhook.delivery.retry
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/delivery/stats:
+      post:
+        summary: Integration action webhook.delivery.stats
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/event/list:
+      post:
+        summary: Integration action webhook.event.list
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/webhook/event/trigger:
+      post:
+        summary: Integration action webhook.event.trigger
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/start:
+      post:
+        summary: Integration action dashboard.start
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/status:
+      post:
+        summary: Integration action dashboard.status
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/stop:
+      post:
+        summary: Integration action dashboard.stop
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/config/show:
+      post:
+        summary: Integration action dashboard.config.show
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/config/set:
+      post:
+        summary: Integration action dashboard.config.set
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/config/reset:
+      post:
+        summary: Integration action dashboard.config.reset
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/widget/add:
+      post:
+        summary: Integration action dashboard.widget.add
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/widget/list:
+      post:
+        summary: Integration action dashboard.widget.list
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/widget/remove:
+      post:
+        summary: Integration action dashboard.widget.remove
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/widget/configure:
+      post:
+        summary: Integration action dashboard.widget.configure
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/plugin/install:
+      post:
+        summary: Integration action dashboard.plugin.install
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/plugin/list:
+      post:
+        summary: Integration action dashboard.plugin.list
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/plugin/enable:
+      post:
+        summary: Integration action dashboard.plugin.enable
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/dashboard/plugin/disable:
+      post:
+        summary: Integration action dashboard.plugin.disable
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+    /api/v1/integration/connections/connect:
+      post:
+        summary: Integration action connections.connect
+        tags: [Integration]
+        responses:
+          '501': { description: Not Implemented }
+components:
+  schemas:
+    Envelope:
+      type: object
+      description: Unified response envelope (additive, backward-compatible). Domain payload appears under data.
+      properties:
+        success:
+          type: boolean
+        data:
+          description: Domain payload (type varies per endpoint).
+          nullable: true
+        error:
+          $ref: '#/components/schemas/EnvelopeError'
+        meta:
+          $ref: '#/components/schemas/EnvelopeMeta'
+      required: [success]
+    EnvelopeMeta:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+        source:
+          type: string
+        extra:
+          type: object
+          additionalProperties: true
+    EnvelopeError:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+      required: [message]
+    ReportExportMetadata:
+      type: object
+      properties:
+        id: { type: string }
+        path: { type: string }
+        format: { type: string }
+        size_bytes: { type: integer }
+        checksum_sha256: { type: string }
+        created_at: { type: string, format: date-time }
+        output_dir_source: { type: string }
+      required: [id, path, format, created_at]
+    EnvelopeHealth:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: healthy
+              required: [status]
+    EnvelopeAnalyticsSummary:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                summary:
+                  type: object
+                  additionalProperties: true
+                generated_at:
+                  type: string
+                  format: date-time
+          description: Envelope containing analytics cost summary.
+    EnvelopeAnalyticsTopServices:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                top_services:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                generated_at:
+                  type: string
+                  format: date-time
+          description: Envelope containing top services by effective cost.
+    EnvelopeAnalyticsTrends:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                trends:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+                granularity:
+                  type: string
+                generated_at:
+                  type: string
+                  format: date-time
+          description: Envelope containing cost trends time series.
+    # --------------------------------------
+    # FOCUS Conversion Job Schemas
+    # --------------------------------------
+    FocusConversionSubmitRequest:
+      type: object
+      required: [provider, input_path, output_path]
+      properties:
+        provider: { type: string, enum: [aws, azure, gcp] }
+        input_path: { type: string }
+        output_path: { type: string }
+        streaming: { type: boolean, default: false }
+        chunk_size: { type: integer, minimum: 1 }
+        workers: { type: integer, minimum: 1 }
+        use_unified_mapper: { type: boolean }
+        invariants_enabled: { type: boolean }
+        invariants_baseline: { type: string }
+        invariants_tolerance: { type: number, format: float }
+    FocusConversionSubmitResponse:
+      type: object
+      properties:
+        job_id: { type: string }
+        status: { type: string, example: accepted }
+    FocusConversionJob:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string }
+        started_at: { type: string, format: date-time }
+        progress:
+          type: object
+          additionalProperties: true
+    FocusConversionJobDetailed:
+      allOf:
+        - $ref: '#/components/schemas/FocusConversionJob'
+        - type: object
+          properties:
+            completed_at: { type: string, format: date-time, nullable: true }
+            result:
+              type: object
+              additionalProperties: true
+    FocusConversionHistoryEntry:
+      type: object
+      properties:
+        id: { type: string }
+        input_file: { type: string }
+        output_file: { type: string }
+        success: { type: boolean }
+        duration_ms: { type: integer }
+        records_in: { type: integer }
+        records_out: { type: integer }
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+  - name: Analytics
+  - name: Streaming
+  - name: FOCUS
+  - name: Reports
+    description: Report generation, export metadata and integrity verification

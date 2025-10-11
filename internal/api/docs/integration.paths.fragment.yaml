@@ -1,0 +1,146 @@
+# Auto-generated minimal integration paths (placeholders)
+paths:
+  /api/v1/integration/webhook/create:
+    post:
+      summary: Integration action webhook.create
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/list:
+    post:
+      summary: Integration action webhook.list
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/test:
+    post:
+      summary: Integration action webhook.test
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/delete:
+    post:
+      summary: Integration action webhook.delete
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/delivery/list:
+    post:
+      summary: Integration action webhook.delivery.list
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/delivery/retry:
+    post:
+      summary: Integration action webhook.delivery.retry
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/delivery/stats:
+    post:
+      summary: Integration action webhook.delivery.stats
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/event/list:
+    post:
+      summary: Integration action webhook.event.list
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/webhook/event/trigger:
+    post:
+      summary: Integration action webhook.event.trigger
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/start:
+    post:
+      summary: Integration action dashboard.start
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/status:
+    post:
+      summary: Integration action dashboard.status
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/stop:
+    post:
+      summary: Integration action dashboard.stop
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/config/show:
+    post:
+      summary: Integration action dashboard.config.show
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/config/set:
+    post:
+      summary: Integration action dashboard.config.set
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/config/reset:
+    post:
+      summary: Integration action dashboard.config.reset
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/widget/add:
+    post:
+      summary: Integration action dashboard.widget.add
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/widget/list:
+    post:
+      summary: Integration action dashboard.widget.list
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/widget/remove:
+    post:
+      summary: Integration action dashboard.widget.remove
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/widget/configure:
+    post:
+      summary: Integration action dashboard.widget.configure
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/plugin/install:
+    post:
+      summary: Integration action dashboard.plugin.install
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/plugin/list:
+    post:
+      summary: Integration action dashboard.plugin.list
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/plugin/enable:
+    post:
+      summary: Integration action dashboard.plugin.enable
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/dashboard/plugin/disable:
+    post:
+      summary: Integration action dashboard.plugin.disable
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }
+  /api/v1/integration/connections/connect:
+    post:
+      summary: Integration action connections.connect
+      tags: [Integration]
+      responses:
+        '501': { description: Not Implemented }

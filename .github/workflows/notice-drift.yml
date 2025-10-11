@@ -1,0 +1,66 @@
+name: notice-drift
+
+on:
+  pull_request:
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "NOTICE"
+      - "Makefile"
+      - "scripts/license/**"
+      - "licenses.tpl"
+      - ".github/workflows/notice-drift.yml"
+  push:
+    branches: [main]
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "NOTICE"
+      - "Makefile"
+      - "scripts/license/**"
+      - "licenses.tpl"
+      - ".github/workflows/notice-drift.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  notice-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early guard (skip under act unless full)
+        id: guard
+        run: |
+          if [ "${{ github.actor }}" = "nektos/act" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+            echo "[act] Skipping notice-drift under act (enable --full to run)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: "1.24.x"
+
+      - name: NOTICE drift check
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        run: make notice-drift
+
+      - name: Summary
+        if: always()
+        run: |
+          echo '### NOTICE Drift Check' >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.guard.outputs.skip }}" = 'true' ]; then
+            echo ' NOTICE check skipped under act (enable full mode to run)' >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ job.status }}" = 'success' ]; then
+            echo ' NOTICE up to date' >> $GITHUB_STEP_SUMMARY
+          else
+            echo ' NOTICE drift detected' >> $GITHUB_STEP_SUMMARY
+          fi

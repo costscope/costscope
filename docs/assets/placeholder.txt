@@ -1,0 +1,5 @@
+Add architecture or UI screenshots (PNG/SVG) here. Referenced from README.
+Suggested names:
+- architecture_overview.png
+- focus_pipeline.png
+- metrics_dashboard.png

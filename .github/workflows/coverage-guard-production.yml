@@ -1,0 +1,51 @@
+name: Production coverage guard
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  coverage-guard-production:
+    name: Run production coverage guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Set up Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: "1.24"
+
+      - name: "Sanity: go version"
+        run: go version
+
+      - name: Cache Go modules
+        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ${{ github.workspace }}/pkg
+            ${{ github.workspace }}/.cache
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install Make
+        if: ${{ github.actor != 'nektos/act' }}
+        run: |
+          # Use sudo only if available to avoid noisy warnings in containerized runners
+          if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update || true
+            sudo apt-get install -y make || true
+          else
+            echo "sudo not available; assuming 'make' is present in runner image or provided elsewhere" >&2
+          fi
+
+      - name: Run production coverage guard
+        run: make coverage-guard-production

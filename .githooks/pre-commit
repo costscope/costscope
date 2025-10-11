@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+# Delegating pre-commit hook (versioned in repo).
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+shared="$repo_root/scripts/hooks/pre-commit.sh"
+if [ -f "$shared" ]; then
+  exec "$shared" "$@"
+fi
+echo " shared pre-commit script missing at $shared; running minimal fallback" >&2
+golangci-lint run || { echo " golangci-lint failed" >&2; exit 1; }
+go test ./... || { echo " tests failed" >&2; exit 1; }
+echo " minimal fallback checks passed" >&2

@@ -1,0 +1,270 @@
+name: Performance Benchmark
+
+env:
+  GO_VERSION: "1.24.x"
+  # Pinned golangci-lint version used by CI to keep lint output stable
+  WANT_VERSION: "v1.54.2"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - internal/core/focus/**
+      - scripts/tools/perf-bench/**
+      - scripts/tools/perf-gen-synth/**
+      - tests/perf/baseline_bench_results.json
+      - go.mod
+      - go.sum
+  pull_request:
+    branches: [main]
+    paths:
+      - internal/core/focus/**
+      - scripts/tools/perf-bench/**
+      - scripts/tools/perf-gen-synth/**
+      - tests/perf/baseline_bench_results.json
+      - go.mod
+      - go.sum
+  workflow_dispatch: {}
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: |
+          echo "Performance bench workflow has GitHub-only upload steps; under act we provide a noop for parity."
+  perf-bench:
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Prepare GOMODCACHE
+        run: |
+          # Set GOMODCACHE to a runner-local temp directory (safe against archive
+          # restores writing outside the workspace) and export it for following steps.
+          if [ -z "${GOMODCACHE:-}" ]; then
+            GOMODCACHE="${RUNNER_TEMP:-/tmp}/go/pkg/mod"
+            mkdir -p "$GOMODCACHE"
+            # Ensure cache dir is empty to avoid tar extraction conflicts (previous
+            # runs or leftover files can cause 'Cannot open: File exists').
+            rm -rf "$GOMODCACHE"/* || true
+            # Show contents for diagnostics
+            echo "GOMODCACHE contents after cleanup:"; ls -la "$GOMODCACHE" || true
+            echo "GOMODCACHE=$GOMODCACHE" >> "$GITHUB_ENV"
+            echo "Prepared GOMODCACHE=$GOMODCACHE"
+          else
+            mkdir -p "${GOMODCACHE}"
+            rm -rf "${GOMODCACHE}"/* || true
+            echo "GOMODCACHE contents after cleanup:"; ls -la "${GOMODCACHE}" || true
+            echo "Prepared GOMODCACHE=${GOMODCACHE}"
+          fi
+
+      - name: Cache Go modules (restore to temp)
+        uses: actions/cache@v4
+        with:
+          # Restore into a runner-local temporary directory to avoid direct
+          # extraction into $GOMODCACHE which can produce conflicting file types
+          # during archive restore. We'll promote into GOMODCACHE atomically.
+          path: ${{ runner.temp }}/go-mod-cache-restore
+          key: go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-
+
+      - name: Promote cached modules into GOMODCACHE safely
+        run: |
+          set -euo pipefail
+          TMP_CACHE="${RUNNER_TEMP:-/tmp}/go-mod-cache-restore"
+          mkdir -p "$TMP_CACHE" "$GOMODCACHE"
+          echo "Promoting cached modules from $TMP_CACHE -> $GOMODCACHE"
+          # Use rsync to preserve layout and perform a delete sync to keep parity
+          rsync -a --delete "$TMP_CACHE/" "$GOMODCACHE/" || true
+          echo "GOMODCACHE contents after promotion:"; ls -la "$GOMODCACHE" | sed -n '1,120p' || true
+
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Generate code (mocks / codegen)
+        run: |
+          set -e
+          if make -n generate >/dev/null 2>&1; then
+            echo "Running 'make generate'"
+            make generate
+          else
+            echo "Running 'go generate ./...'"
+            go generate ./... || true
+          fi
+
+      - name: Install golangci-lint (build with runner Go via go install)
+        run: |
+          set -euo pipefail
+          echo "Installing golangci-lint via go install at ${WANT_VERSION} (built with runner Go)"
+          GOBIN="$(go env GOPATH)/bin"
+          mkdir -p "$GOBIN"
+          # Build golangci-lint with the runner's Go toolchain to ensure export-data compatibility
+          GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint@${WANT_VERSION}
+          echo "GOBIN=$GOBIN"
+          if [ -n "${GITHUB_PATH:-}" ]; then
+            echo "$GOBIN" >> "$GITHUB_PATH"
+          else
+            echo "::add-path::$GOBIN"
+          fi
+
+      - name: Show golangci-lint version
+        run: |
+          GOLANGCI_BIN="$(go env GOPATH)/bin/golangci-lint"
+          if [ -x "$GOLANGCI_BIN" ]; then
+            "$GOLANGCI_BIN" version || true
+          else
+            echo "golangci-lint not found at $GOLANGCI_BIN" >&2
+            exit 1
+          fi
+
+      - name: Pre-lint diagnostics (go list + ls)
+        run: |
+          set -e
+          echo "Go environment:"
+          go env
+          echo
+          echo "Go list (packages visible to default build):"
+          go list -json ./... | sed -n '1,200p' || true
+          echo
+          echo "Files in internal/database (sample):"
+          ls -la internal/database | sed -n '1,200p' || true
+
+      - name: Run golangci-lint (with duckdb build tag)
+        run: |
+          set -e
+          # Ensure lint runs with the duckdb build tag so implementations guarded by
+          # //go:build duckdb are visible to the typechecker.
+          set -euo pipefail
+          GOLANGCI_BIN="$(go env GOPATH)/bin/golangci-lint"
+          # Use the GitHub Actions formatter only when running inside GitHub Actions.
+          # Local runners (like act) may have different golangci-lint builds that
+          # don't support the `--out-format` flag, which causes an error. Guard
+          # the flag to keep CI behavior while staying compatible with local runs.
+          if [ -n "${GITHUB_ACTIONS:-}" ]; then
+            "$GOLANGCI_BIN" run --build-tags 'duckdb' --verbose --out-format=github-actions ./...
+          else
+            "$GOLANGCI_BIN" run --build-tags 'duckdb' --verbose ./...
+          fi
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Prepare e2e test fixtures
+        run: |
+          # Ensure the host workspace has the expected e2e fixtures that are
+          # mounted into the container at /data during act runs.
+          # The project provides a helper script to generate these fixtures.
+          if [ -x ./scripts/e2e/run.sh ]; then
+            ./scripts/e2e/run.sh
+          else
+            echo "scripts/e2e/run.sh not found or not executable"
+          fi
+          # Basic verification: fail early if the key CSVs are missing.
+          ls -la tmp/e2e/data || true
+          test -f tmp/e2e/data/aws-cur.csv || (echo "Missing aws-cur.csv in tmp/e2e/data" && exit 1)
+          test -f tmp/e2e/data/test.csv || (echo "Missing test.csv in tmp/e2e/data" && exit 1)
+
+      - name: Generate synthetic dataset
+        run: make perf-gen-synth
+
+      - name: Run perf benchmark
+        env:
+          PERF_BENCH_DURATION_MAX: "1.15"
+          PERF_BENCH_ALLOC_MAX: "1.20"
+        run: |
+          # Ensure outputs are written into the workspace so they persist outside the container
+          EXTRA_OUT_ARGS="--baseline tests/perf/baseline_bench_results.json -output \"$GITHUB_WORKSPACE/bench_results.json\" -prom-output \"$GITHUB_WORKSPACE/perf_metrics.prom\""
+          make perf-bench-synth EXTRA_ARGS="$EXTRA_OUT_ARGS"
+
+      - name: Upload bench results artifact
+        if: ${{ github.actor != 'nektos/act' }}
+        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: perf-bench-results
+          path: |
+            bench_results.json
+            perf_metrics.prom
+            tests/perf/baseline_bench_results.json
+
+      - name: Fail if regression detected
+        if: ${{ always() }}
+        run: |
+          if grep -q '"overall_status": "fail"' bench_results.json; then
+            echo "Performance regression detected" >&2
+            exit 1
+          fi
+
+  perf-bench-perf-engine:
+    name: Perf Engine Micro Benches (optional)
+    runs-on: ubuntu-latest
+    needs: perf-bench
+    if: ${{ always() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Prepare GOMODCACHE
+        run: |
+          if [ -z "${GOMODCACHE:-}" ]; then
+            GOMODCACHE="${RUNNER_TEMP:-/tmp}/go/pkg/mod"
+            mkdir -p "$GOMODCACHE"
+            rm -rf "$GOMODCACHE"/* || true
+            echo "GOMODCACHE contents after cleanup:"; ls -la "$GOMODCACHE" || true
+            echo "GOMODCACHE=$GOMODCACHE" >> "$GITHUB_ENV"
+            echo "Prepared GOMODCACHE=$GOMODCACHE"
+          else
+            mkdir -p "${GOMODCACHE}"
+            rm -rf "${GOMODCACHE}"/* || true
+            echo "GOMODCACHE contents after cleanup:"; ls -la "${GOMODCACHE}" || true
+            echo "Prepared GOMODCACHE=${GOMODCACHE}"
+          fi
+
+      - name: Cache Go modules (restore to temp)
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/go-mod-cache-restore
+          key: go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-
+
+      - name: Promote cached modules into GOMODCACHE safely
+        run: |
+          set -euo pipefail
+          TMP_CACHE="${RUNNER_TEMP:-/tmp}/go-mod-cache-restore"
+          mkdir -p "$TMP_CACHE" "$GOMODCACHE"
+          echo "Promoting cached modules from $TMP_CACHE -> $GOMODCACHE"
+          rsync -a --delete "$TMP_CACHE/" "$GOMODCACHE/" || true
+          echo "GOMODCACHE contents after promotion:"; ls -la "$GOMODCACHE" | sed -n '1,120p' || true
+
+      - name: Setup Go
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Download deps
+        run: go mod download
+      - name: Generate synthetic dataset
+        run: make perf-gen-synth
+      - name: Run perf benchmark (with perf engine)
+        run: |
+          go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz \
+            -iterations 1 -include-perf-engine -perf-ops 3000 -output "$GITHUB_WORKSPACE/bench_results_perf_engine.json" || true
+      - name: Upload perf-engine bench artifact
+        if: ${{ github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: perf-bench-perf-engine-results
+          path: bench_results_perf_engine.json
+      - name: Note status
+        run: |
+          if grep -q '"perf_engine"' bench_results_perf_engine.json; then
+            echo "Perf engine micro-bench section present"; else echo "Perf engine section missing"; fi

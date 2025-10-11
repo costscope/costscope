@@ -1,0 +1,2 @@
+BillingAccountId,BillingAccountName,BillingCurrency,SubscriptionId,SubscriptionName,ServiceName,ServiceFamily,ResourceId,ResourceName,ResourceType,ResourceLocation,Quantity,UnitOfMeasure,AmortizedCost,RetailPrice,UsageStart,UsageEnd,Tags
+BA-1,Main,usd,sub-123,Dev,Virtual Machines,Compute,/subs/sub-123/rg/rg1/vm/vm1,vm1,Microsoft.Compute/virtualMachines,East US,10,Hours,12.34,1.50,2024-01-01T00:00:00Z,2024-01-01T01:00:00Z,"{""env"":""dev""}"

@@ -1,0 +1,23 @@
+{
+  "row_count": 3,
+  "sum_effective_cost": 8.04,
+  "sum_list_cost": 22.6,
+  "sum_usage_quantity": 16,
+  "charge_category_distribution": {
+    "Credit": 33.33333333333333,
+    "Tax": 33.33333333333333,
+    "Usage": 33.33333333333333
+  },
+  "pricing_category_distribution": {
+    "Reserved": 33.33333333333333,
+    "Standard": 66.66666666666666
+  },
+  "provider_distribution": {
+    "Microsoft Azure": 100
+  },
+  "negative_usage_allowed_count": 0,
+  "negative_usage_violation_count": 0,
+  "generated_at": "2025-08-14T09:23:35.786338Z",
+  "violations": [],
+  "metadata": {"baseline_source": "generated"}
+}

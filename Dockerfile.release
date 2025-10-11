@@ -1,0 +1,40 @@
+FROM alpine:3.20
+
+# Metadata arguments (populated by mk/release.mk)
+ARG VERSION=dev
+ARG COMMIT=none
+ARG BUILD_DATE=unknown
+ARG GOVERSION=unknown
+ARG SOURCE_REPO="https://github.com/your/repo"
+
+# OCI labels using the provided build args
+LABEL org.opencontainers.image.source=${SOURCE_REPO}
+LABEL org.opencontainers.image.version=${VERSION}
+LABEL org.opencontainers.image.revision=${COMMIT}
+
+# Minimal runtime deps
+RUN apk --no-cache add ca-certificates tzdata
+
+# Create non-root user
+RUN addgroup -g 1001 -S costscope && \
+    adduser -u 1001 -S costscope -G costscope
+
+WORKDIR /app
+
+# Copy prebuilt release binary from build context (expected: ./costscope created by make build-release)
+COPY costscope /app/costscope
+# Copy configs if present
+COPY configs ./configs
+
+RUN chown -R costscope:costscope /app && chmod +x /app/costscope
+
+USER costscope
+
+EXPOSE 8080
+
+# Healthcheck that reflects service readiness
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=5 \
+    CMD wget -q -O - http://127.0.0.1:8080/health/ready >/dev/null 2>&1 || exit 1
+
+# Default command
+CMD ["./costscope", "enterprise", "--host", "0.0.0.0", "--port", "8080"]

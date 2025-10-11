@@ -1,0 +1,25 @@
+name: Docs checks
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Run docs checks (skip link check under act)
+        run: |
+          set -euo pipefail
+          make check-docs
+          make docs-placeholder-guard
+          if [ "${{ github.actor }}" = "nektos/act" ]; then
+            echo "[act] Skipping make docs-link-check due to external network variability"
+          else
+            make docs-link-check
+          fi

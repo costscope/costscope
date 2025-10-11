@@ -1,0 +1,22 @@
+{
+  "row_count": 4,
+  "sum_effective_cost": -4.76,
+  "sum_list_cost": -4.76,
+  "sum_usage_quantity": 115,
+  "charge_category_distribution": {
+    "Credit": 75,
+    "Usage": 25
+  },
+  "pricing_category_distribution": {
+  "Standard": 75,
+  "Spot": 25
+  },
+  "provider_distribution": {
+    "Google Cloud Platform": 100
+  },
+  "negative_usage_allowed_count": 0,
+  "negative_usage_violation_count": 0,
+  "generated_at": "2025-08-14T11:58:00Z",
+  "violations": [],
+  "metadata": {"baseline_source": "generated"}
+}

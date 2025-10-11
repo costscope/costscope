@@ -1,0 +1,78 @@
+environment: development
+data_dir: ./data
+
+core:
+  app_name: costscope
+  version: 1.0.0
+  log_level: debug
+  data_directory: ./data
+  temp_directory: ./temp
+  max_concurrency: 4
+  timeout: "30s"
+
+providers:
+  aws:
+    enabled: true
+    region: us-east-1
+    profile: default
+    access_key: "AKIAEXAMPLEACCESSKEY"
+    secret_key: "EXAMPLESECRETKEY"
+    role_arn: "arn:aws:iam::123456789012:role/costscope-role"
+    max_retries: 3
+    request_timeout: "30s"
+  azure:
+    enabled: false
+    request_timeout: 30s
+  gcp:
+    enabled: false
+    request_timeout: 30s
+
+database:
+  type: sqlite
+  connection_string: ./costscope-dev.db
+  max_connections: 10
+  max_idle_connections: 5
+  connection_timeout: 10s
+  query_timeout: 30s
+  migrations_path: ./migrations
+  auto_migrate: true
+
+streaming:
+  max_concurrent_jobs: 3
+  default_workers: 2
+  default_memory: 256
+  job_timeout: 300s
+  progress_interval: "5s"
+
+# FOCUS defaults
+focus:
+  # When true, enables the experimental unified mapper by default for convert operations
+  # CLI flag --use-unified-mapper overrides this; env COSTSCOPE_USE_UNIFIED_MAPPER overrides only when CLI flag not set
+  use_unified_mapper_default: false
+  progress_interval: 10s
+  checkpoint_enabled: true
+  checkpoint_dir: ./checkpoints
+
+security:
+  encryption_enabled: false
+  tls_enabled: false
+  token_expiry: 3600s
+  jwt_secret: "dev-secret-placeholder"
+
+reports:
+  output_dir: ./data/reports
+  # Optional metadata persistence (leave unset for in-memory only).
+  # Path heuristics:
+  #  - Starts with sqlite:// OR ends with .db/.sqlite/.sqlite3 -> SQLite backend (requires build with -tags sqlite)
+  #  - Anything else -> JSON Lines file backend
+  # metadata_store_path: sqlite:///absolute/path/to/reports_meta.db
+  # Retention (opportunistic pruning after each save). 0 disables each limit.
+  # metadata_retention_max_records: 5000   # Cap total stored metadata records (oldest first)
+  # metadata_retention_max_age: 720h       # Prune records older than this duration
+
+multi_tenant:
+  # FEATURE FLAG: Multi-tenant skeleton (TASK-MULTITENANT-SKEL). Disabled by default – no behavior change.
+  enabled: false
+  # Optional per-tenant quotas (0 = unlimited)
+  max_jobs_per_tenant: 0
+  max_active_jobs_per_tenant: 0

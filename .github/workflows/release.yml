@@ -1,0 +1,220 @@
+name: release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (SemVer, e.g. v0.1.0-rc1)"
+        required: true
+      prerelease:
+        description: "Mark as prerelease"
+        required: false
+        default: "true"
+
+permissions:
+  contents: write
+  id-token: write # for keyless signing (cosign)
+
+env:
+  GO_VERSION: "1.24.x"
+  PROJECT_NAME: costscope
+  REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/costscope
+  SYFT_VERSION: v1.18.0
+  GITCLIFF_VERSION: v0.10.0
+  COSIGN_VERSION: v2.2.4
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    name: noop (act)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain act path
+        run: |
+          echo "Release workflow performs signing, artifact uploads, and GH release creation."
+          echo "Under nektos/act we skip all jobs; use 'make build' locally to validate."
+  sbom:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: sbom-verify (source tree)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Ensure clean working tree
+        run: |
+          set -euo pipefail
+          if [ "${SMOKE_ALLOW_DIRTY:-}" != "" ]; then
+            echo "Disallowed environment variable SMOKE_ALLOW_DIRTY detected in CI" >&2
+            exit 1
+          fi
+          scripts/check-clean-repo.sh || { echo 'Repository is dirty; aborting release prepare step' >&2; exit 1; }
+      - name: Setup Go (for syft install path if needed)
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Generate & validate SBOM (make sbom-syft + sbom-verify)
+        run: |
+          make sbom-syft
+          make sbom-verify
+      - name: Upload SBOM artifact (pre-build)
+        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sbom-source
+          path: |
+            sbom-syft.json
+            sbom.json
+  prepare:
+    # Only run prepare when triggered by a tag ref or when manually dispatched
+    if: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Derive version
+        id: meta
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_PRERELEASE: ${{ github.event.inputs.prerelease }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+        run: bash ./scripts/release/derive-version.sh
+
+      - name: Install git-cliff
+        env:
+          GITCLIFF_VERSION: ${{ env.GITCLIFF_VERSION }}
+        run: bash ./scripts/release/install-git-cliff.sh
+
+      - name: Generate / update CHANGELOG
+        run: bash ./scripts/release/generate-changelog.sh "${{ steps.meta.outputs.version }}"
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-notes
+          path: RELEASE_NOTES.md
+
+  build:
+    if: ${{ github.actor != 'nektos/act' }}
+    needs: [prepare, sbom]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: "Sanity: go version"
+        run: go version
+      - name: Build binary
+        run: |
+          set -euo pipefail
+          echo "Building $PROJECT_NAME for ${{ matrix.goos }} / ${{ matrix.goarch }} ($VERSION)"
+          out="${PROJECT_NAME}-${VERSION}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 \
+            go build -ldflags "-s -w -X main.version=$VERSION -extldflags '-Wl,-dead_strip -Wl,-x'" -trimpath -o "$out" .
+          tar czf "$out.tar.gz" "$out"
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.goos }}-${{ matrix.goarch }}
+          path: |
+            costscope-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}
+            costscope-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
+
+  aggregate:
+    if: ${{ github.actor != 'nektos/act' }}
+    needs: [prepare, build, sbom]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+      - name: Download build artifacts
+        # pinned actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 — source: https://github.com/actions/download-artifact/commits/main (2025-09-28)
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: dist
+      - name: List artifacts
+        run: ls -R dist || true
+      - name: Install syft (pinned)
+        env:
+          SYFT_VERSION: ${{ env.SYFT_VERSION }}
+        run: bash ./scripts/release/install-syft.sh
+      - name: Install cosign (action)
+        # pinned sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 — source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+      - name: Generate SBOM (source)
+        run: syft dir:. -o cyclonedx-json=sbom.json
+      - name: Checksums + sign + attest
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: bash ./scripts/release/checksums-and-sign.sh
+      - name: Upload aggregated artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-bundle
+          path: |
+            dist
+            checksums.txt
+            checksums.txt.sig
+            sbom.json
+
+      - name: Download release notes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: release-notes
+          path: .
+
+      - name: Create GitHub Release (draft)
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: ${{ needs.prepare.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: true
+          prerelease: ${{ needs.prepare.outputs.prerelease }}
+          files: |
+            dist/**
+            checksums.txt
+            checksums.txt.sig
+            sbom.json
+
+      - name: Summary
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+        run: bash ./scripts/release/summary.sh

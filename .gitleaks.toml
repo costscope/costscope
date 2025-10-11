@@ -1,0 +1,15 @@
+title = "CostScope gitleaks config"
+
+[allowlist]
+  description = "Allow common test fixtures and false positives"
+  files = [
+    "^docs/",
+    "^monitoring/",
+    "^charts/.*/values.yaml$",
+    "^examples/",
+    "^_archive/",
+    "^backups/"
+  ]
+  regexes = [
+    "(?i)dummy|example|placeholder|changeme",
+  ]

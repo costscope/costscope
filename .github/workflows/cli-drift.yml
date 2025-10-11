@@ -1,0 +1,52 @@
+name: CLI Command Drift Guard
+
+on:
+  pull_request:
+    paths:
+      - "cmd/modules/analytics/commands/command_spec.yaml"
+      - "cmd/modules/multicloud/commands/command_spec.yaml"
+      - "scripts/tools/commandgen/**"
+      - "cmd/modules/analytics/commands/zz_generated_command_builder.go"
+      - "cmd/modules/multicloud/commands/zz_generated_command_builder.go"
+      - "Makefile"
+  push:
+    branches: [main, master]
+    paths:
+      - "cmd/modules/analytics/commands/command_spec.yaml"
+      - "cmd/modules/multicloud/commands/command_spec.yaml"
+      - "scripts/tools/commandgen/**"
+      - "cmd/modules/analytics/commands/zz_generated_command_builder.go"
+      - "cmd/modules/multicloud/commands/zz_generated_command_builder.go"
+      - "Makefile"
+
+jobs:
+  cli-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: "1.24.x"
+      - name: Generate command builders & drift check
+        run: |
+          make gen-commands-drift || {
+            echo "CLI command drift detected" > cli-drift-summary.txt
+            exit 1
+          }
+      - name: Capture diff artifact on failure
+        if: failure()
+        run: |
+          git --no-pager diff > cli-diff.patch || true
+      - name: Upload diff artifact
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: cli-command-diff
+          path: |
+            cli-diff.patch
+            cli-drift-summary.txt
+          if-no-files-found: ignore

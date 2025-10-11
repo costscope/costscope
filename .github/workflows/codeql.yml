@@ -1,0 +1,45 @@
+name: CodeQL
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+    security-events: write
+
+jobs:
+    noop-act:
+        # Skip by default when running locally under nektos/act; allow manual dispatch
+        if: ${{ github.actor == 'nektos/act' && github.event_name != 'workflow_dispatch' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: noop (act)
+              run: echo "Skipping CodeQL under act; use GitHub-hosted runners for real analysis."
+
+    analyze:
+        # Run on GitHub-hosted or when manually dispatched
+        if: ${{ github.actor != 'nektos/act' || github.event_name == 'workflow_dispatch' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        steps:
+            - name: Checkout repository
+              # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+              uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+            - name: Initialize CodeQL (Go)
+              # pinned github/codeql-action@528ca598d956c91826bd742262cdfc5d02b77710 — source: https://github.com/github/codeql-action/commits/main
+              uses: github/codeql-action/init@528ca598d956c91826bd742262cdfc5d02b77710
+              with:
+                  languages: go
+
+            - name: Autobuild
+              uses: github/codeql-action/autobuild@528ca598d956c91826bd742262cdfc5d02b77710
+
+            - name: Perform CodeQL Analysis
+              uses: github/codeql-action/analyze@528ca598d956c91826bd742262cdfc5d02b77710
+              with:
+                  category: "/language:go"

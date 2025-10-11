@@ -1,0 +1,54 @@
+environment: production
+data_dir: /app/data
+
+core:
+  app_name: costscope
+  version: 1.0.0
+  log_level: info
+  data_directory: /app/data
+  temp_directory: /app/temp
+  max_concurrency: 12
+  timeout: "60s"
+
+providers:
+  aws:
+    enabled: true
+    region: us-east-1
+    profile: "default"
+    access_key: "AKIAEXAMPLEACCESSKEY"
+    secret_key: "EXAMPLESECRETKEY"
+    role_arn: "arn:aws:iam::123456789012:role/costscope-role"
+    max_retries: 5
+    request_timeout: "60s"
+  azure:
+    enabled: false
+    request_timeout: 60s
+  gcp:
+    enabled: false
+    request_timeout: 60s
+
+database:
+  type: postgres
+  connection_string: postgres://costscope:${POSTGRES_PASSWORD}@postgres:5432/costscope
+  max_connections: 30
+  max_idle_connections: 10
+  connection_timeout: 30s
+  query_timeout: 60s
+  migrations_path: /app/migrations
+  auto_migrate: false
+
+streaming:
+  max_concurrent_jobs: 15
+  default_workers: 6
+  default_memory: 1536
+  job_timeout: 1200s
+  progress_interval: 20s
+  checkpoint_enabled: true
+  checkpoint_dir: /app/checkpoints
+
+security:
+  encryption_enabled: true
+  encryption_key: ${ENCRYPTION_KEY}
+  tls_enabled: false
+  token_expiry: 3600s
+  jwt_secret: "docker-placeholder-secret"

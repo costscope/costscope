@@ -1,0 +1,82 @@
+environment: production
+data_dir: /opt/costscope/data
+
+core:
+  app_name: costscope
+  version: 1.0.0
+  log_level: info
+  data_directory: /opt/costscope/data
+  temp_directory: /opt/costscope/temp
+  max_concurrency: 16
+  timeout: "60s"
+
+providers:
+  aws:
+    enabled: true
+    region: us-east-1
+    # Use IAM role in production, not profile
+    profile: "default"
+    access_key: "AKIAEXAMPLEACCESSKEY"
+    secret_key: "EXAMPLESECRETKEY"
+    role_arn: "arn:aws:iam::123456789012:role/costscope-role"
+    max_retries: 5
+    request_timeout: "60s"
+  azure:
+    enabled: false
+    request_timeout: 60s
+  gcp:
+    enabled: false
+    request_timeout: 60s
+
+database:
+  type: postgres
+  connection_string: postgres://costscope:${DB_PASSWORD}@db-cluster:5432/costscope?sslmode=require
+  max_connections: 50
+  max_idle_connections: 10
+  connection_timeout: 30s
+  query_timeout: 60s
+  migrations_path: /opt/costscope/migrations
+  auto_migrate: false
+
+streaming:
+  max_concurrent_jobs: 20
+  default_workers: 8
+  default_memory: 2048
+  job_timeout: 1800s
+  progress_interval: 30s
+  checkpoint_enabled: true
+  checkpoint_dir: /opt/costscope/checkpoints
+
+security:
+  encryption_enabled: true
+  encryption_key: ${ENCRYPTION_KEY}
+  tls_enabled: false
+  tls_cert_path: ""
+  tls_key_path: ""
+  token_expiry: 7200s
+  jwt_secret: "production-placeholder-secret"
+
+focus:
+  # Default for API/CLI when not explicitly provided
+  # CLI flag --use-unified-mapper overrides this; env COSTSCOPE_USE_UNIFIED_MAPPER applies when CLI flag not set
+  use_unified_mapper_default: false
+
+reports:
+  # Base directory or object storage prefix for generated reports when --output not specified
+  # Example for object storage: s3://my-bucket/costscope/reports
+  output_dir: /opt/costscope/reports
+  # Metadata persistence (optional). If unset, in-memory only and lost on restart.
+  # Use sqlite for durability in production (requires -tags sqlite build; falls back to file if init fails):
+  # metadata_store_path: sqlite:///opt/costscope/reports_meta.db
+  # Or file-based JSON Lines persistence:
+  # metadata_store_path: /opt/costscope/reports_meta.jsonl
+  # Retention controls (0 disables):
+  # metadata_retention_max_records: 20000   # Keep only the most recent 20k records
+  # metadata_retention_max_age: 720h        # ~30 days
+
+multi_tenant:
+  # FEATURE FLAG: Multi-tenant skeleton (TASK-MULTITENANT-SKEL). Disabled by default.
+  enabled: false
+  # Quotas (0 = unlimited). Tune cautiously; high values may impact memory.
+  max_jobs_per_tenant: 0
+  max_active_jobs_per_tenant: 0

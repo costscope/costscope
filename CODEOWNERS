@@ -1,0 +1,39 @@
+# CODEOWNERS - defines individuals or teams responsible for code in this repository.
+# Use GitHub handles or team names (@org/team). Adjust to your org structure.
+
+# Global default owners (fallback)
+* @costscope-maintainers
+
+# Core converters (FOCUS provider mappings)
+internal/core/focus/conversion/ @costscope-focus @costscope-maintainers
+
+# API layer & middleware
+internal/api/ @costscope-api @costscope-maintainers
+
+# Security / RBAC / auth
+internal/core/security/ @costscope-security @costscope-maintainers
+configs/rbac_* @costscope-security @costscope-maintainers
+
+# Documentation
+docs/ @costscope-docs @costscope-maintainers
+README.md @costscope-docs @costscope-maintainers
+
+# Streaming / job management
+internal/core/streaming/ @costscope-streaming @costscope-maintainers
+
+# Database & query builder
+internal/database/ @costscope-data @costscope-maintainers
+
+# CLI modules
+cmd/ @costscope-cli @costscope-maintainers
+
+# Build & release assets
+Makefile @costscope-build @costscope-maintainers
+scripts/ @costscope-build @costscope-maintainers
+
+# Security policy & governance
+SECURITY.md @costscope-security @costscope-maintainers
+CODE_OF_CONDUCT.md @costscope-maintainers
+CONTRIBUTING.md @costscope-maintainers
+docs/SUPPORT.md @costscope-maintainers
+CODEOWNERS @costscope-maintainers

@@ -1,0 +1,6 @@
+site_name: CostScope Docs
+nav:
+  - Home: README.md
+  - Documentation: "docs/DOCUMENTATION_INDEX.md"
+extra:
+  repo_name: costscope

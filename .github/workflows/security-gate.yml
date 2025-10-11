@@ -1,0 +1,155 @@
+name: security-gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: |
+          echo "security-gate guarded to skip under act; providing a successful placeholder."
+          echo "Tip: locally run 'make security-tools-install && bash scripts/security-gate.sh' for parity."
+  security-gate:
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      RUN_UPLOADS: "false"
+      GITLEAKS_VERSION: 8.18.1
+      GOSEC_VERSION: v2.21.0
+      GOVULNCHECK_VERSION: v1.1.1
+      TRIVY_VERSION: v0.51.1
+      TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
+      GOSEC_FAIL_LEVEL: HIGH
+      TRIVY_SEVERITIES: CRITICAL,HIGH
+      GITLEAKS_ALLOW_FINDINGS: "0"
+      FAIL_ON_MISSING_TOOLS: "1"
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Record run metadata (early)
+        run: |
+          if [ -z "$ACTIONS_RUNTIME_TOKEN" ]; then
+            echo "note: ACTIONS_RUNTIME_TOKEN not present (likely local/act run)" > SECURITY_RUN_METADATA.md
+          else
+            echo "note: ACTIONS_RUNTIME_TOKEN present" > SECURITY_RUN_METADATA.md
+          fi
+
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: "Sanity: go version"
+        run: go version
+
+      - name: Cache security data
+        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c - source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            .trivy-cache
+          key: sec-${{ runner.os }}-${{ hashFiles('go.sum') }}-${{ env.TRIVY_VERSION }}
+
+      - name: Install security tools
+        run: |
+          set -euxo pipefail
+          # Use sudo only when available to avoid noisy warnings in containerized runners
+          if command -v sudo >/dev/null 2>&1; then SUDO=sudo; else SUDO=; fi
+          $SUDO apt-get update -y || true
+          $SUDO apt-get install -y jq || true
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz | tar -xz gitleaks
+          # Try to install into /usr/local/bin if permitted, otherwise leave in workspace bin
+          if [ -w /usr/local/bin ]; then
+            $SUDO mv gitleaks /usr/local/bin/
+          else
+            mkdir -p ./bin
+            mv gitleaks ./bin/
+            echo "PATH=$PWD/bin:$PATH" >> $GITHUB_ENV
+          fi
+          go install github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}
+          go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
+          # Install trivy in a pinned manner using `go install` to avoid piping remote scripts.
+          # We rely on the earlier 'Setup Go' step to provide a Go toolchain.
+          if command -v go >/dev/null 2>&1; then
+            # TRIVY_VERSION is expected to be a semver with leading 'v', e.g. v0.51.1
+            # Use the v4 module path and pin to the exact version.
+            GO_BIN_DIR=$(go env GOPATH)/bin
+            if go install github.com/aquasecurity/trivy/v4/cmd/trivy@${TRIVY_VERSION}; then
+              echo "PATH=$GO_BIN_DIR:$PATH" >> $GITHUB_ENV
+            else
+              echo "warning: go install for trivy@${TRIVY_VERSION} failed; trivy may be unavailable" >&2
+            fi
+          else
+            echo "warning: 'go' not available; skipping trivy install (tool may be missing)" >&2
+          fi
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          trivy --version || true
+          gitleaks version || true
+          gosec -version || true
+          govulncheck -version || true
+
+      - name: Pre-download Trivy DB
+        run: trivy --cache-dir "$TRIVY_CACHE_DIR" image --download-db-only alpine:3.19 || true
+
+      - name: Run security gate
+        run: |
+          chmod +x scripts/security-gate.sh
+          bash scripts/security-gate.sh
+
+      - name: Record run metadata
+        run: |
+          if [ -z "$ACTIONS_RUNTIME_TOKEN" ]; then
+            echo "note: ACTIONS_RUNTIME_TOKEN not present (likely local/act run)" > SECURITY_RUN_METADATA.md
+          else
+            echo "note: ACTIONS_RUNTIME_TOKEN present" > SECURITY_RUN_METADATA.md
+          fi
+
+      - name: Ensure SECURITY_REPORT.md exists
+        if: always()
+        run: |
+          if [ ! -f SECURITY_REPORT.md ]; then
+            echo "# SECURITY REPORT - placeholder" > SECURITY_REPORT.md
+            echo "A prior step failed to generate the full SECURITY_REPORT.md. Check earlier logs for errors." >> SECURITY_REPORT.md
+          fi
+
+      - name: Append summary
+        if: always()
+        run: |
+          echo '## SECURITY REPORT' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f SECURITY_RUN_METADATA.md ]; then
+            echo '### Run metadata' >> "$GITHUB_STEP_SUMMARY"
+            cat SECURITY_RUN_METADATA.md >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          sed -n '1,120p' SECURITY_REPORT.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts
+        if: env.RUN_UPLOADS == 'true'
+        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 - source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: security-gate-artifacts
+          path: |
+            SECURITY_REPORT.md
+            SECURITY_RUN_METADATA.md
+            gitleaks-report.json
+            gosec-report.json
+            govulncheck-report.json
+            trivy-report.json

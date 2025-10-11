@@ -1,0 +1,65 @@
+name: Pin GitHub Actions
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (do not modify files)"
+        required: false
+        default: "true"
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/**
+      - scripts/tools/pin-actions.sh
+
+permissions:
+  contents: write
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Run pinning script
+        id: pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event.inputs.dry_run || 'true' }}" == "true" ]]; then
+            echo "Running in dry-run mode"
+            bash scripts/tools/pin-actions.sh --dry-run | tee pin.log
+          else
+            bash scripts/tools/pin-actions.sh | tee pin.log
+          fi
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          sed -n '1,200p' pin.log >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: ${{ (github.event_name != 'workflow_dispatch' || (github.event.inputs.dry_run != 'true')) && github.actor != 'nektos/act' }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b chore/pin-actions-$(date +%Y%m%d%H%M%S)
+          git add .github/workflows scripts/tools/pin-actions.sh
+          git commit -m "ci: pin GitHub Actions to commit SHAs"
+          git push -u origin HEAD || true
+
+      - name: Job Summary
+        run: |
+          echo '## Pin Actions Summary' >> $GITHUB_STEP_SUMMARY
+          sed -n '1,200p' pin.log >> $GITHUB_STEP_SUMMARY || true
+      - name: Note ACT environment (skip push)
+        if: ${{ github.actor == 'nektos/act' }}
+        run: echo "Running under ACT; skipped push step"

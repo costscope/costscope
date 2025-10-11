@@ -1,0 +1,44 @@
+%% architecture.mmd - Mermaid source for architecture overview
+%% Generation:
+%% npx @mermaid-js/mermaid-cli -i docs/diagrams-src/architecture.mmd -o docs/assets/architecture_overview.png
+%% Update DIAGRAMS.md if this command changes.
+
+flowchart TD
+  subgraph API[API Layer]
+    A[Auth / RBAC]
+    R[REST Handlers]
+    W[WebSocket]
+  end
+
+  subgraph CORE[Core Modules]
+    FOCUS[FOCUS Conversion]
+    ANALYTICS[Analytics]
+    REPORTS[Reports]
+    STREAM[Streaming Jobs]
+  end
+
+  subgraph SERVICES[Core Services]
+    CFG[Config]
+    LOG[Logging]
+    JOB[Job Manager]
+    OBS[Metrics & Tracing]
+  end
+
+  subgraph DATA[Data Layer]
+    DUCK[(DuckDB)]
+    PARQ[(Parquet Output)]
+    META[(Metadata Store)]
+  end
+
+  PROVIDERS[[Cloud Providers]]
+
+  PROVIDERS --> FOCUS
+  FOCUS --> PARQ
+  FOCUS --> DUCK
+  FOCUS --> META
+  API --> CORE
+  CORE --> SERVICES
+  SERVICES --> DATA
+  OBS --> API
+  OBS --> CORE
+  OBS --> SERVICES

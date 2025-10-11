@@ -1,0 +1,144 @@
+package_name: commands
+package_import: local/costscope/cmd/modules/multicloud/commands
+receiver: MulticloudCommands
+root:
+  use: multicloud
+  short: Multi-cloud cost optimization and management
+  long: |
+    Multi-cloud commands for cross-provider cost optimization, migration analysis,
+    and unified reporting across AWS, Azure, and GCP.
+  subcommands:
+    - use: optimize
+      short: Analyze cross-cloud optimization opportunities
+      long: |
+        Analyze optimization opportunities across multiple cloud providers including
+        cost arbitrage, migration opportunities, and resource consolidation.
+      example: |
+        costscope multicloud optimize --providers aws,azure
+      handler: runOptimize
+      flags:
+        - name: types
+          type: stringSlice
+          usage: Optimization types (right_sizing,reserved_instances,spot_instances,cost_arbitrage,region_switching)
+          bind: flags.OptimizationTypes
+        - name: risk-tolerance
+          type: string
+          default: medium
+          usage: Risk tolerance level (low,medium,high)
+          bind: flags.RiskTolerance
+        - name: savings-threshold
+          type: float
+          default: 100.0
+          usage: Minimum monthly savings threshold in USD
+          bind: flags.SavingsThreshold
+        - name: auto-approval-threshold
+          type: float
+          default: 1000.0
+          usage: Auto-approval threshold in USD
+          bind: flags.AutoApprovalThreshold
+    - use: compare
+      short: Compare costs across multiple cloud providers
+      long: |
+        Compare costs across multiple cloud providers with normalized metrics
+        and detailed breakdowns by service, region, and time period.
+      handler: runCompare
+      flags:
+        - name: currency
+          type: string
+          default: USD
+          usage: Currency for cost normalization
+          bind: flags.CurrencyNormalization
+        - name: aggregation
+          type: string
+          default: daily
+          usage: Aggregation level (hourly,daily,weekly,monthly)
+          bind: flags.AggregationLevel
+        - name: include-provider-breakdown
+          type: bool
+          default: true
+          usage: Include provider breakdown
+          bind: flags.IncludeProviderBreakdown
+    - use: migrate
+      short: Estimate and plan cross-cloud migrations
+      long: |
+        Estimate the costs and benefits of migrating workloads between cloud providers.
+      handler: runMigrate
+      flags:
+        - name: source
+          type: string
+          usage: Source cloud provider
+          bind: flags.SourceProvider
+          required: true
+        - name: target
+          type: string
+          usage: Target cloud provider
+          bind: flags.TargetProvider
+          required: true
+        - name: resources
+          type: string
+          usage: Resource specification file (YAML/JSON)
+          bind: flags.ResourceSpecFile
+    - use: discover
+      short: Discover resources across multiple cloud providers
+      long: |
+        Discover and inventory resources across all configured cloud providers.
+      handler: runDiscover
+      flags:
+        - name: resource-types
+          type: stringSlice
+          usage: Resource types to discover (compute,storage,database,network)
+          bind: flags.ResourceTypes
+        - name: regions
+          type: stringSlice
+          usage: Regions to scan
+          bind: flags.Regions
+        - name: include-metadata
+          type: bool
+          default: false
+          usage: Include detailed resource metadata
+          bind: flags.IncludeMetadata
+        - name: include-costs
+          type: bool
+          default: false
+          usage: Include cost information for resources
+          bind: flags.IncludeCosts
+    - use: validate
+      short: Validate multi-cloud provider connections
+      long: |
+        Validate credentials and connectivity for all configured cloud providers.
+      handler: runValidate
+  # Global persistent flags
+  flags:
+    - name: providers
+      type: stringSlice
+      usage: Cloud providers to include (aws,azure,gcp)
+      bind: flags.Providers
+      persistent: true
+    - name: start-date
+      type: string
+      usage: Start date for analysis (YYYY-MM-DD)
+      bind: flags.StartDate
+      persistent: true
+    - name: end-date
+      type: string
+      usage: End date for analysis (YYYY-MM-DD)
+      bind: flags.EndDate
+      persistent: true
+    - name: format
+      type: string
+      default: json
+      usage: Output format (json,yaml,table)
+      bind: flags.OutputFormat
+      persistent: true
+    - name: output
+      type: string
+      default: ""
+      usage: Output file path
+      bind: flags.OutputFile
+      persistent: true
+    - name: config
+      type: string
+      default: ""
+      usage: Multi-cloud configuration file
+      bind: flags.ConfigFile
+      persistent: true

@@ -1,0 +1,2 @@
+billing_account_id,billing_account_name,currency,project.id,project.name,service.description,sku.id,usage.amount,usage.unit,usage_start_time,usage_end_time,cost,credits
+BA-100,Main,USD,proj-1,My Project,Compute Engine,SKU-1,100,Hrs,2024-01-05T00:00:00Z,2024-01-05T10:00:00Z,-10.00,"[{""type"":""SUSTAINED_USE_DISCOUNT"",""name"":""Sustained Use""},{""type"":""PROMOTIONAL_CREDIT"",""name"":""Free Credit""}]"

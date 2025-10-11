@@ -1,0 +1,4 @@
+bill/BillingAccountId,bill/BillingAccountName,bill/BillingCurrency,lineItem/UsageAccountId,lineItem/UnblendedCost,lineItem/UsageAmount,lineItem/UsageStartDate,lineItem/UsageEndDate,lineItem/UsageType,lineItem/Operation,lineItem/LineItemType,lineItem/ResourceId,product/ProductName,product/ProductFamily,product/Region
+123456789012,Example Payer,USD,111122223333,10,100,2025-07-01 00:00:00,2025-07-01 00:10:00,USW2-BoxUsage:t3.micro,RunInstances,Usage,i-aaa,Amazon Elastic Compute Cloud,Compute,US West (Oregon)
+123456789012,Example Payer,USD,111122223333,10,100,2025-07-01 01:00:00,2025-07-01 01:10:00,USW2-BoxUsage:t3.micro,RunInstances,Usage,i-bbb,Amazon Elastic Compute Cloud,Compute,US West (Oregon)
+123456789012,Example Payer,USD,111122223333,10,100,2025-07-01 02:00:00,2025-07-01 02:10:00,USW2-BoxUsage:t3.micro,RunInstances,Usage,i-ccc,Amazon Elastic Compute Cloud,Compute,US West (Oregon)

@@ -1,0 +1,93 @@
+name: govulncheck CI (full scan)
+
+env:
+  GO_VERSION: "1.24.x"
+  GOVULNCHECK_VERSION: latest
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    name: noop (act)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain act path
+        run: |
+          echo "This full govulncheck job targets a self-hosted runner; under act we no-op."
+          echo "Run 'make security-tools-install' and scripts/security/run-govulncheck.sh locally instead."
+  govulncheck:
+    name: Full govulncheck and upload report (self-hosted large-memory)
+    # Skip this heavy job when running under nektos/act locally
+    if: ${{ github.actor != 'nektos/act' }}
+    # This job is intended to run on a runner with >=16 GiB RAM.
+    # Configure a self-hosted runner with label `large-memory` and the job
+    # will run there. If you prefer GitHub-hosted runners, change `runs-on`
+    # to `ubuntu-22.04`, but be aware hosted runners may not have >=16 GiB RAM.
+    runs-on: [self-hosted, linux, x64, large-memory]
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Set up Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: "Sanity: go version"
+        run: go version
+
+      - name: Install govulncheck
+        run: |
+          GOBIN=$GITHUB_WORKSPACE/.bin
+          mkdir -p "$GOBIN"
+          export PATH="$GOBIN:$PATH"
+          go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
+          govulncheck -version || true
+
+      - name: Run full govulncheck (module)
+        env:
+          # allow govulncheck more time and constrain CPU/GOGC to reduce memory
+          GOVULNCHECK_TIMEOUT: 7200
+          GOMAXPROCS: 2
+          GOGC: 100
+        run: |
+          mkdir -p govuln_reports
+          echo "Running govulncheck ./... (this may take a while)"
+          govulncheck -json ./... > govuln_reports/ci_full_scan.json || true
+          ls -lh govuln_reports/ci_full_scan.json || true
+
+      - name: Upload govulncheck JSON report
+        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: govulncheck-full-report
+          path: govuln_reports/ci_full_scan.json
+
+      - name: Summarize top advisory IDs and post comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            const fs = require('fs');
+            const core = require('@actions/core');
+            const path = 'govuln_reports/ci_full_scan.json';
+            if (!fs.existsSync(path)) {
+              core.info('govulncheck report not found');
+            } else {
+              const data = fs.readFileSync(path,'utf8');
+              // extract unique GO- IDs
+              const ids = new Set();
+              const re = /"id":\s*"(GO-[0-9-]+)"/g;
+              let m;
+              while ((m = re.exec(data)) !== null) ids.add(m[1]);
+              const arr = Array.from(ids).slice(0,100);
+              const body = `govulncheck completed on runner with labels: ${process.env['RUNNER_LABELS'] || ''}\n\nFound ${ids.size} unique advisory IDs (showing up to 100):\n\n${arr.join('\n')}`;
+              github.rest.issues.createComment({owner: context.repo.owner, repo: context.repo.repo, issue_number: context.payload.pull_request.number, body});
+            }

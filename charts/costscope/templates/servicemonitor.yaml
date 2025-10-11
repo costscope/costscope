@@ -1,0 +1,18 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "costscope.fullname" . }}
+  labels:
+    release: {{ .Values.prometheus.release | quote }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "costscope.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/part-of: costscope
+  endpoints:
+    - port: http
+      interval: {{ .Values.serviceMonitor.interval | quote }}
+      path: /metrics
+{{- end }}

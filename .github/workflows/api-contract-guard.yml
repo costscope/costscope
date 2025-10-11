@@ -1,0 +1,91 @@
+name: API Contract Guard
+
+on:
+  pull_request:
+    paths:
+      - "internal/api/**"
+      - "api/**"
+      - "cmd/tools/gen-openapi/**"
+      - "scripts/tools/contract-diff.sh"
+      - "Makefile"
+  push:
+    branches: [main, master]
+    paths:
+      - "internal/api/**"
+      - "api/**"
+      - "cmd/tools/gen-openapi/**"
+      - "scripts/tools/contract-diff.sh"
+      - "Makefile"
+  workflow_dispatch:
+    inputs:
+      allow_api_diff:
+        description: "Set to true to allow intentional breaking API diff (requires CHANGELOG note with OpenAPI/API contract)"
+        required: false
+        default: "false"
+
+jobs:
+  noop-act:
+    # Provide a visible, successful job when running under nektos/act locally
+    if: ${{ github.actor == 'nektos/act' && github.event_name != 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: |
+          echo "This workflow is GitHub-only for contract diffs; under act this is a no-op."
+          echo "Tip: use 'make contract-check' locally for a similar validation."
+  contract-check:
+    # Skip entire job when running under local `act` to avoid false failures and missing base specs
+    # Allow running under act when invoked via workflow_dispatch (for local parity)
+    if: ${{ github.actor != 'nektos/act' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Early guard (skip under act unless full)
+        id: guard
+        run: |
+          if [ "${{ github.actor }}" = "nektos/act" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+            echo "[act] Skipping API contract guard under act (enable full mode to run)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+      # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+      - if: ${{ steps.guard.outputs.skip != 'true' }}
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Set up Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: "1.24.x"
+
+      - name: Install oasdiff
+        # pinned to commit fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8 — source: https://github.com/oasdiff/oasdiff/commit/fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8 (pinned on 2025-09-28)
+        # Decision: use an exact commit SHA for stronger supply-chain reproducibility for this critical contract-check step.
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        run: go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8
+      - name: Evaluate override flag (manual dispatch)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "allow_api_diff input: '${{ github.event.inputs.allow_api_diff }}'"
+          if [ "${{ github.event.inputs.allow_api_diff }}" = "true" ]; then
+            echo "ALLOW_API_DIFF=1" >> $GITHUB_ENV
+            echo "Override enabled (CHANGELOG entry still required)."
+          else
+            echo "Override not enabled."
+          fi
+      - name: Run contract check
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        run: make contract-check
+
+      - name: Summary
+        if: always()
+        run: |
+          echo '### API Contract Guard' >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.guard.outputs.skip }}" = 'true' ]; then
+            echo ' Contract check skipped under act (enable full mode to run)' >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ job.status }}" = 'success' ]; then
+            echo ' Contract check passed' >> $GITHUB_STEP_SUMMARY
+          else
+            echo ' Contract check failed' >> $GITHUB_STEP_SUMMARY
+          fi

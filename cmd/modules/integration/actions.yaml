@@ -1,0 +1,221 @@
+version: v1
+actions:
+  - id: webhook.create
+    category: webhook
+    use: create
+    short: Create a new webhook with advanced features
+    long: Create a new webhook with support for custom headers, security, retry policies, and event filtering.
+    example: costscope integration webhook create --name alerts --url https://example.com --events cost.threshold.exceeded
+    inputsSchema:
+      type: object
+      properties:
+        name: { type: string }
+        url: { type: string }
+      required: [name, url]
+    flags:
+      - { name: name, type: string, usage: Webhook name, required: true }
+      - { name: url, type: string, usage: Webhook URL, required: true }
+      - { name: events, type: stringSlice, usage: Events to subscribe to, default: ["*"] }
+      - { name: headers, type: stringToString, usage: Custom HTTP headers }
+      - { name: secret, type: string, usage: Secret for signature verification }
+      - { name: max-retries, type: int, usage: Maximum retry attempts, default: 3 }
+      - { name: timeout, type: duration, usage: Request timeout, default: 30s }
+  - id: webhook.list
+    category: webhook
+    use: list
+    short: List all webhooks
+    long: List all configured webhooks with their status and recent delivery statistics.
+    flags:
+      - { name: status, type: string, usage: "Filter by status (active, error, disabled)" }
+      - { name: verbose, type: bool, usage: Show detailed information, default: false }
+  - id: webhook.test
+    category: webhook
+    use: test
+    short: Test webhook delivery
+    long: Send a test event to a webhook to verify configuration and connectivity.
+    inputsSchema:
+      type: object
+      properties:
+        webhook-id: { type: string }
+      required: [webhook-id]
+    flags:
+      - { name: webhook-id, type: string, usage: Webhook ID to test, required: true }
+      - { name: event, type: string, usage: Event type to send, default: test.webhook }
+      - { name: payload, type: string, usage: Custom JSON payload }
+  - id: webhook.delete
+    category: webhook
+    use: delete
+    short: Delete a webhook
+    long: Delete a webhook and its delivery history.
+    inputsSchema:
+      type: object
+      properties:
+        webhook-id: { type: string }
+      required: [webhook-id]
+    flags:
+      - { name: webhook-id, type: string, usage: Webhook ID to delete, required: true }
+      - { name: confirm, type: bool, usage: Skip confirmation prompt, default: false }
+  - id: webhook.delivery
+    category: webhook
+    use: delivery
+    short: Manage webhook deliveries
+    long: View and manage webhook delivery history and statistics.
+    group: true
+  - id: webhook.delivery.list
+    category: webhook
+    parents: [delivery]
+    use: list
+    short: List webhook deliveries
+  - id: webhook.delivery.retry
+    category: webhook
+    parents: [delivery]
+    use: retry
+    short: Retry failed delivery
+  - id: webhook.delivery.stats
+    category: webhook
+    parents: [delivery]
+    use: stats
+    short: Show delivery statistics
+  - id: webhook.event
+    category: webhook
+    use: event
+    short: Manage webhook events
+    long: View available events and trigger test events.
+    group: true
+  - id: webhook.event.list
+    category: webhook
+    parents: [event]
+    use: list
+    short: List available webhook events
+  - id: webhook.event.trigger
+    category: webhook
+    parents: [event]
+    use: trigger
+    short: Trigger a test event
+  - id: webhook.security
+    category: webhook
+    use: security
+    short: Manage webhook security
+    long: View or rotate webhook security credentials.
+    group: true
+  - id: dashboard.start
+    category: dashboard
+    use: start
+    short: Start enhanced dashboard server
+    long: Start the enhanced dashboard server with customizable features and security options.
+    flags:
+      - { name: port, type: int, usage: Dashboard port, default: 8080 }
+      - { name: theme, type: string, usage: "Dashboard theme (modern, dark, light, corporate)", default: modern }
+      - { name: auto-open, type: bool, usage: Automatically open dashboard in browser, default: true }
+      - { name: features, type: stringSlice, usage: Enable specific features, default: [real-time, interactive, mobile] }
+      - { name: layout, type: string, usage: "Dashboard layout (default, grid, compact, executive)", default: default }
+      - { name: auth, type: bool, usage: Enable authentication, default: false }
+      - { name: allowed-ips, type: stringSlice, usage: Allowed IP addresses/ranges (CIDR notation) }
+  - id: dashboard.status
+    category: dashboard
+    use: status
+    short: Show dashboard status and metrics
+    long: Display dashboard status, performance metrics, and configuration details.
+    flags:
+      - { name: verbose, type: bool, usage: Show detailed status information, default: false }
+  - id: dashboard.stop
+    category: dashboard
+    use: stop
+    short: Stop dashboard server
+    long: Gracefully stop the dashboard server and save current state.
+  - id: dashboard.config
+    category: dashboard
+    use: config
+    short: Manage dashboard configuration
+    long: View and modify dashboard configuration settings.
+    group: true
+  - id: dashboard.config.show
+    category: dashboard
+    parents: [config]
+    use: show
+    short: Show current configuration
+  - id: dashboard.config.set
+    category: dashboard
+    parents: [config]
+    use: set
+    short: Set configuration value
+  - id: dashboard.config.reset
+    category: dashboard
+    parents: [config]
+    use: reset
+    short: Reset configuration to defaults
+  - id: dashboard.widget
+    category: dashboard
+    use: widget
+    short: Manage dashboard widgets
+    long: Add, remove, and configure dashboard widgets for custom layouts.
+    group: true
+  - id: dashboard.widget.add
+    category: dashboard
+    parents: [widget]
+    use: add
+    short: Add new widget
+  - id: dashboard.widget.list
+    category: dashboard
+    parents: [widget]
+    use: list
+    short: List dashboard widgets
+  - id: dashboard.widget.remove
+    category: dashboard
+    parents: [widget]
+    use: remove
+    short: Remove widget
+  - id: dashboard.widget.configure
+    category: dashboard
+    parents: [widget]
+    use: configure
+    short: Configure widget
+  - id: dashboard.plugin
+    category: dashboard
+    use: plugin
+    short: Manage dashboard plugins
+    long: Install, enable, and configure dashboard plugins for extended functionality.
+    group: true
+  - id: dashboard.plugin.install
+    category: dashboard
+    parents: [plugin]
+    use: install
+    short: Install plugin
+  - id: dashboard.plugin.list
+    category: dashboard
+    parents: [plugin]
+    use: list
+    short: List plugins
+  - id: dashboard.plugin.enable
+    category: dashboard
+    parents: [plugin]
+    use: enable
+    short: Enable plugin
+  - id: dashboard.plugin.disable
+    category: dashboard
+    parents: [plugin]
+    use: disable
+    short: Disable plugin
+  - id: dashboard.theme
+    category: dashboard
+    use: theme
+    short: Manage dashboard themes
+    group: true
+  - id: dashboard.export
+    category: dashboard
+    use: export
+    short: Export dashboard data
+    group: true
+  - id: connections.connect
+    category: connections
+    use: connect
+    short: Connect to third-party systems with advanced management
+    long: Integrate with billing systems, ITSM tools, and BI platforms with health monitoring and retry.
+    flags:
+      - { name: system, type: string, usage: system to connect to }
+      - { name: list, type: bool, usage: list available integrations, default: false }
+      - { name: category, type: string, usage: filter by integration category }
+      - { name: config, type: stringToString, usage: connection configuration (key=value pairs) }
+      - { name: health-check, type: bool, usage: enable health monitoring for the connection, default: true }
+      - { name: timeout, type: duration, usage: connection timeout, default: 30s }
+      - { name: auto-retry, type: bool, usage: enable automatic retry on connection failures, default: true }

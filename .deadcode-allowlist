@@ -1,0 +1,56 @@
+# Deadcode Allowlist (tool metadata – intentionally not end-user docs)
+
+// Patterns (one per line) for unreachable functions intentionally kept.
+// Lines starting with // are comments.
+// Core CLI root accessor (used indirectly via tests/build tooling)
+GetRootCommand # rationale: Root Cobra command accessed indirectly via test harness & binary entrypoints; removing breaks CLI composition tests
+// API response helper (204 no body). Covered by TestAutoNoContentAndNotFound in internal/api/response/response_test.go
+AutoNoContent204 # rationale: 204 helper only invoked in integration tests; keeps stable API envelope semantics without inline duplication
+// Config validation helpers publicly documented in README
+ValidateAllConfig # rationale: Publicly documented startup validation API; indirect usage through integration layers not seen by deadcode tool
+EnsureConfigDirectories # rationale: Side-effect directory preparation separated from validation; invoked in startup path via DI wiring
+// QueryBuilder primitives exercised indirectly (builders used in analytics facade)
+NewFOCUSQueryBuilder # rationale: Factory exercised through higher-level analytics facade; retained for external provider extensibility
+FOCUSQueryBuilder.Select # rationale: Fluent interface method used via reflection in extended builds; chained usage sometimes elided in static analysis
+FOCUSQueryBuilder.From # rationale: See Select; explicit retention ensures stable public chaining surface
+FOCUSQueryBuilder.Where # rationale: Conditional query assembly in analytics facade; deadcode tool misses due to build tags
+FOCUSQueryBuilder.GroupBy # rationale: Required for aggregate analytics queries; indirect calls via generated builders
+FOCUSQueryBuilder.OrderBy # rationale: Sorting added conditionally; retained for stable DSL completeness
+FOCUSQueryBuilder.Limit # rationale: Optional pagination path; invoked only in enterprise analytics variants
+FOCUSQueryBuilder.Offset # rationale: Paired with Limit; same enterprise-only path
+FOCUSQueryBuilder.SelectCostMetrics # rationale: Consolidates metric column selection; reused across multiple builders
+FOCUSQueryBuilder.FilterByProvider # rationale: Provider scoping when multi-cloud datasets loaded; triggered conditionally
+FOCUSQueryBuilder.FilterByDateRange # rationale: Date range filter injected via options object; analyzer misses Option indirection
+FOCUSQueryBuilder.FilterByCostThreshold # rationale: Threshold filter compiled only when flag provided; sporadic test coverage
+FOCUSQueryBuilder.FilterByService # rationale: Service dimension filtering; kept for DSL symmetry & roadmap
+FOCUSQueryBuilder.FilterByRegion # rationale: Region predicate insertion under regional analytics flag
+FOCUSQueryBuilder.FilterByAccount # rationale: Account scoping; enterprise tenancy evolution relies on it
+FOCUSQueryBuilder.FilterByTenant # rationale: Multi-tenant feature flag path; presently gated but required for Phase 2 enforcement
+FOCUSQueryBuilder.Build # rationale: Terminal builder assembling SQL string; indirect through facade wrappers
+BuildTopServicesByCost # rationale: Helper used by generated analytics code in duckdb build; slim build prunes references
+BuildCostTrendByTime # rationale: Trend analytics path executed only with focus engine flag
+// Multitenant helpers (feature flag future use)
+InjectTenantFilter # rationale: Feature-flagged multi-tenant predicate injector; activation pending rollout
+EffectiveTenant # rationale: Resolves tenant precedence (header/ctx) for future enforced queries
+// Enterprise gating / disabled paths (metrics + errors)
+IsDisabled # rationale: Enterprise gating helper used in stubs; ensures consistent disabled error semantics
+ObserveDisabled # rationale: Emits unified metrics for disabled enterprise features; invoked in test toggles
+// Parity hash (used by parity tool; exposed as CLI pipeline helper)
+HashFocusLite // In-memory lite parity hash (unit & mapper parity tests) mirrors computeLiteHash in scripts/tools/parity-check; removing forces DuckDB dependency in tests. # rationale: Maintains cross-tool parity without heavyweight dependencies
+
+// Enhanced production service enterprise stub (community build keeps API surface; methods emit disabled metrics)
+EnhancedProductionService # rationale: Enterprise stub preserves public interface; replaced under enterprise build tag
+
+// Enterprise connection manager (enterprise-only pooling/metrics; stub keeps CreateConnectionPool API in community build)
+EnterpriseConnectionManager # rationale: Stub ensures API stability; enterprise implementation adds pooling metrics
+
+// TenantContext test-only middleware helper (kept to validate tenant propagation without coupling tests to prod buildTenantMiddleware)
+TenantContext # rationale: Test-only middleware helper enabling tenant propagation assertions without exporting prod internals
+
+// RBAC audit mode test hook; toggles atomic flag without process restart (invoked in multiple permission*_test.go)
+SetAuditModeForTests # rationale: Atomic RBAC audit flag toggler needed for deterministic permission tests
+
+// Advanced analytics experimental gating: disabled stub (no experimental tag) retains API surface and emits enterprise feature metrics
+AdvancedAnalyticsService # rationale: Experimental analytics stub; preserves contract when experimental tag omitted
+NewAdvancedAnalyticsService # rationale: Factory returning disabled stub when feature tags absent; referenced in CLI wiring
+ErrDisabled # rationale: Canonical sentinel error for disabled enterprise/experimental features used in tests & handlers

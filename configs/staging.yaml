@@ -1,0 +1,73 @@
+environment: staging
+data_dir: /app/data
+
+core:
+  app_name: costscope
+  version: 1.0.0
+  log_level: info
+  data_directory: /app/data
+  temp_directory: /app/temp
+  max_concurrency: 8
+  timeout: "45s"
+
+providers:
+  aws:
+    enabled: true
+    region: us-west-2
+    # Use environment variables for credentials in staging
+    profile: "default"
+    access_key: "AKIAEXAMPLEACCESSKEY"
+    secret_key: "EXAMPLESECRETKEY"
+    role_arn: "arn:aws:iam::123456789012:role/costscope-role"
+    max_retries: 3
+    request_timeout: "45s"
+  azure:
+    enabled: false
+    request_timeout: 45s
+  gcp:
+    enabled: false
+    request_timeout: 45s
+
+database:
+  type: postgres
+  connection_string: postgres://costscope:${DB_PASSWORD}@staging-db:5432/costscope?sslmode=prefer
+  max_connections: 25
+  max_idle_connections: 8
+  connection_timeout: 20s
+  query_timeout: 45s
+  migrations_path: /app/migrations
+  auto_migrate: true
+
+streaming:
+  max_concurrent_jobs: 10
+  default_workers: 4
+  default_memory: 1024
+  job_timeout: 900s
+  progress_interval: 15s
+  checkpoint_enabled: true
+  checkpoint_dir: /app/checkpoints
+
+security:
+  encryption_enabled: true
+  encryption_key: ${ENCRYPTION_KEY}
+  tls_enabled: false
+  token_expiry: 3600s
+  jwt_secret: "staging-placeholder-secret"
+
+focus:
+  # Default for API/CLI when not explicitly provided
+  # CLI flag --use-unified-mapper overrides this; env COSTSCOPE_USE_UNIFIED_MAPPER applies when CLI flag not set
+  use_unified_mapper_default: false
+
+reports:
+  output_dir: /app/reports
+  # Optional metadata persistence (commented by default). Enable to persist report metadata across restarts.
+  # metadata_store_path: sqlite:///app/reports_meta.db
+  # metadata_retention_max_records: 10000   # prune beyond 10k records
+  # metadata_retention_max_age: 336h        # 14 days
+
+multi_tenant:
+  # FEATURE FLAG: Multi-tenant skeleton (TASK-MULTITENANT-SKEL). Disabled by default.
+  enabled: false
+  max_jobs_per_tenant: 0
+  max_active_jobs_per_tenant: 0

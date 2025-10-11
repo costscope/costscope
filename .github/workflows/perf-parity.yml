@@ -1,0 +1,73 @@
+name: Perf + Parity Guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - internal/core/focus/conversion/**
+      - scripts/tools/perf-bench/**
+      - scripts/tools/parity-check/**
+      - tests/perf/**
+      - Makefile
+      - go.mod
+      - go.sum
+  pull_request:
+    branches: [main]
+    paths:
+      - internal/core/focus/conversion/**
+      - scripts/tools/perf-bench/**
+      - scripts/tools/parity-check/**
+      - tests/perf/**
+      - Makefile
+      - go.mod
+      - go.sum
+  workflow_dispatch: {}
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: echo "Perf + Parity guard skipped under act; use 'make perf-parity' locally if needed."
+  perf-parity:
+    # Allow skipping under act to avoid long compute and flaky environment
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version-file: go.mod
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Build slim binary
+        run: make build-slim
+
+      - name: Generate synthetic dataset (if missing)
+        run: |
+          if [ ! -f tests/perf/aws-cur-synth.csv.gz ]; then
+            make perf-gen-synth
+          fi
+
+      - name: Run perf+parity
+        run: make perf-parity
+
+      - name: Upload artifacts
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: perf-parity-artifacts
+          path: |
+            bench_results.json
+            perf_metrics.prom
+            /tmp/aws_legacy-*.parquet
+            /tmp/aws_unified-*.parquet

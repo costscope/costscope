@@ -1,0 +1,38 @@
+name: Validate golangci-lint config
+
+on:
+  pull_request:
+    paths:
+      - ".golangci.yml"
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: echo "Skipping golangci-lint config validation under act; run 'yq' locally if needed."
+  validate-yaml:
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    name: Validate .golangci.yml syntax
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yq (for YAML validation)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+          GO111MODULE=on go install github.com/mikefarah/yq/v4@v4.30.6
+          export PATH="$PATH:$(go env GOPATH)/bin"
+
+      - name: Validate .golangci.yml
+        run: |
+          echo "Validating .golangci.yml"
+          if ! yq eval '.' .golangci.yml >/dev/null 2>&1; then
+            echo "Invalid YAML in .golangci.yml" >&2
+            yq eval '.' .golangci.yml || true
+            exit 1
+          fi
+          echo ".golangci.yml is valid YAML"

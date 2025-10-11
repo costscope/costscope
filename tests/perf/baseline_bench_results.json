@@ -1,0 +1,185 @@
+{
+  "generated_at": "2025-08-14T07:43:42.128327Z",
+  "provider": "aws",
+  "input_file": "tests/perf/aws-cur-synth.csv.gz",
+  "duration_ratio_max": 1.15,
+  "alloc_ratio_max": 1.2,
+  "scenarios": [
+    {
+      "chunk_size": 10000,
+      "rotation": "off",
+      "legacy": {
+        "duration_ms": 105,
+        "records": 15000,
+        "rps": 142730.2719574038,
+        "alloc_bytes": 131077048,
+        "alloc_mb": 125.00481414794922,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 107,
+        "records": 15000,
+        "rps": 139477.0377279064,
+        "alloc_bytes": 126646784,
+        "alloc_mb": 120.77978515625,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 1.019047619047619,
+        "alloc": 0.9662010697708114
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    },
+    {
+      "chunk_size": 10000,
+      "rotation": "on",
+      "legacy": {
+        "duration_ms": 123,
+        "records": 15000,
+        "rps": 121425.65865830719,
+        "alloc_bytes": 134198496,
+        "alloc_mb": 127.98165893554688,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 124,
+        "records": 15000,
+        "rps": 120246.98731193872,
+        "alloc_bytes": 129770504,
+        "alloc_mb": 123.75879669189453,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 1.008130081300813,
+        "alloc": 0.9670041607619805
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    },
+    {
+      "chunk_size": 50000,
+      "rotation": "off",
+      "legacy": {
+        "duration_ms": 103,
+        "records": 15000,
+        "rps": 145561.8780195538,
+        "alloc_bytes": 132738008,
+        "alloc_mb": 126.58882904052734,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 107,
+        "records": 15000,
+        "rps": 139924.55734283268,
+        "alloc_bytes": 126647040,
+        "alloc_mb": 120.780029296875,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 1.0388349514563107,
+        "alloc": 0.9541128566582074
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    },
+    {
+      "chunk_size": 50000,
+      "rotation": "on",
+      "legacy": {
+        "duration_ms": 134,
+        "records": 15000,
+        "rps": 111880.60102258869,
+        "alloc_bytes": 135860544,
+        "alloc_mb": 129.56671142578125,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 128,
+        "records": 15000,
+        "rps": 116803.36475920075,
+        "alloc_bytes": 129770232,
+        "alloc_mb": 123.75853729248047,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 0.9552238805970149,
+        "alloc": 0.9551723272946706
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    },
+    {
+      "chunk_size": 100000,
+      "rotation": "off",
+      "legacy": {
+        "duration_ms": 103,
+        "records": 15000,
+        "rps": 144780.0745785329,
+        "alloc_bytes": 135129832,
+        "alloc_mb": 128.8698501586914,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 107,
+        "records": 15000,
+        "rps": 139940.44022911496,
+        "alloc_bytes": 126646688,
+        "alloc_mb": 120.77969360351562,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 1.0388349514563107,
+        "alloc": 0.9372222708010175
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    },
+    {
+      "chunk_size": 100000,
+      "rotation": "on",
+      "legacy": {
+        "duration_ms": 119,
+        "records": 15000,
+        "rps": 125604.1644043961,
+        "alloc_bytes": 138252312,
+        "alloc_mb": 131.8476791381836,
+        "output_files": 1
+      },
+      "unified": {
+        "duration_ms": 124,
+        "records": 15000,
+        "rps": 120633.16293952682,
+        "alloc_bytes": 129770680,
+        "alloc_mb": 123.75896453857422,
+        "output_files": 1
+      },
+      "ratios": {
+        "duration": 1.0420168067226891,
+        "alloc": 0.9386510657413093
+      },
+      "thresholds": {
+        "duration_max": 1.15,
+        "alloc_max": 1.2
+      },
+      "status": "pass"
+    }
+  ],
+  "overall_status": "pass",
+  "version": "1"
+}

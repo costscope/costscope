@@ -1,0 +1,2 @@
+BillingAccountId,BillingAccountName,BillingCurrency,SubscriptionId,SubscriptionName,ServiceName,ServiceFamily,ResourceId,ResourceName,ResourceType,ResourceLocation,Quantity,UnitOfMeasure,AmortizedCost,CostInBillingCurrency,RetailPrice,UsageStart,UsageEnd,BenefitType,ReservationId,ReservationName
+BA-2,Main,USD,sub-345,Prod,Virtual Machines,Compute,/subs/sub-345/rg/rg2/vm/vm2,vm2,Microsoft.Compute/virtualMachines,eastus,5,Hours,-3.50,-3.50,1.50,2024-01-02T00:00:00Z,2024-01-02T01:00:00Z,Reservation,RES-123,RI-VM-1Y

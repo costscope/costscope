@@ -1,0 +1,260 @@
+################################################################################
+# Costscope .gitignore
+################################################################################
+
+# Local runner secret/env files (never commit real values)
+.github/act.secrets
+.github/act.env
+
+# Generated security summaries (root + docs)
+security-summary.md
+security-summary.json
+/docs/security/security-summary.md
+/docs/security/security-summary.json
+
+# Ensure docs release source files remain tracked (don't accidentally ignore docs/release/)
+!/docs/release/
+
+# Performance / benchmark artifacts (root only)
+/perf_metrics.prom
+/bench_results.json
+/perf-bench
+/perf-convert-aws
+/perf-*
+/perf_*
+
+# Profiling & coverage artifacts (root only)
+/cpu.prof
+/mem.prof
+/coverage.out
+/coverage.html
+/coverage.min
+
+# Profiling visualizations & traces (root only)
+/flamegraph.svg
+/flamegraph-*.svg
+/profile.svg
+/pprof-*.svg
+/profile.pb.gz
+/trace.out
+/pprof/
+/*.folded
+/speedscope.json
+/speedscope-*.json
+/perf.data
+/perf.data.*
+
+# Binaries and build artifacts (do not commit compiled binaries)
+/costscope
+/costscope-*
+/gen-*
+/gen_*
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Output/build directories
+bin/
+build/
+dist/
+release/
+tmp/
+!scripts/release/
+
+# Allow canonical release documentation files to be tracked even though general
+# `release/` is ignored (we keep the rule to avoid accidentally committing
+# binaries/artifacts). These exceptions ensure CI/docs index files are present
+# in the repository.
+!/release/
+!/release/*.md
+!/docs/release/
+!/docs/release/*.md
+
+# Go vendor (ignored unless explicitly vendoring)
+vendor/
+
+# OS / system files
+.DS_Store
+Thumbs.db
+/.tmp_*
+
+# Logs
+*.log
+logs/
+build-errors.log
+
+# IDE / editor project files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*.bak
+*.tmp
+*.idea/**/workspace.xml
+.tmp_costscope
+
+# DevContainer (ignore real env values, keep examples)
+.devcontainer/.env*
+!.devcontainer/.env.example
+!.devcontainer/.env.*.example
+
+# Test data & coverage
+*.cover
+*.cov
+*.prof
+coverage/
+/test/testdata/
+/testdata/
+
+# Data / Parquet / local DB files (whitelist needed JSON specs & baselines)
+*.parquet
+*.csv
+*.json
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.tmp
+!api/openapi.v1.json
+!api/baseline/openapi.v1.json
+!api/baseline/openapi.enterprise.v1.json
+!tests/perf/baseline_bench_results.json
+!tests/fixtures/quality/baseline_azure_invariants.json
+!tests/fixtures/quality/baseline_gcp_invariants.json
+!tests/fixtures/quality/baseline_invariants.json
+# Allow specific E2E CSV fixtures required for local/act runs
+!tests/fixtures/aws/cur_baseline_sample.csv
+!tests/fixtures/azure/usage.csv
+!tests/fixtures/azure/tax_refund.csv
+!tests/fixtures/azure/reservation_credit.csv
+!tests/fixtures/gcp/usage_minimal.csv
+!tests/fixtures/gcp/credit_cud.csv
+!tests/fixtures/gcp/credit_spot.csv
+!tests/fixtures/gcp/credit_sustained_promo.csv
+
+# Environment files (keep only examples)
+.env
+.env.*
+*.env
+!.env.example
+!.env.*.example
+
+# Docker
+.docker/
+
+# Local/private config variants under configs/ (examples remain tracked)
+configs/*.local.yaml
+configs/private-*.yaml
+configs/*-local.yaml
+configs/*local*.yaml
+configs/*-override.yaml
+configs/*override*.yaml
+configs/overrides/**/*.yaml
+configs/secrets*.yaml
+configs/**/secrets*.yaml
+
+# Generated files directory
+generated/
+
+# Node
+node_modules/
+
+# Backups
+backups/
+
+# Local data directory for Parquet outputs (never track datasets here)
+/costscope-data/
+
+# Vulnerability scan reports (machine generated)
+/govuln_reports/
+
+# Historical / archive directories
+_archive/
+_old/
+_legacy/
+costscope_old/
+
+# Optimization / analysis temporary directories
+memory_optimization_*/
+optimization_results_*/
+performance_analysis_*/
+code_analysis_*/
+
+# Hidden/system patterns
+/__*
+
+# Local secrets
+jwt.secret
+
+# Python artifacts (if Python tools invoked)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+venv/
+.venv/
+
+# Generic caches
+.cache/
+*.cache
+
+# Direnv
+.envrc
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Kubernetes local config
+.kube/
+
+# AWS / SSH credentials & caches
+.aws/
+.aws/credentials
+.aws/cli/cache/
+.ssh/
+
+# Local perf artifacts directory
+/perf/
+
+# Outputs produced by local inspection tools
+inspect_*
+inspectraw_tool
+
+# Additional conservative/local ignores
+.cache/go-build
+$GOPATH/pkg/mod
+*~
+*.pem
+*.key
+.Spotlight-V100
+.Trash-*
+docker-compose.override.yml
+.vscode/settings.json
+
+### Misc
+*.log
+*.tmp
+*.bak
+*.local
+/_*.md
+*.zip
+*.tgz
+
+# Ignore temporary plugin bundler outputs
+costscope-backstage-plugin/packages/plugin/temp/
+**/packages/*/temp/
+
+################################################################################
+# End of file
+################################################################################
+
+# Temporary root scripts created by assistants
+/tmp-*.sh

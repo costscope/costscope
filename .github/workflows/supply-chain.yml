@@ -1,0 +1,98 @@
+name: supply-chain
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "Makefile"
+      - ".github/workflows/supply-chain.yml"
+      - "go.mod"
+      - "go.sum"
+
+permissions:
+  contents: write
+  id-token: write # needed for cosign keyless
+
+env:
+  GO_VERSION: "1.24.x"
+  SYFT_VERSION: v1.27.1
+  COSIGN_VERSION: v2.2.4
+
+jobs:
+  build-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - name: Minimal build and SBOM (act)
+        run: |
+          set -euo pipefail
+          echo "Running minimal local build path under act (no signing/publish)"
+          make build-production || make build
+          if command -v go >/dev/null 2>&1; then :; else echo "go not present in act image; continuing"; fi
+          if [ -f Makefile ]; then make sbom || true; fi
+          echo "act path complete"
+  build-and-verify:
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Build production binary
+        run: make build-production
+
+      - name: Install Syft (pinned release artifact)
+        run: |
+          set -euo pipefail
+          # Use the repository helper which contains robust URL fallbacks and diagnostics.
+          # Ensure the SYFT_VERSION env in the workflow is set to a known-good release.
+          bash scripts/release/install-syft.sh
+      - name: Install cosign (action)
+        # pinned sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
+        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+
+      - name: Generate SBOM
+        run: make sbom
+
+      - name: Generate checksums
+        run: make checksums
+
+      - name: Sign checksums
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: make sign-checksums
+
+      - name: Verify signature
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: make verify-checksums
+
+      - name: Upload supply chain artifacts
+        if: ${{ github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: supply-chain-artifacts
+          path: |
+            sbom.json
+            checksums.txt
+            checksums.txt.sig
+            bin/costscope-production
+
+      - name: Summary
+        run: |
+          echo '### Supply Chain Job Summary' >> $GITHUB_STEP_SUMMARY
+          echo '* SBOM generated & uploaded' >> $GITHUB_STEP_SUMMARY
+          echo '* Checksums signed & verified (keyless cosign)' >> $GITHUB_STEP_SUMMARY
+          echo '* Binary + artifacts available as workflow artifacts' >> $GITHUB_STEP_SUMMARY

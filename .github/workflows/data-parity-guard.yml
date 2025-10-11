@@ -1,0 +1,80 @@
+name: Data Parity + Invariants Guard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - internal/core/focus/conversion/**
+      - scripts/tools/parity-check/**
+      - tests/perf/**
+      - tests/fixtures/quality/baseline_synth_invariants.json
+      - Makefile
+      - go.mod
+      - go.sum
+  pull_request:
+    branches: [main]
+    paths:
+      - internal/core/focus/conversion/**
+      - scripts/tools/parity-check/**
+      - tests/perf/**
+      - tests/fixtures/quality/baseline_synth_invariants.json
+      - Makefile
+      - go.mod
+      - go.sum
+  workflow_dispatch: {}
+
+jobs:
+  noop-act:
+    if: ${{ github.actor == 'nektos/act' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: noop (act)
+        run: echo "Data Parity + Invariants guard skipped under act; run 'make data-parity-guard' locally."
+  data-parity:
+    if: ${{ github.actor != 'nektos/act' }}
+    runs-on: ubuntu-latest
+    env:
+      PARITY_TOLERANCE: 1e-9
+      INVARIANTS_TOLERANCE: 0.01
+      INVARIANTS_BASELINE: tests/fixtures/quality/baseline_synth_invariants.json
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      - name: Setup Go
+        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        with:
+          go-version-file: go.mod
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Build slim binary (fast/unified conversions)
+        run: make build-slim
+
+      - name: Build DuckDB binary (invariants)
+        run: make build-optimized-duckdb
+
+      - name: Ensure synthetic dataset
+        run: |
+          if [ ! -f tests/perf/aws-cur-synth.csv.gz ]; then
+            make perf-gen-synth
+          fi
+
+      - name: Run data parity + invariants guard
+        run: make data-parity-guard
+
+      - name: Upload artifacts
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: data-parity-guard-artifacts
+          path: |
+            parity.json
+            invariants.json
+            invariants_current.json
+            invariants_engine.txt
+            focus_fast.parquet
+            focus_unified.parquet

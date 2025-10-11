@@ -1,0 +1,11 @@
+%% CostScope – FOCUS Conversion Pipeline (Mermaid)
+graph LR
+  AWS[AWS CUR] --> I[Ingest]
+  AZ[Azure Exports] --> I
+  GCP[GCP BQ Billing] --> I
+  I --> N[Normalize and Map<br/>FOCUS v1.2]
+  N --> P[Parquet: Snappy, ZSTD]
+  N --> Q[Quality and Invariants]
+  Q --> S[Serve: CLI and REST API]
+  P --> S
+  S --> M[Metrics: Prometheus, OTel]
