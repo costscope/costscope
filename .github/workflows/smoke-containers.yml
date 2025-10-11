@@ -32,7 +32,7 @@ jobs:
       - name: Set up QEMU (multi-arch future proof)
         # Skip on local `act` runs to avoid binfmt permission issues (act runs as actor 'nektos/act')
         if: ${{ runner.os == 'Linux' && github.actor != 'nektos/act' }}
-        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7 # v2
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v2
         with:
           platforms: linux/amd64
 
