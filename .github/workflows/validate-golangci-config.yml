@@ -18,7 +18,7 @@ jobs:
     name: Validate .golangci.yml syntax
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install yq (for YAML validation)
         run: |
