@@ -3,9 +3,8 @@
 Turn raw cloud billing exports into a clean, analytics‑ready FinOps FOCUS dataset. Fast. Reliable. Open.
 
 [![FOCUS](https://img.shields.io/badge/FOCUS-1.2-blueviolet)](https://focus.finops.org)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-green)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
----
 
 ## Why CostScope
 
@@ -90,4 +89,4 @@ We welcome issues and PRs. Please read the CONTRIBUTING.md to get started.
 
 ## License
 
-Apache 2.0 — see LICENSE.
+MIT — see LICENSE.
