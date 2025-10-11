@@ -130,7 +130,7 @@ jobs:
 
       - name: Security scan (gosec)
         if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
-        uses: securego/gosec@b278b40c5266eb2b52f41c57d9e6509d9360a2a6
+        uses: securego/gosec@15d5c61e866bc2e2e8389376a31f1e5e09bde7d8
         with:
           args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
 
@@ -144,7 +144,7 @@ jobs:
 
       - name: Docker image vulnerability scan (Trivy)
         if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: fs
@@ -160,8 +160,8 @@ jobs:
 
       - name: Login to GHCR
         if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
-        # pinned docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 - source: https://github.com/docker/login-action/commits/main (2025-09-28)
-        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
+        # pinned docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef - source: https://github.com/docker/login-action/commits/main (2025-09-28)
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -196,7 +196,7 @@ jobs:
 
       - name: Trivy scan built image
         if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
           version: ${{ env.TRIVY_VERSION }}
           image-ref: ${{ steps.imgref.outputs.image_ref }}
@@ -206,8 +206,8 @@ jobs:
 
       - name: Install cosign
         if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
-        # pinned sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        # pinned sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
+        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
 
       - name: Sign image with cosign
         if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
@@ -233,8 +233,8 @@ jobs:
 
       - name: Optional DAST with OWASP ZAP Baseline
         if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
-        # pinned zaproxy/action-baseline@0619037bb784a56e2e06b104f0ebe157e076f075 - source: https://github.com/zaproxy/action-baseline/commits/main (2025-09-28)
-        uses: zaproxy/action-baseline@0619037bb784a56e2e06b104f0ebe157e076f075
+        # pinned zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed - source: https://github.com/zaproxy/action-baseline/commits/main (2025-09-28)
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed
         with:
           target: ${{ steps.zap.outputs.target }}
           cmd_options: "-a -m 5"
