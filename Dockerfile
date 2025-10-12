@@ -3,7 +3,7 @@
 # Multi-stage Dockerfile for CostScope
 
 # Stage 1: Build stage
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 # Build arguments (can be passed during docker build)
 ARG VERSION=dev
@@ -35,7 +35,7 @@ RUN CGO_ENABLED=0 GOOS=linux \
   -o costscope .
 
 # Stage 2: Final stage
-FROM alpine:3.20
+FROM alpine:3.22
 
 # Metadata arguments (propagated as labels)
 ARG VERSION=dev
