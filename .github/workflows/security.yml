@@ -99,12 +99,12 @@ jobs:
       go-version: ${{ steps.vars.outputs.goversion }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Set up Go
         id: go
-        # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: "1.24.x"
       - name: "Sanity: go version"
@@ -131,7 +131,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: "Sanity: go version"
@@ -159,7 +159,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: "Sanity: go version"
@@ -186,7 +186,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: Run gosec (via tools image)
@@ -253,7 +253,7 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: Build binary & image
@@ -315,7 +315,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sbom, govulncheck, gosec, secrets, trivy-fs, trivy-image]
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Record run metadata (early)
         run: ./scripts/ci/record-run-metadata.sh
       - name: Download artifacts
