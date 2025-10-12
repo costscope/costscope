@@ -60,8 +60,8 @@ jobs:
           # Ensure the SYFT_VERSION env in the workflow is set to a known-good release.
           bash scripts/release/install-syft.sh
       - name: Install cosign (action)
-        # pinned sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
-        uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 # v3.5.0
+        # pinned sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
+        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
 
       - name: Generate SBOM
         run: make sbom
