@@ -42,8 +42,8 @@ jobs:
       go-version: ${{ steps.vars.outputs.goversion }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Set up Go
         id: go
         # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - run: make security-tools-install
       - name: Run gitleaks
         run: bash ./scripts/security/run-gitleaks.sh
@@ -150,7 +150,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - run: make security-tools-install
       - name: Trivy FS
         run: bash ./scripts/security/run-trivy-fs.sh
@@ -166,7 +166,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -212,7 +212,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sbom, govulncheck, gosec, secrets, trivy-fs, trivy-image]
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Record run metadata (early)
         run: ./scripts/ci/record-run-metadata.sh
       - name: Download artifacts

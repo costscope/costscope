@@ -30,8 +30,8 @@ jobs:
       packages: write
       id-token: write
     steps:
-      # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Set up Go
         # pinned actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
@@ -246,7 +246,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Set up Go
         uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
@@ -267,7 +267,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.actor != 'nektos/act'
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Set up Helm
         uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4
