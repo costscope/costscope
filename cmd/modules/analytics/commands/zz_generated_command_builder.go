@@ -15,15 +15,15 @@ func (recv *AnalyticsCommands) BuildAnalyticsCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "analytics",
 		Short: "Advanced cost analytics and forecasting",
-		Long: "Advanced cost analytics with ML-powered forecasting, anomaly detection,\nand multi-cloud cost optimization capabilities.\n",
-		RunE: func(cmd *cobra.Command, args []string) error { return cmd.Help() },
+		Long:  "Advanced cost analytics with ML-powered forecasting, anomaly detection,\nand multi-cloud cost optimization capabilities.\n",
+		RunE:  func(cmd *cobra.Command, args []string) error { return cmd.Help() },
 	}
 
 	root_0 := &cobra.Command{
 		Use:   "analyze",
 		Short: "Analyze cost data with advanced analytics",
-		Long: "Analyze cost data with type-safe filtering, advanced aggregations,\nand ML-powered insights. Supports multiple cloud providers and currencies.\n",
-		RunE: recv.runAnalyze,
+		Long:  "Analyze cost data with type-safe filtering, advanced aggregations,\nand ML-powered insights. Supports multiple cloud providers and currencies.\n",
+		RunE:  recv.runAnalyze,
 	}
 
 	root_0.Flags().String("table", "cost_data", "Table name for analysis")
@@ -45,8 +45,8 @@ func (recv *AnalyticsCommands) BuildAnalyticsCommand() *cobra.Command {
 	root_1 := &cobra.Command{
 		Use:   "forecast",
 		Short: "Generate ML-powered cost forecasts",
-		Long: "Generate cost forecasts using machine learning algorithms.\nIncludes trend analysis, seasonal patterns, and anomaly detection.\n",
-		RunE: recv.runForecast,
+		Long:  "Generate cost forecasts using machine learning algorithms.\nIncludes trend analysis, seasonal patterns, and anomaly detection.\n",
+		RunE:  recv.runForecast,
 	}
 
 	root_1.Flags().String("table", "cost_data", "Table name for analysis")
@@ -68,8 +68,8 @@ func (recv *AnalyticsCommands) BuildAnalyticsCommand() *cobra.Command {
 	root_2 := &cobra.Command{
 		Use:   "compare",
 		Short: "Compare costs across time periods or providers",
-		Long: "Compare costs across different time periods, cloud providers,\nor resource configurations. Generate detailed comparison reports.\n",
-		RunE: recv.runCompare,
+		Long:  "Compare costs across different time periods, cloud providers,\nor resource configurations. Generate detailed comparison reports.\n",
+		RunE:  recv.runCompare,
 	}
 
 	root_2.Flags().String("table", "cost_data", "Table name for analysis")
@@ -90,8 +90,8 @@ func (recv *AnalyticsCommands) BuildAnalyticsCommand() *cobra.Command {
 	root_3 := &cobra.Command{
 		Use:   "export",
 		Short: "Export analytics results to various formats",
-		Long: "Export analytics results to JSON, CSV, or other formats.\nSupports filtering and custom output formatting.\n",
-		RunE: recv.runExport,
+		Long:  "Export analytics results to JSON, CSV, or other formats.\nSupports filtering and custom output formatting.\n",
+		RunE:  recv.runExport,
 	}
 
 	root_3.Flags().String("table", "cost_data", "Table name for analysis")
