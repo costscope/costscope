@@ -1,113 +1,870 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "CostScope FOCUS API",
-    "description": "Baseline snapshot (community) 2025-08-26. Additive changes only; removals require version bump.",
-    "version": "1.0.0",
-    "contact": {
-      "name": "CostScope API Support",
-      "email": "api-support@costscope.io"
+  "components": {
+    "schemas": {
+      "Envelope": {
+        "description": "Unified response envelope (additive, backward-compatible). Domain payload appears under data.",
+        "properties": {
+          "data": {
+            "description": "Domain payload (type varies per endpoint).",
+            "nullable": true
+          },
+          "error": {
+            "$ref": "#/components/schemas/EnvelopeError"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/EnvelopeMeta"
+          },
+          "success": {
+            "description": "Indicates whether the request was successful.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "type": "object"
+      },
+      "EnvelopeError": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "type": "object"
+      },
+      "EnvelopeHealth": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Envelope"
+          },
+          {
+            "properties": {
+              "data": {
+                "properties": {
+                  "status": {
+                    "example": "healthy",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        ]
+      },
+      "EnvelopeMeta": {
+        "properties": {
+          "extra": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
     },
+    "securitySchemes": {
+      "BearerAuth": {
+        "bearerFormat": "JWT",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "contact": {
+      "email": "api-support@costscope.io",
+      "name": "CostScope API Support"
+    },
+    "description": "Enterprise REST API for FOCUS (FinOps Open Cost and Usage Specification) operations.\n\nThis API provides comprehensive cost management functionality including:\n- FOCUS data conversion from cloud billing data\n- Cost analysis with ML-powered insights\n- Dataset comparison and anomaly detection\n- FOCUS compliance validation\n- Real-time job progress monitoring via WebSocket\n\n## Authentication\nAll endpoints require JWT Bearer token authentication:\n```\nAuthorization: Bearer \u003cyour-jwt-token\u003e\n```\n\n## Rate Limiting\nAPI requests are rate limited to 100 requests per minute per API key.\n\n## WebSocket Updates\nConnect to WebSocket endpoints for real-time job progress updates:\n```\nws://localhost:8080/ws/jobs/{job_id}\n```\n",
     "license": {
       "name": "MIT",
       "url": "https://opensource.org/licenses/MIT"
-    }
+    },
+    "title": "CostScope FOCUS API",
+    "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "http://localhost:8080",
-      "description": "Development server"
-    },
-    {
-      "url": "https://api.costscope.io",
-      "description": "Production server"
-    }
-  ],
+  "openapi": "3.1.0",
   "paths": {
-    "/health": {
-      "get": {
-        "summary": "Health check",
-        "responses": {
-          "200": {
-            "description": "Server is healthy"
-          }
-        }
-      }
-    },
     "/api/v1/analytics/summary": {
       "get": {
-        "summary": "Get cost summary",
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "input",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Summary returned"
           }
-        }
+        },
+        "summary": "Get cost summary",
+        "tags": [
+          "Analytics"
+        ]
       }
     },
     "/api/v1/analytics/top-services": {
       "get": {
-        "summary": "Top services",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "input",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Top services returned"
           }
-        }
+        },
+        "summary": "Top services by effective cost",
+        "tags": [
+          "Analytics"
+        ]
       }
     },
     "/api/v1/analytics/trends": {
       "get": {
-        "summary": "Cost trends",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "input",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularity",
+            "required": false,
+            "schema": {
+              "default": "day",
+              "enum": [
+                "hour",
+                "day",
+                "week",
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Trend series"
           }
-        }
+        },
+        "summary": "Cost trends by time",
+        "tags": [
+          "Analytics"
+        ]
       }
     },
     "/api/v1/focus/conversions": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "jobs": [
+                      {
+                        "id": "job_1737567890123456000",
+                        "progress": {
+                          "mapped_records": 125000,
+                          "percent_complete": 42.7
+                        },
+                        "started_at": "2025-08-24T10:20:17Z",
+                        "status": "running"
+                      },
+                      {
+                        "id": "job_1737567000000000000",
+                        "progress": {},
+                        "started_at": null,
+                        "status": "queued"
+                      }
+                    ],
+                    "total": 2
+                  },
+                  "error": null,
+                  "meta": {
+                    "timestamp": "2025-08-24T10:20:18Z"
+                  },
+                  "success": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Active jobs listed"
+          }
+        },
+        "summary": "List active conversion jobs",
+        "tags": [
+          "FOCUS"
+        ]
+      },
       "post": {
-        "summary": "Start FOCUS conversion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "input_path": {
+                    "type": "string"
+                  },
+                  "output_path": {
+                    "type": "string"
+                  },
+                  "provider": {
+                    "enum": [
+                      "aws",
+                      "azure",
+                      "gcp"
+                    ],
+                    "type": "string"
+                  },
+                  "streaming": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "input_path",
+                  "output_path"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "202": {
-            "description": "Accepted"
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "job_id": "job_1737567890123456000",
+                    "status": "accepted"
+                  },
+                  "error": null,
+                  "meta": {
+                    "timestamp": "2025-08-24T10:20:17Z"
+                  },
+                  "success": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Job accepted"
           }
-        }
+        },
+        "summary": "Submit a FOCUS conversion job",
+        "tags": [
+          "FOCUS"
+        ]
       }
     },
     "/api/v1/focus/conversions/history": {
       "get": {
-        "summary": "List conversion jobs",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "history": [
+                      {
+                        "duration_ms": 48210,
+                        "id": "job_1737567000000000000",
+                        "input_file": "s3://bucket/cur-2025-08.csv.gz",
+                        "output_file": "costscope-data/focus/cur-2025-08.parquet",
+                        "records_in": 350000,
+                        "records_out": 350000,
+                        "success": true
+                      },
+                      {
+                        "duration_ms": 1023,
+                        "id": "job_1737566500000000000",
+                        "input_file": "/data/aws-cur.csv.gz",
+                        "output_file": "costscope-data/focus/aws-cur.parquet",
+                        "records_in": 0,
+                        "records_out": 0,
+                        "success": false
+                      }
+                    ],
+                    "total": 2
+                  },
+                  "error": null,
+                  "meta": {
+                    "timestamp": "2025-08-24T10:20:21Z"
+                  },
+                  "success": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "History listed"
           }
-        }
+        },
+        "summary": "List completed conversion jobs",
+        "tags": [
+          "FOCUS"
+        ]
       }
     },
     "/api/v1/focus/conversions/{id}": {
-      "get": {
-        "summary": "Get conversion job",
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "id": "job_1737567890123456000",
+                    "status": "cancelled"
+                  },
+                  "error": null,
+                  "meta": {
+                    "timestamp": "2025-08-24T10:20:20Z"
+                  },
+                  "success": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Cancellation acknowledged"
           },
           "404": {
-            "description": "Not Found"
+            "description": "Not found"
           }
-        }
+        },
+        "summary": "Cancel a running conversion job",
+        "tags": [
+          "FOCUS"
+        ]
+      },
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": {
+                    "id": "job_1737567890123456000",
+                    "progress": {
+                      "mapped_records": 150000,
+                      "percent_complete": 51.3
+                    },
+                    "started_at": "2025-08-24T10:20:17Z",
+                    "status": "running"
+                  },
+                  "error": null,
+                  "meta": {
+                    "timestamp": "2025-08-24T10:20:19Z"
+                  },
+                  "success": true
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope"
+                }
+              }
+            },
+            "description": "Job status"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        },
+        "summary": "Get conversion job status",
+        "tags": [
+          "FOCUS"
+        ]
       }
     },
     "/api/v1/focus/schemas": {
       "get": {
-        "summary": "List FOCUS schemas",
+        "description": "Returns supported FOCUS schema identifiers (descending semantic version) with latest alias.",
         "responses": {
           "200": {
-            "description": "OK"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "count": {
+                      "example": 3,
+                      "type": "integer"
+                    },
+                    "latest": {
+                      "example": "focus-1.2",
+                      "type": "string"
+                    },
+                    "schemas": {
+                      "example": [
+                        "focus-1.2",
+                        "focus-1.1",
+                        "focus-1.0"
+                      ],
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Schemas listed"
           }
+        },
+        "summary": "List supported FOCUS schema versions",
+        "tags": [
+          "FOCUS"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Check API server health status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnvelopeHealth"
+                }
+              }
+            },
+            "description": "Server is healthy"
+          }
+        },
+        "summary": "Health check",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "paths": {
+      "/api/v1/integration/connections/connect": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action connections.connect",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/config/reset": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.config.reset",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/config/set": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.config.set",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/config/show": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.config.show",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/plugin/disable": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.plugin.disable",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/plugin/enable": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.plugin.enable",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/plugin/install": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.plugin.install",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/plugin/list": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.plugin.list",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/start": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.start",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/status": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.status",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/stop": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.stop",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/widget/add": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.widget.add",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/widget/configure": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.widget.configure",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/widget/list": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.widget.list",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/dashboard/widget/remove": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action dashboard.widget.remove",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/create": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.create",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/delete": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.delete",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/delivery/list": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.delivery.list",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/delivery/retry": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.delivery.retry",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/delivery/stats": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.delivery.stats",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/event/list": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.event.list",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/event/trigger": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.event.trigger",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/list": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.list",
+          "tags": [
+            "Integration"
+          ]
+        }
+      },
+      "/api/v1/integration/webhook/test": {
+        "post": {
+          "responses": {
+            "501": {
+              "description": "Not Implemented"
+            }
+          },
+          "summary": "Integration action webhook.test",
+          "tags": [
+            "Integration"
+          ]
         }
       }
     }
   },
-  "components": {}
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "servers": [
+    {
+      "description": "Development server",
+      "url": "http://localhost:8080"
+    },
+    {
+      "description": "Production server",
+      "url": "https://api.costscope.io"
+    }
+  ],
+  "tags": [
+    {
+      "description": "Health check endpoints",
+      "name": "Health"
+    },
+    {
+      "name": "Analytics"
+    },
+    {
+      "name": "FOCUS"
+    }
+  ]
 }

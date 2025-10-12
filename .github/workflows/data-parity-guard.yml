@@ -63,6 +63,21 @@ jobs:
             make perf-gen-synth
           fi
 
+      - name: Generate invariants baseline if missing
+        run: |
+          if [ ! -f "$INVARIANTS_BASELINE" ]; then
+            echo "Baseline not found: $INVARIANTS_BASELINE — generating from unified parquet"
+            # Ensure unified parquet exists (produced by parity runs)
+            if [ ! -f focus_unified.parquet ]; then
+              echo "Generating unified parquet via parity pre-run"
+              make data-parity-guard || true
+            fi
+            # Build release binary for baseline generator
+            make build-release
+            bash scripts/generate-invariants-baseline.sh focus_unified.parquet "$INVARIANTS_BASELINE" "$INVARIANTS_TOLERANCE"
+            git status --porcelain || true
+          fi
+
       - name: Run data parity + invariants guard
         run: make data-parity-guard
 

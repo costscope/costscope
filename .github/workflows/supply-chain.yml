@@ -16,7 +16,9 @@ permissions:
 
 env:
   GO_VERSION: "1.24.x"
-  SYFT_VERSION: v1.27.1
+  # Pin to a known-good Syft release; must match upstream asset naming (syft_<ver>_linux_<arch>.tar.gz)
+  # Align with scripts/supply-chain/gen-sbom.sh default (v1.33.0) to avoid drift
+  SYFT_VERSION: v1.33.0
   COSIGN_VERSION: v2.2.4
 
 jobs:

@@ -6,7 +6,8 @@
 set -euo pipefail
 
 # Pin exact Go toolchain (override base image minor) to avoid mixed stdlib objects.
-GO_VERSION="${COSTSCOPE_GO_VERSION:-1.25.0}"
+# Default matches go.mod (go 1.24.6). Can be overridden via COSTSCOPE_GO_VERSION env (set in devcontainer.json).
+GO_VERSION="${COSTSCOPE_GO_VERSION:-1.24.6}"
 export GOTOOLCHAIN="local"
 echo "[setup] Ensuring Go ${GO_VERSION} toolchain is installed (GOTOOLCHAIN=${GOTOOLCHAIN})"
 if ! go version 2>/dev/null | grep -q "go${GO_VERSION}"; then
@@ -67,6 +68,13 @@ sudo apt-get install -y \
 # Install Go tools for development
 print_status "Installing Go development tools..."
 
+# Ensure GOPATH/bin on PATH for current session and future shells
+GOBIN="$(go env GOPATH)/bin"
+export PATH="$GOBIN:$PATH"
+if ! grep -q "\$GOPATH/bin" ~/.bashrc 2>/dev/null; then
+    echo 'export PATH="$(go env GOPATH)/bin:$PATH"' >> ~/.bashrc
+fi
+
 # golangci-lint for static analysis — require v2 to match .golangci.yml (version: "2")
 print_status "Installing golangci-lint (v2)..."
 # Detect current installed major version if any
@@ -123,9 +131,11 @@ go install github.com/psampaz/go-mod-outdated@latest
 print_status "Installing deadcode..."
 go install golang.org/x/tools/cmd/deadcode@latest
 
-# Air for live reloading during development
+# Air for live reloading during development (requires Go >= 1.25). Optional under older Go.
 print_status "Installing Air..."
-go install github.com/air-verse/air@latest
+if ! go install github.com/air-verse/air@latest >/dev/null 2>&1; then
+    print_warning "Air install failed (likely requires Go >= 1.25); skipping under Go ${GO_VERSION}"
+fi
 
 # Delve debugger
 print_status "Installing Delve debugger..."

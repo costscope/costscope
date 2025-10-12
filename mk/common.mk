@@ -3,18 +3,12 @@
 # Version & build flags (shared)
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
-# Conditionally include platform-specific external linker flags.
-# The '-dead_strip' flag is a Darwin/macOS linker option and is rejected
-# by GNU ld on Linux (error: unable to disambiguate: -dead_strip). Only
-# append the extldflags when building on Darwin hosts. This keeps local
-# builds on Linux-compatible CI/act runners working while preserving the
-# original optimization on macOS hosts.
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-	EXT_LD_ARG := -extldflags '\'-Wl,-dead_strip -Wl,-x\''
-else
-	EXT_LD_ARG :=
-endif
+# External linker flags (macOS-specific strip) are disabled by default.
+# Rationale: build-slim uses internal linking (CGO_ENABLED=0); passing
+# -extldflags with '-Wl,-dead_strip' causes the go internal linker to error
+# (flag provided but not defined). For targets that force external linking
+# (e.g., CGO_ENABLED=1), consider appending these flags locally in that target.
+EXT_LD_ARG :=
 
 LDFLAGS := -ldflags="-w -s -X main.version=$(VERSION) -X main.buildTime=$(shell date -u +%Y-%m-%dT%H:%M:%SZ) $(EXT_LD_ARG)" -trimpath -buildvcs=false
 GCFLAGS := -gcflags="-l=4"

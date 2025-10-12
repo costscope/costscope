@@ -10,7 +10,11 @@ ALLOW="${ALLOW_HIGH_COMPLEXITY:-0}"
 
 # Ensure gocyclo exists
 if ! command -v gocyclo >/dev/null 2>&1; then
-  echo "[cc-check] gocyclo not installed (install via make setup / brew install gocyclo)" >&2
+  if command -v apt-get >/dev/null 2>&1; then
+    echo "[cc-check] gocyclo not installed. Install via: make lint-tools-install" >&2
+  else
+    echo "[cc-check] gocyclo not installed. Install via: brew install gocyclo (macOS) or make lint-tools-install (Linux)" >&2
+  fi
   exit 1
 fi
 

@@ -1,15 +1,17 @@
 name: Security Suite
 env:
-  RUN_UPLOADS: "false"
+  RUN_UPLOADS: "true"
   # Centralized tool versions (override defaults in Makefile scripts)
   GITLEAKS_VERSION: latest
   GOSEC_VERSION: latest
   GOVULNCHECK_VERSION: latest
-  # Align with release workflow versions for consistency
-  SYFT_VERSION: v1.18.0
+  # Align with supply-chain and release workflows for consistency
+  SYFT_VERSION: v1.33.0
   COSIGN_VERSION: v2.2.4
   # Pinned to align with CI; used by scripts/security/run-trivy-*.sh
   TRIVY_VERSION: "0.56.2"
+  # Tools container image default (will be overridden by guard job output)
+  CI_TOOLS_IMAGE: ghcr.io/costscope/ci-base:latest
 
 on:
   pull_request:
@@ -25,6 +27,60 @@ permissions:
   security-events: write
 
 jobs:
+  require-ci-tools-image-pin:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: Require CI tools image pin (no drift)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      ci_tools_image: ${{ steps.check.outputs.ci_tools_image }}
+    steps:
+      - name: Load CI_TOOLS_IMAGE from repository variables (if set)
+        env:
+          GH_API: https://api.github.com
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          name="CI_TOOLS_IMAGE"
+          url="${GH_API}/repos/${owner}/${repo}/actions/variables/${name}"
+          hdrs=(
+            -H "Accept: application/vnd.github+json"
+            -H "Authorization: Bearer ${GH_TOKEN}"
+            -H "X-GitHub-Api-Version: 2022-11-28"
+          )
+          status=$(curl -sS -o /tmp/var.json -w "%{http_code}" "${hdrs[@]}" "$url") || true
+          if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
+            # naive JSON extraction for 'value' field without jq
+            val=$(sed -n 's/.*"value"\s*:\s*"\{0,1\([^"}]*\)\{0,1\}".*/\1/p' /tmp/var.json | head -n1)
+            if [ -n "$val" ]; then
+              echo "CI_TOOLS_IMAGE=$val" >> "$GITHUB_ENV"
+              echo "Loaded CI_TOOLS_IMAGE from repository variable: $val"
+            fi
+          else
+            echo "No repository variable CI_TOOLS_IMAGE found (status $status); using workflow env default."
+          fi
+      - name: Enforce non-floating CI_TOOLS_IMAGE
+        id: check
+        run: |
+          set -euo pipefail
+          IMAGE="${CI_TOOLS_IMAGE:-}"
+          if [ -z "$IMAGE" ]; then
+            echo "[warn] CI_TOOLS_IMAGE not set in workflow env."
+            echo "       Set Settings → Variables → Actions → CI_TOOLS_IMAGE to an immutable tag or digest, e.g.:"
+            echo "         ghcr.io/costscope/ci-base:2025-10-10-<shortsha>"
+            echo "         or ghcr.io/costscope/ci-base@sha256:<digest>"
+            echo "       Optionally update this workflow env to reference the Actions variable."
+            IMAGE="ghcr.io/costscope/ci-base:latest"
+          fi
+          if echo "$IMAGE" | grep -qE ':(latest|main|dev)$'; then
+            echo "[warn] CI_TOOLS_IMAGE uses a floating tag ($IMAGE). Prefer an immutable tag or digest." >&2
+          fi
+          echo "Using CI_TOOLS_IMAGE: $IMAGE"
+          echo "ci_tools_image=$IMAGE" >> "$GITHUB_OUTPUT"
   noop-act:
     if: ${{ github.actor == 'nektos/act' }}
     name: noop (act)
@@ -38,6 +94,7 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: Prepare Environment
     runs-on: ubuntu-latest
+    needs: require-ci-tools-image-pin
     outputs:
       go-version: ${{ steps.vars.outputs.goversion }}
     steps:
@@ -69,7 +126,9 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: SBOM
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
@@ -77,10 +136,13 @@ jobs:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: "Sanity: go version"
         run: go version
-      - name: Generate SBOM (syft)
+      - name: Generate SBOM (syft via tools image)
         run: |
-          make security-tools-install
-          make sbom
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'make sbom'
       - if: env.RUN_UPLOADS == 'true'
         # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 - source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -92,7 +154,9 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: govulncheck
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
@@ -100,9 +164,13 @@ jobs:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: "Sanity: go version"
         run: go version
-      - run: make security-tools-install
-      - name: Run govulncheck
-        run: bash ./scripts/security/run-govulncheck.sh
+      - name: Run govulncheck (via tools image)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'bash ./scripts/security/run-govulncheck.sh'
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -113,15 +181,21 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: gosec
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - uses: actions/setup-go@19bb51245e9c80abacb2e91cc42b33fa478b8639 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
-      - run: make security-tools-install
-      - name: Run gosec
-        run: bash ./scripts/security/run-gosec.sh
+      - name: Run gosec (via tools image)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'bash ./scripts/security/run-gosec.sh'
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -132,12 +206,18 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: secrets (gitleaks)
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - run: make security-tools-install
-      - name: Run gitleaks
-        run: bash ./scripts/security/run-gitleaks.sh
+      - name: Run gitleaks (via tools image)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'bash ./scripts/security/run-gitleaks.sh'
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -148,12 +228,18 @@ jobs:
     name: trivy fs
     if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
-    needs: setup
+    needs: [setup, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - run: make security-tools-install
-      - name: Trivy FS
-        run: bash ./scripts/security/run-trivy-fs.sh
+      - name: Trivy FS (via tools image)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'bash ./scripts/security/run-trivy-fs.sh'
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -187,19 +273,36 @@ jobs:
     name: trivy image
     if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
-    needs: build-image
+    needs: [build-image, require-ci-tools-image-pin]
+    env:
+      CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
+      - name: Checkout (for fallback build)
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: image-tar
-      - name: Load image
-        run: docker load -i image.tar.gz
-      - run: make security-tools-install
-      - name: Trivy Image
+      - name: Load or build image
+        run: |
+          if [ -f image.tar.gz ]; then
+            echo "Loading image from artifact..."
+            docker load -i image.tar.gz
+          else
+            echo "image.tar.gz not present (RUN_UPLOADS=${RUN_UPLOADS}); building image locally"
+            docker build -t costscope:ci .
+          fi
+      - name: Trivy Image (via tools image)
         env:
           TRIVY_IMAGE: costscope:ci
-        run: bash ./scripts/security/run-trivy-image.sh
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${{ github.workspace }}:/work \
+            -w /work \
+            ${{ env.CI_TOOLS_IMAGE }} \
+            bash -lc 'bash ./scripts/security/run-trivy-image.sh'
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

@@ -124,9 +124,9 @@ if has_cmd govulncheck; then
   if ! govulncheck -json ./... >"$GOVULN_JSON" 2>/dev/null; then
     echo '[govulncheck] Finished (non-zero exit).'
   fi
-  # Reachable vulns heuristic: objects with finding + isCalled true OR callStacks length > 0
-  GOVULN_REACHABLE=$(jq '[.[] | select(.finding.vuln != null) | select((.finding.isCalled == true) or (.finding.trace? | length > 0) or (.finding.vuln.callStacks? | length > 0)) ] | length' "$GOVULN_JSON" 2>/dev/null || echo 0)
-  GOVULN_TOTAL=$(jq '[.[] | select(.finding.vuln != null)] | length' "$GOVULN_JSON" 2>/dev/null || echo 0)
+  # Reachable vulns heuristic: govulncheck -json emits JSON lines; slurp (-s) to aggregate
+  GOVULN_REACHABLE=$(jq -s '[.[] | select(.finding.vuln != null) | select((.finding.isCalled == true) or (.finding.trace? | length > 0) or (.finding.vuln.callStacks? | length > 0))] | length' "$GOVULN_JSON" 2>/dev/null || echo 0)
+  GOVULN_TOTAL=$(jq -s '[.[] | select(.finding.vuln != null)] | length' "$GOVULN_JSON" 2>/dev/null || echo 0)
   if [ "$GOVULN_TOTAL" -eq 0 ]; then
     row 'govulncheck' 'PASS' 0 'No vulnerabilities reported'
   elif [ "$GOVULN_REACHABLE" -gt 0 ]; then

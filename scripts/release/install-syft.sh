@@ -8,12 +8,18 @@ if command -v syft >/dev/null 2>&1; then
 fi
 
 OS=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH="amd64"
 
 # Try a few common URL variants (some releases use different naming conventions).
 try_urls=(
+  # canonical amd64 naming
+  "https://github.com/anchore/syft/releases/download/${VER}/syft_${VER#v}_${OS}_${ARCH}.tar.gz"
+  "https://github.com/anchore/syft/releases/download/${VER}/syft_${VER}_${OS}_${ARCH}.tar.gz"
+  # legacy x86_64 variants
   "https://github.com/anchore/syft/releases/download/${VER}/syft_${VER#v}_${OS}_x86_64.tar.gz"
   "https://github.com/anchore/syft/releases/download/${VER}/syft_${VER}_${OS}_x86_64.tar.gz"
   # Try variant without leading 'v' in path if VER starts with v
+  "https://github.com/anchore/syft/releases/download/${VER#v}/syft_${VER#v}_${OS}_${ARCH}.tar.gz"
   "https://github.com/anchore/syft/releases/download/${VER#v}/syft_${VER#v}_${OS}_x86_64.tar.gz"
 )
 

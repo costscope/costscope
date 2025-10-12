@@ -66,7 +66,8 @@ collect_logs() {
 smoke_http() {
   local image=$1; local variant=$2
   local name="smoke-${variant}-http"
-  run_container "$image" "$name" api enterprise --host 0.0.0.0 --port 8080
+  # Start the HTTP server using the costscope binary (matches Dockerfile CMD)
+  run_container "$image" "$name" ./costscope enterprise --host 0.0.0.0 --port 8080
   trap 'docker rm -f "$name" >/dev/null 2>&1 || true' RETURN
   if ! wait_health "127.0.0.1:8080" http; then collect_logs "$name"; fail "Health check failed (HTTP) for $image"; fi
   if ! check_metrics "127.0.0.1:8080" http; then collect_logs "$name"; fail "Metrics check failed (HTTP) for $image"; fi
@@ -85,7 +86,7 @@ smoke_tls() {
   local name="smoke-${variant}-tls"
   log "Starting TLS container $name from $image"
   docker run -d --rm -p 8443:8443 --name "$name" -v "$tmpd:/certs:ro" \
-    "$image" api enterprise --host 0.0.0.0 --port 8443 --tls-enabled --tls-cert /certs/cert.pem --tls-key /certs/key.pem >/dev/null
+    "$image" ./costscope enterprise --host 0.0.0.0 --port 8443 --tls-enabled --tls-cert /certs/cert.pem --tls-key /certs/key.pem >/dev/null
   trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -rf "$tmpd"' RETURN
   if ! wait_health "127.0.0.1:8443" https; then collect_logs "$name"; fail "Health check failed (TLS) for $image"; fi
   if ! check_metrics "127.0.0.1:8443" https; then collect_logs "$name"; fail "Metrics check failed (TLS) for $image"; fi

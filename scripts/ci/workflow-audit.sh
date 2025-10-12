@@ -55,7 +55,8 @@ while IFS= read -r line; do
   use=$(echo "$line" | cut -d: -f3- | sed -E 's/^.*uses:[[:space:]]*//')
   # Extract owner/repo and ref
   owner_repo=$(echo "$use" | sed -E 's/@.*//')
-  ref=$(echo "$use" | sed -E 's/^[^@]+@//')
+  # Extract ref after '@' and strip trailing comments or extra tokens
+  ref=$(echo "$use" | sed -E 's/^[^@]+@//' | sed -E 's/[[:space:]]+#.*$//' | sed -E 's/[[:space:]].*$//')
   for p in "${critical_prefixes[@]}"; do
     if echo "$owner_repo" | grep -q "^$p$"; then
       if ! echo "$ref" | grep -Eq '^[0-9a-f]{40}$'; then
@@ -71,19 +72,27 @@ while IFS= read -r line; do
 done < <(grep -R --line-number --exclude=workflow-audit.yml "^[[:space:]]*uses:[[:space:]]*[^@[:space:]]\+@[^[:space:]]\+" .github/workflows || true)
 
 echo -e "\n4) Flag generic unpinned refs (heuristic)"
-# Find uses with '@' but neither a full sha nor a semver-like tag; still warn/fail
-awk '/uses:/ {print FILENAME ":" NR ": " $0}' .github/workflows/* | grep -v "workflow-audit.yml" | grep -E "@[^[:space:]]+" | while read -r line; do
-  use=$(echo "$line" | sed -E 's/.*@//')
-  if echo "$use" | grep -Eq "^[0-9a-f]{40}$"; then
+# Find uses with '@' but neither a full sha nor a semver-like tag; still warn/fail.
+# Trim trailing comments after the ref to avoid false positives when a ref is a SHA followed by a comment.
+found_unpinned=0
+while IFS= read -r line; do
+  # extract only the ref part after '@' and trim anything after a space or comment symbol
+  ref=$(echo "$line" | sed -E 's/.*@//' | sed -E 's/[[:space:]]+#.*$//' | sed -E 's/[[:space:]].*$//')
+  # allow full 40-char SHAs
+  if echo "$ref" | grep -Eq '^[0-9a-f]{40}$'; then
     continue
   fi
-  if echo "$use" | grep -Eq "^v?[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$"; then
-    # semver tag; allowed for non-critical actions
+  # allow semver tags (vX.Y.Z or X.Y.Z or 4-part semver)
+  if echo "$ref" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]+)?$'; then
     continue
   fi
   echo "Possible unpinned or non-immutable ref: $line" >&2
+  found_unpinned=1
+done < <(awk '/uses:/ {print FILENAME ":" NR ": " $0}' .github/workflows/* | grep -v "workflow-audit.yml" | grep -E "@[^[:space:]]+" || true)
+
+if [[ "$found_unpinned" -ne 0 ]]; then
   BAD=1
-done
+fi
 
 if [[ "$BAD" -ne 0 ]]; then
   echo "Workflow audit failed: unsafe patterns detected" >&2

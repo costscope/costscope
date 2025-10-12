@@ -124,7 +124,7 @@ if ! command -v golangci-lint &> /dev/null; then
         if ! go install github.com/golangci/golangci-lint/cmd/golangci-lint@${WANT_VERSION} 2>/dev/null; then
             # fallback to upstream installer that installs to GOPATH/bin
             if command -v curl >/dev/null 2>&1; then
-                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh -o /tmp/golangci-install.sh && sh /tmp/golangci-install.sh -b $(go env GOPATH)/bin ${WANT_VERSION} || true
+                curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh -o /tmp/golangci-install.sh && sh /tmp/golangci-install.sh -b "$(go env GOPATH)/bin" "${WANT_VERSION}" || true
             fi
         fi
     fi
@@ -254,7 +254,7 @@ if ! command -v gocyclo &> /dev/null; then
     go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 fi
 
-find . -name "*.go" -not -path "./_archive/*" | xargs gocyclo -over 10 > "$RESULTS_DIR/complexity_report.txt" || echo "No high complexity functions found"
+find . -name "*.go" -not -path "./_archive/*" -print0 | xargs -0 gocyclo -over 10 > "$RESULTS_DIR/complexity_report.txt" || echo "No high complexity functions found"
 COMPLEX_FUNCTIONS=$(cat "$RESULTS_DIR/complexity_report.txt" | wc -l)
 echo "   High complexity functions (>10): $COMPLEX_FUNCTIONS"
 

@@ -3,7 +3,8 @@ name: Performance Benchmark
 env:
   GO_VERSION: "1.24.x"
   # Pinned golangci-lint version used by CI to keep lint output stable
-  WANT_VERSION: "v1.54.2"
+  # Use a version that supports product config v2
+  WANT_VERSION: "v1.61.0"
 
 on:
   push:
@@ -64,7 +65,8 @@ jobs:
           fi
 
       - name: Cache Go modules (restore to temp)
-        uses: actions/cache@v4
+        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
         with:
           # Restore into a runner-local temporary directory to avoid direct
           # extraction into $GOMODCACHE which can produce conflicting file types
@@ -230,7 +232,8 @@ jobs:
           fi
 
       - name: Cache Go modules (restore to temp)
-        uses: actions/cache@v4
+        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
         with:
           path: ${{ runner.temp }}/go-mod-cache-restore
           key: go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}

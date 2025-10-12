@@ -26,7 +26,8 @@ env:
   GO_VERSION: "1.24.x"
   PROJECT_NAME: costscope
   REGISTRY_IMAGE: ghcr.io/${{ github.repository_owner }}/costscope
-  SYFT_VERSION: v1.18.0
+  # Align with supply-chain and scripts/supply-chain/gen-sbom.sh default
+  SYFT_VERSION: v1.33.0
   GITCLIFF_VERSION: v0.10.0
   COSIGN_VERSION: v2.2.4
 

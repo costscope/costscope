@@ -108,7 +108,7 @@ analyze: ## Run comprehensive code analysis
 	@echo " 5. Dead code detection..."; deadcode ./... || true
 
 notice: ## Regenerate NOTICE (dependency license inventory)
-	@echo " Generating NOTICE..."; bash scripts/license/gen-notice.sh NOTICE; git add NOTICE >/dev/null 2>&1 || true; echo " NOTICE updated"
+	@echo " Generating NOTICE..."; NOTICE_DETERMINISTIC=1 bash scripts/license/gen-notice.sh NOTICE; git add NOTICE >/dev/null 2>&1 || true; echo " NOTICE updated"
 
 notice-drift: ## Fail if NOTICE is out-of-date with current dependencies
 	@echo " Checking NOTICE drift..."; \
@@ -144,3 +144,22 @@ hotpath-deps-guard: ## Ensure heavy deps (duckdb/arrow/thrift/sqlite) are not im
 contract-check: ## Run API contract diff check
 	@echo " Running API contract check..."
 	bash scripts/tools/contract-diff.sh
+
+.PHONY: api-baseline-update
+api-baseline-update: ## Update API baselines (api/openapi*.json) from current generated YAML specs
+	@echo " Updating API baseline JSONs from current specs..."; \
+	if [ ! -f internal/api/docs/openapi.yaml ]; then echo " missing internal/api/docs/openapi.yaml (run: go run ./cmd/tools/gen-openapi)"; exit 2; fi; \
+	GO111MODULE=on go run ./cmd/tools/yaml2json internal/api/docs/openapi.yaml > api/openapi.v1.json.tmp && mv api/openapi.v1.json.tmp api/openapi.v1.json; \
+	if [ -f internal/api/docs/enterprise-openapi.yaml ]; then \
+	  GO111MODULE=on go run ./cmd/tools/yaml2json internal/api/docs/enterprise-openapi.yaml > api/openapi.enterprise.v1.json.tmp && mv api/openapi.enterprise.v1.json.tmp api/openapi.enterprise.v1.json; \
+	  echo " enterprise baseline updated"; \
+	else \
+	  echo " enterprise spec not present; skipping"; \
+	fi; \
+	echo " API baseline update complete"
+
+.PHONY: oasdiff-install
+oasdiff-install: ## Install oasdiff at the CI-pinned revision for local checks
+	@echo " Installing oasdiff (pinned to CI revision)..."; \
+	GOBIN=$$(pwd)/bin go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8; \
+	echo " oasdiff installed to ./bin/oasdiff"

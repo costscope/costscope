@@ -9,7 +9,9 @@ set -euo pipefail
 #  - Changed type of existing field = breaking (fail)
 #
 # Tool preference: uses oasdiff (if installed) else falls back to a minimal grep heuristic.
-# Install oasdiff: go install github.com/Tufin/oasdiff/cmd/oasdiff@latest
+# Install oasdiff (align with CI pinned commit):
+#   go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8
+# See .github/workflows/api-contract-guard.yml for the current pinned revision.
 
 RED="\033[31m"; GREEN="\033[32m"; YELLOW="\033[33m"; RESET="\033[0m"
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)

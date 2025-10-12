@@ -18,7 +18,8 @@ jobs:
     name: Validate .golangci.yml syntax
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
       - name: Install yq (for YAML validation)
         run: |

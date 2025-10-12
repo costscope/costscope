@@ -15,8 +15,8 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "multicloud",
 		Short: "Multi-cloud cost optimization and management",
-		Long: "Multi-cloud commands for cross-provider cost optimization, migration analysis,\nand unified reporting across AWS, Azure, and GCP.\n",
-		RunE: func(cmd *cobra.Command, args []string) error { return cmd.Help() },
+		Long:  "Multi-cloud commands for cross-provider cost optimization, migration analysis,\nand unified reporting across AWS, Azure, and GCP.\n",
+		RunE:  func(cmd *cobra.Command, args []string) error { return cmd.Help() },
 	}
 
 	root.PersistentFlags().StringSliceVar(&recv.flags.Providers, "providers", []string{}, "Cloud providers to include (aws,azure,gcp)")
@@ -26,11 +26,11 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root.PersistentFlags().StringVar(&recv.flags.OutputFile, "output", "", "Output file path")
 	root.PersistentFlags().StringVar(&recv.flags.ConfigFile, "config", "", "Multi-cloud configuration file")
 	root_0 := &cobra.Command{
-		Use:   "optimize",
-		Short: "Analyze cross-cloud optimization opportunities",
-		Long: "Analyze optimization opportunities across multiple cloud providers including\ncost arbitrage, migration opportunities, and resource consolidation.\n",
+		Use:     "optimize",
+		Short:   "Analyze cross-cloud optimization opportunities",
+		Long:    "Analyze optimization opportunities across multiple cloud providers including\ncost arbitrage, migration opportunities, and resource consolidation.\n",
 		Example: "costscope multicloud optimize --providers aws,azure\n",
-		RunE: recv.runOptimize,
+		RunE:    recv.runOptimize,
 	}
 
 	root_0.Flags().StringSliceVar(&recv.flags.OptimizationTypes, "types", []string{}, "Optimization types (right_sizing,reserved_instances,spot_instances,cost_arbitrage,region_switching)")
@@ -41,8 +41,8 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root_1 := &cobra.Command{
 		Use:   "compare",
 		Short: "Compare costs across multiple cloud providers",
-		Long: "Compare costs across multiple cloud providers with normalized metrics\nand detailed breakdowns by service, region, and time period.\n",
-		RunE: recv.runCompare,
+		Long:  "Compare costs across multiple cloud providers with normalized metrics\nand detailed breakdowns by service, region, and time period.\n",
+		RunE:  recv.runCompare,
 	}
 
 	root_1.Flags().StringVar(&recv.flags.CurrencyNormalization, "currency", "USD", "Currency for cost normalization")
@@ -52,8 +52,8 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root_2 := &cobra.Command{
 		Use:   "migrate",
 		Short: "Estimate and plan cross-cloud migrations",
-		Long: "Estimate the costs and benefits of migrating workloads between cloud providers.\n",
-		RunE: recv.runMigrate,
+		Long:  "Estimate the costs and benefits of migrating workloads between cloud providers.\n",
+		RunE:  recv.runMigrate,
 	}
 
 	root_2.Flags().StringVar(&recv.flags.SourceProvider, "source", "", "Source cloud provider")
@@ -65,8 +65,8 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root_3 := &cobra.Command{
 		Use:   "discover",
 		Short: "Discover resources across multiple cloud providers",
-		Long: "Discover and inventory resources across all configured cloud providers.\n",
-		RunE: recv.runDiscover,
+		Long:  "Discover and inventory resources across all configured cloud providers.\n",
+		RunE:  recv.runDiscover,
 	}
 
 	root_3.Flags().StringSliceVar(&recv.flags.ResourceTypes, "resource-types", []string{}, "Resource types to discover (compute,storage,database,network)")
@@ -77,8 +77,8 @@ func (recv *MulticloudCommands) BuildMulticloudCommand() *cobra.Command {
 	root_4 := &cobra.Command{
 		Use:   "validate",
 		Short: "Validate multi-cloud provider connections",
-		Long: "Validate credentials and connectivity for all configured cloud providers.\n",
-		RunE: recv.runValidate,
+		Long:  "Validate credentials and connectivity for all configured cloud providers.\n",
+		RunE:  recv.runValidate,
 	}
 
 	root.AddCommand(root_4)
