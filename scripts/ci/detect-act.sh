@@ -6,6 +6,7 @@ set -euo pipefail
 
 if [[ "${GITHUB_ACTOR:-}" == "nektos/act" ]]; then
   echo "IS_ACT=true" >> "$GITHUB_ENV"
+  echo "ACT=true" >> "$GITHUB_ENV"
   echo "Detected local act runtime; will skip heavy network/apt steps"
 else
   echo "IS_ACT=false" >> "$GITHUB_ENV"

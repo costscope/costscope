@@ -26,7 +26,7 @@ jobs:
     name: build-test-scan-sign-push (${{ matrix.variant }})
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:${{ env.CI_IMAGE_TAG }}
     strategy:
       fail-fast: false
       matrix:
@@ -245,7 +245,7 @@ jobs:
     name: build-test-scan-sign-push (slim)
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:${{ env.CI_IMAGE_TAG }}
     permissions:
       contents: read
       packages: write

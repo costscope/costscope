@@ -14,6 +14,14 @@ set -euo pipefail
 #  * Exits non‑zero on any failure
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# If running under act and Docker is not accessible, skip gracefully.
+if [[ "${IS_ACT:-false}" == "true" ]]; then
+  if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
+    echo "[act] Docker unavailable in this environment; skipping container smoke tests" >&2
+    exit 0
+  fi
+fi
 LOG_DIR="${ROOT_DIR}/smoke-logs"
 mkdir -p "${LOG_DIR}" || true
 

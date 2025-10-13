@@ -17,56 +17,32 @@ go mod download
 # Use sudo only if available to avoid noisy warnings in containerized environments
 if command -v sudo >/dev/null 2>&1; then SUDO=sudo; else SUDO=; fi
 
-# Under act, skip non-slim variants to avoid apt/network instability
-if [[ "${IS_ACT:-false}" == "true" && "${VARIANT}" != "slim" && "${ACT_FULL:-false}" != "true" ]]; then
-  echo "[act] Skipping ${VARIANT} variant under act"
-  exit 0
-fi
-
-# Under act for the slim variant, run a reduced test set that excludes packages requiring large external fixtures
-if [[ "${IS_ACT:-false}" == "true" && "${VARIANT}" == "slim" && "${ACT_FULL:-false}" != "true" ]]; then
-  echo "[act] Running reduced slim test set (excluding heavy/DB-dependent packages)"
-  # Tolerate no matches without failing the script under 'set -o pipefail'
-  # Exclude:
-  #  - internal/core/focus/conversion (heavy fixtures)
-  #  - scripts/tools/parity-check (depends on duckdb)
-  #  - tests/parity (depends on duckdb)
-  pkgs=$(go list ./... | grep -Ev '^(github.com/costscope/costscope/internal/core/focus/conversion|github.com/costscope/costscope/scripts/tools/parity-check|github.com/costscope/costscope/tests/parity)($|/)' || true)
-  if [[ -n "${pkgs}" ]]; then
-    echo "[act] Package count: $(echo "$pkgs" | wc -w | tr -d ' ')"
-    failed=0
-    # Run package-by-package to surface the exact failing package under act
-    for pkg in ${pkgs}; do
-      echo "[act] >>> go test -v -cover ${pkg}"
-      # Under act, avoid -race to reduce memory pressure in constrained containers
-      if ! env -u GOROOT GOTOOLCHAIN=auto go test -v -cover "${pkg}"; then
-        echo "[act] FAIL: ${pkg}"
-        failed=1
-      fi
-    done
-    if [[ ${failed} -ne 0 ]]; then
-      echo "[act] Reduced test run had failures"
-      exit 1
-    fi
-  else
-    echo "[act] No packages selected for reduced test run"
-  fi
-  exit 0
-fi
+## Act-specific skipping/reduction removed — run full tests under act as requested
 
 case "${VARIANT}" in
   slim)
-    make test-slim || go test ./...
+    if [[ "${IS_ACT:-false}" == "true" ]]; then
+      # Under act, run all packages without -race to keep memory stable.
+      # Avoid invoking the make target (which uses -race) to reduce OOM risk
+      # and eliminate any edge cases with set -e and fallback semantics.
+      env -u GOROOT GOTOOLCHAIN=auto go test -v -cover ./...
+    else
+      make test-slim || go test -race ./...
+    fi
     ;;
   sqlite)
-    ${SUDO} apt-get update || true
-    ${SUDO} apt-get install -y build-essential || true
-    make test-sqlite || go test -tags sqlite ./...
+    if [[ "${IS_ACT:-false}" == "true" ]]; then
+      make test-sqlite || env -u GOROOT GOTOOLCHAIN=auto go test -v -cover -tags sqlite ./...
+    else
+      make test-sqlite || go test -race -tags sqlite ./...
+    fi
     ;;
   duckdb)
-    ${SUDO} apt-get update || true
-    ${SUDO} apt-get install -y build-essential || true
-    make test-duckdb || go test -tags duckdb ./...
+    if [[ "${IS_ACT:-false}" == "true" ]]; then
+      make test-duckdb || env -u GOROOT GOTOOLCHAIN=auto go test -v -cover -tags duckdb ./...
+    else
+      make test-duckdb || go test -race -tags duckdb ./...
+    fi
     ;;
   *)
     echo "unknown variant: ${VARIANT}" >&2
