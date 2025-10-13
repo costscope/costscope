@@ -7,7 +7,7 @@ on:
       - internal/core/focus/conversion/**
       - scripts/tools/parity-check/**
       - tests/perf/**
-      - tests/fixtures/quality/baseline_synth_invariants.json
+      - tests/fixtures/quality/baseline_invariants.json
       - Makefile
       - go.mod
       - go.sum
@@ -17,7 +17,7 @@ on:
       - internal/core/focus/conversion/**
       - scripts/tools/parity-check/**
       - tests/perf/**
-      - tests/fixtures/quality/baseline_synth_invariants.json
+      - tests/fixtures/quality/baseline_invariants.json
       - Makefile
       - go.mod
       - go.sum
@@ -36,7 +36,7 @@ jobs:
     env:
       PARITY_TOLERANCE: 1e-9
       INVARIANTS_TOLERANCE: 0.01
-      INVARIANTS_BASELINE: tests/fixtures/quality/baseline_synth_invariants.json
+      INVARIANTS_BASELINE: tests/fixtures/quality/baseline_invariants.json
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
@@ -82,7 +82,9 @@ jobs:
         run: make data-parity-guard
 
       - name: Upload artifacts
+        # Non-blocking: artifact uploads can fail under local act (no runtime token)
         if: ${{ always() && github.actor != 'nektos/act' }}
+        continue-on-error: true
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: data-parity-guard-artifacts

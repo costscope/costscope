@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # perf-guard.sh (M11 – Perf guard unified vs fast)
 # Runs the targeted benchmark BenchmarkPerfGuardUnified (legacy vs unified sub-benchmarks)
 # Parses go test -bench output (ns/op and B/op allocations) and enforces thresholds:
@@ -18,7 +23,7 @@ PKG="${1:-./internal/core/focus/conversion}"
 DUR_MAX="${PERF_GUARD_DURATION_MAX:-1.20}"
 ALLOC_MAX="${PERF_GUARD_ALLOCS_MAX:-1.25}"
 
-echo " Running perf guard benchmark (pkg=$PKG dur<=${DUR_MAX}x alloc<=${ALLOC_MAX}x)" >&2
+ci::log " Running perf guard benchmark (pkg=$PKG dur<=${DUR_MAX}x alloc<=${ALLOC_MAX}x)"
 
 BENCH_ENV=""
 if [[ -n "${PERF_GUARD_ROWS:-}" ]]; then
@@ -28,7 +33,7 @@ fi
 # Run only the perf guard benchmark; suppress other output with -run '^$'
 set -o pipefail
 CMD="env -u GOROOT GOTOOLCHAIN=auto COSTSCOPE_CORE_LOG_LEVEL=error COSTSCOPE_LOG_LEVEL=error LOG_LEVEL=error COSTSCOPE_LOG_FORMAT=discard $BENCH_ENV go test -count=1 -run '^$' -bench '^BenchmarkPerfGuardUnified$' -benchmem $PKG"
-echo "+ $CMD" >&2
+ci::debug "+ $CMD"
 OUTPUT=$(eval "$CMD" 2>&1 | tee /dev/stderr)
 
 # State-machine parse: remember last seen benchmark name; capture metrics when a numeric metrics line appears (contains ns/op)
@@ -55,12 +60,12 @@ while IFS= read -r line; do
 done <<<"$OUTPUT"
 
 if [[ -z "$legacy_ns" || -z "$unified_ns" || -z "$legacy_allocs" || -z "$unified_allocs" ]]; then
-  echo " Failed to extract benchmark metrics (state-machine parser)" >&2
+  ci::warn " Failed to extract benchmark metrics (state-machine parser)"
   echo "$OUTPUT" | sed -n '1,200p' >&2
   exit 4
 fi
 
-echo " Parsed metrics: legacy_ns=$legacy_ns unified_ns=$unified_ns legacy_allocs=$legacy_allocs unified_allocs=$unified_allocs" >&2
+ci::log " Parsed metrics: legacy_ns=$legacy_ns unified_ns=$unified_ns legacy_allocs=$legacy_allocs unified_allocs=$unified_allocs"
 
 ratio_dur=$(awk -v u="$unified_ns" -v l="$legacy_ns" 'BEGIN{ if(l==0){print 999}else{printf "%.4f", u/l} }')
 ratio_alloc=$(awk -v u="$unified_allocs" -v l="$legacy_allocs" 'BEGIN{ if(l==0){print 999}else{printf "%.4f", u/l} }')
@@ -75,16 +80,16 @@ if awk -v r="$ratio_alloc" -v max="$ALLOC_MAX" 'BEGIN{exit (r>max)?0:1}'; then
   status="fail"; fail_reasons+=("alloc ratio $ratio_alloc > $ALLOC_MAX")
 fi
 
-echo " Perf guard results:" >&2
-echo "   legacy:  ns/op=$legacy_ns  allocs/op=$legacy_allocs" >&2
-echo "   unified: ns/op=$unified_ns allocs/op=$unified_allocs" >&2
-echo "   ratios:  duration=$ratio_dur allocs=$ratio_alloc" >&2
+ci::log " Perf guard results:"
+ci::log "   legacy:  ns/op=$legacy_ns  allocs/op=$legacy_allocs"
+ci::log "   unified: ns/op=$unified_ns allocs/op=$unified_allocs"
+ci::log "   ratios:  duration=$ratio_dur allocs=$ratio_alloc"
 
 if [[ "$status" == "fail" ]]; then
-  echo " Performance guard FAILED: ${fail_reasons[*]}" >&2
+  ci::warn " Performance guard FAILED: ${fail_reasons[*]}"
   exit 10
 fi
 
-echo " Performance guard passed (duration=$ratio_dur allocs=$ratio_alloc)" >&2
+ci::log " Performance guard passed (duration=$ratio_dur allocs=$ratio_alloc)"
 
 exit 0

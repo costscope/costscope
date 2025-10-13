@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # Guard script: ensure every //nolint:unused has an explanatory comment.
 # Policy defined in CONTRIBUTING.md (Lint Suppression Policy).
 
@@ -22,4 +27,4 @@ if [ "$fail" -ne 0 ]; then
   exit 1
 fi
 
-echo " nolint:unused rationale guard passed"
+ci::log " nolint:unused rationale guard passed"

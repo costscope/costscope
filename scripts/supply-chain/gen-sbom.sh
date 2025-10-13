@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # CostScope SBOM generation script (M14)
 # Generates CycloneDX JSON SBOM via syft -> sbom-syft.json (also copies to sbom.json for legacy consumers)
 # Validates file size and presence of Go module components. Optionally creates a cosign attestation.
@@ -22,8 +27,8 @@ IMAGE_REF="${SBOM_ATTEST_IMAGE:-${image:-costscope:latest}}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
-log() { printf '%s\n' "$*"; }
-err() { printf ' %s\n' "$*" >&2; }
+log() { ci::log "$*"; }
+err() { ci::warn "$*"; }
 
 ensure_syft() {
   if ! command -v syft >/dev/null 2>&1; then

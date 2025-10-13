@@ -1,55 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Ensure we are at the repository root regardless of caller CWD.
-# Under act, GITHUB_WORKSPACE may not point to the synced repo; probe multiple candidates.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
 
-probe_candidates=()
-if [[ -n "${GITHUB_WORKSPACE:-}" && -d "${GITHUB_WORKSPACE}" ]]; then
-  probe_candidates+=("${GITHUB_WORKSPACE}")
-fi
-probe_candidates+=("${SCRIPT_ROOT}")
-probe_candidates+=("${PWD}")
-# Common nested layout when repo root contains a top-level folder named like the module (e.g., costscope)
-probe_candidates+=("${SCRIPT_ROOT}/costscope")
-
-choose_root=""
-for cand in "${probe_candidates[@]}"; do
-  # A valid root contains go.mod and our tests/fixtures directory
-  if [[ -f "${cand}/go.mod" && -d "${cand}/tests/fixtures" ]]; then
-    choose_root="${cand}"
-    break
-  fi
-done
-
-if [[ -z "${choose_root}" ]]; then
-  # Fall back to script root as a best effort
-  choose_root="${SCRIPT_ROOT}"
-fi
-
-if [[ "${ACT:-}" == "true" ]]; then
-  echo "[e2e] PWD=${PWD} GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-} SCRIPT_ROOT=${SCRIPT_ROOT} CHOSEN_ROOT=${choose_root}"
-fi
-
-cd "${choose_root}"
+ROOT="$(ci::repo_root "${SCRIPT_DIR}/../..")"
+ci::debug "PWD=${PWD} GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-} SCRIPT_DIR=${SCRIPT_DIR} ROOT=${ROOT}"
+cd "${ROOT}"
 
 mkdir -p e2e-artifacts
-echo "Running E2E pipeline tests..."
+ci::log "Running E2E pipeline tests..."
 
 # Prefer running with duckdb tag (tests are gated by //go:build duckdb)
 # Allow override via E2E_TAGS (comma-separated Go build tags)
 E2E_TAGS=${E2E_TAGS:-duckdb}
 
 # If running under act and required fixtures are missing, skip gracefully.
-if [[ "${ACT:-}" == "true" ]]; then
+if ci::is_act; then
   missing=()
   [[ -f tests/fixtures/aws/cur_baseline_sample.csv ]] || missing+=("tests/fixtures/aws/cur_baseline_sample.csv")
   [[ -f tests/fixtures/azure/usage.csv ]] || missing+=("tests/fixtures/azure/usage.csv")
   [[ -f tests/fixtures/gcp/usage_minimal.csv ]] || missing+=("tests/fixtures/gcp/usage_minimal.csv")
   if (( ${#missing[@]} > 0 )); then
-    echo "E2E fixtures missing under act; skipping E2E. Missing: ${missing[*]}"
+    ci::warn "E2E fixtures missing under act; skipping E2E. Missing: ${missing[*]}"
     echo '{}' > e2e-artifacts/summary.json || true
     exit 0
   fi
@@ -67,7 +41,7 @@ set -e
 
 # If the package has no files due to build tags, treat as skip (useful under act/local without duckdb)
 if [[ $status -ne 0 ]] && grep -q "build constraints exclude all Go files" e2e_all.log; then
-  echo "E2E pipeline tests skipped (duckdb tag not available in this environment)."
+  ci::log "E2E pipeline tests skipped (duckdb tag not available in this environment)."
   echo '{}' > e2e-artifacts/summary.json || true
   exit 0
 fi

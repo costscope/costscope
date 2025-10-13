@@ -1,31 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Quality check script for CostScope
 set -euo pipefail
 
-echo " Running comprehensive quality checks..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR"; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
+ci::log " Running comprehensive quality checks..."
 
 # 1. Check for duplicates
-echo " Step 1: Checking for duplicates (dupl)..."
+ci::log " Step 1: Checking for duplicates (dupl)..."
 make duplicates
 
 # 2. Static analysis
-echo " Step 2: Running static analysis..."
+ci::log " Step 2: Running static analysis..."
 golangci-lint run --timeout=10m
 
 # 3. Security scan (gosec is included in golangci-lint above)
-echo " Step 3: Security scan completed via golangci-lint"
+ci::log " Step 3: Security scan completed via golangci-lint"
 
 # 4. Vulnerability check
-echo " Step 4: Checking for vulnerabilities..."
+ci::log " Step 4: Checking for vulnerabilities..."
 govulncheck ./...
 
 # 5. Tests
-echo " Step 5: Running tests..."
+ci::log " Step 5: Running tests..."
 go test -race -cover ./...
 
 # 6. Build check
-echo " Step 6: Checking build..."
+ci::log " Step 6: Checking build..."
 go build ./...
 
-echo " All quality checks passed!"
+ci::log " All quality checks passed!"

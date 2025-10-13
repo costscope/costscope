@@ -1,0 +1,33 @@
+version: "2"
+run:
+  timeout: 5m
+  tests: false
+  build-tags:
+    - duckdb
+  concurrency: 2
+issues:
+  exclude-dirs:
+    - bin
+    - data
+    - docs
+    - examples
+    - scripts
+    - tmp
+    - vendor
+    - tests
+    - internal/.*/testdata
+    - cmd/modules/integration
+    - internal/api
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - goconst
+    - gocyclo
+    - misspell
+    - unconvert
+    - unparam
+    - whitespace

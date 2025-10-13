@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 #  CostScope Architectural Optimization - Comprehensive Analysis
 # Phase: Performance Analysis & Code Quality Assessment
 
-set -e
+# Source common logging helpers if available
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+    # shellcheck disable=SC1090
+    . "$COMMON_SH"
+fi
 
 echo " COSTSCOPE ARCHITECTURAL OPTIMIZATION SUITE"
 echo "=============================================="

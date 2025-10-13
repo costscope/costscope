@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Linting markdown for trailing whitespace..."
+# shellcheck source=ci/lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/ci/lib/common.sh"
+
+ci::log "Linting markdown for trailing whitespace..."
 if grep -R --include='*.md' "[[:blank:]]$" docs/ >/dev/null 2>&1; then
-  echo "Trailing spaces found in docs (run: git diff -- docs | sed -n '1,200p')"
-  exit 1
+  ci::die "Trailing spaces found in docs (run: git diff -- docs | sed -n '1,200p')"
 fi
-echo "No trailing spaces found"
+ci::log "No trailing spaces found"

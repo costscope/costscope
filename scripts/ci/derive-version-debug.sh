@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
 # Local debug script to reproduce the 'Derive version' step from .github/workflows/release.yml
 # Usage:
 #   RELEASE_RAW='' ./scripts/ci/derive-version-debug.sh
@@ -10,29 +14,21 @@ set -euo pipefail
 RAW_VERSION=${RELEASE_RAW:-}
 GITHUB_EVENT_NAME=${GITHUB_EVENT_NAME:-push}
 
-if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-  # In workflow the raw values are taken from inputs; emulate via env
-  : # no-op
-else
-  # emulate tag ref (if not provided, use RAW_VERSION as-is)
-  # In GH the ref is like refs/tags/v0.1.0 -> script extracts last component
-  # Here we assume user provided RAW_VERSION or fallback to empty
-  :
+if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+  : # In workflow the raw values are taken from inputs; emulate via env
 fi
 
-if [ -z "$RAW_VERSION" ]; then
-  echo "No RAW_VERSION provided. Example: RELEASE_RAW=v0.1.0 $0" >&2
-  exit 2
+if [[ -z "$RAW_VERSION" ]]; then
+  ci::die "No RAW_VERSION provided. Example: RELEASE_RAW=v0.1.0 $0"
 fi
 
-echo "Testing RAW_VERSION='$RAW_VERSION'"
+ci::log "Testing RAW_VERSION='$RAW_VERSION'"
 
 if ! echo "$RAW_VERSION" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
-  echo "Version $RAW_VERSION not valid SemVer (vMAJOR.MINOR.PATCH[-PRERELEASE])" >&2
-  exit 1
+  ci::die "Version $RAW_VERSION not valid SemVer (vMAJOR.MINOR.PATCH[-PRERELEASE])"
 fi
 
-echo "Detected valid version: $RAW_VERSION"
+ci::log "Detected valid version: $RAW_VERSION"
 
 echo "version=$RAW_VERSION"
 echo "tag=$RAW_VERSION"

@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Searching for unsafe workflow patterns..."
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
+ci::log "Searching for unsafe workflow patterns..."
 BAD=0
 
 # Enforce critical pins only on push to main; PRs get warnings to ease migration
@@ -95,8 +99,7 @@ if [[ "$found_unpinned" -ne 0 ]]; then
 fi
 
 if [[ "$BAD" -ne 0 ]]; then
-  echo "Workflow audit failed: unsafe patterns detected" >&2
-  exit 1
+  ci::die "Workflow audit failed: unsafe patterns detected"
 else
-  echo "Workflow audit passed: no obvious unsafe patterns found"
+  ci::log "Workflow audit passed: no obvious unsafe patterns found"
 fi

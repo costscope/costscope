@@ -4,13 +4,15 @@ set -euo pipefail
 # deadcode-guard.sh
 # Purpose: Run deadcode tool, filter out allowlisted symbols, and fail on newly unreachable exports.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ALLOWLIST_FILE="${ROOT_DIR}/.deadcode-allowlist"
 
-if ! command -v deadcode >/dev/null 2>&1; then
-  echo "deadcode tool not found in PATH (install via: go install golang.org/x/tools/... or make tools)" >&2
-  exit 2
-fi
+ci::require_cmd deadcode
 
 tmp_out="$(mktemp)"
 trap 'rm -f "$tmp_out"' EXIT
@@ -20,12 +22,12 @@ trap 'rm -f "$tmp_out"' EXIT
 deadcode ./... > "$tmp_out" || true
 
 if [[ ! -s "$tmp_out" ]]; then
-  echo "No deadcode output (unexpected)." >&2
+  ci::warn "No deadcode output (unexpected)."
   exit 0
 fi
 
 if [[ ! -f "$ALLOWLIST_FILE" ]]; then
-  echo "Allowlist file missing at $ALLOWLIST_FILE" >&2
+  ci::die "Allowlist file missing at $ALLOWLIST_FILE" || true
   cat "$tmp_out"
   exit 3
 fi
@@ -48,12 +50,12 @@ while IFS= read -r line; do
 done < "$tmp_out"
 
 if [[ ! -s "$violations_file" ]]; then
-  echo "Deadcode guard: no new unallowlisted symbols detected." >&2
+  ci::log "Deadcode guard: no new unallowlisted symbols detected."
   exit 0
 fi
 
-echo "Deadcode guard: NEW unreachable exported symbols detected (not in allowlist):" >&2
+ci::warn "Deadcode guard: NEW unreachable exported symbols detected (not in allowlist):"
 cat "$violations_file" >&2
 echo >&2
-echo "Add intentional cases to .deadcode-allowlist with justification comments, or remove the code." >&2
+ci::warn "Add intentional cases to .deadcode-allowlist with justification comments, or remove the code."
 exit 1

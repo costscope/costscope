@@ -4,7 +4,13 @@ set -euo pipefail
 # Generate a version.json file at the repository root.
 # Intended for release pipelines or local reproducible builds.
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+  # shellcheck disable=SC1090
+  . "$COMMON_SH"
+fi
+
 OUT_FILE="$ROOT_DIR/version.json"
 
 : "${SOURCE_DATE_EPOCH:=}"
@@ -40,4 +46,8 @@ cat > "$OUT_FILE" <<EOF
 {"version":"${VERSION}","commit":"${COMMIT}","build_date":"${BUILD_DATE}","go_version":"${GOVERSION}"}
 EOF
 
-echo "Wrote $OUT_FILE"
+if command -v ci::log >/dev/null 2>&1; then
+  ci::log "Wrote $OUT_FILE"
+else
+  echo "Wrote $OUT_FILE"
+fi

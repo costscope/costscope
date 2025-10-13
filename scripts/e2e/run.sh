@@ -10,6 +10,10 @@ trap 'echo "[E2E-ERR] line:$LINENO status:$? cmd:$BASH_COMMAND" >&2' ERR
 # Generates synthetic provider billing data (10-50K rows) for AWS, Azure, GCP and exercises the CLI.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
 BIN="${ROOT_DIR}/costscope"
 WORKDIR="${ROOT_DIR}/tmp/e2e"
 DATA_DIR="${WORKDIR}/data"
@@ -31,7 +35,7 @@ if [[ ! -x "$BIN" ]]; then
   exit 2
 fi
 
-log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
+log() { ci::log "$*"; }
 
 failures=0
 skips=0

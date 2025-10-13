@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # run_bench.sh - Unified performance bench runner for legacy vs unified mapper.
 # Scenarios: chunk sizes 10k/50k/100k, rotation on/off (handled inside perf-bench tool).
 # Outputs: bench_results.json, optional perf_metrics.prom, compares against baseline if provided.
@@ -45,8 +50,8 @@ set +x
 
 status=$(jq -r '.overall_status' "$OUTPUT" 2>/dev/null || echo unknown)
 if [[ "$status" != "pass" ]]; then
-  echo " Performance regression detected (status=$status). See $OUTPUT" >&2
+  ci::warn " Performance regression detected (status=$status). See $OUTPUT"
   exit 1
 fi
 
-echo " Performance benchmarks passed (status=$status). Results: $OUTPUT"
+ci::log " Performance benchmarks passed (status=$status). Results: $OUTPUT"

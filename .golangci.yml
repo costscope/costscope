@@ -12,7 +12,8 @@ run:
     - examples
     - tmp
     - vendor
-    - internal/**/testdata
+    # Use regex (not glob) for nested testdata directories
+    - internal/.*/testdata
 
 linters:
   enable:

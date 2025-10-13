@@ -4,6 +4,13 @@ set -euo pipefail
 # Install pinned developer lint/security tools.
 # Respects WANT_VERSION environment variable for golangci-lint (default v1.54.2).
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+	# shellcheck disable=SC1090
+	. "$COMMON_SH"
+fi
+
 WANTED="${WANT_VERSION:-v1.54.2}"
 GOBIN="$(go env GOPATH)/bin"
 
@@ -19,9 +26,9 @@ echo " - gocyclo: latest"
 
 install_or_warn() {
 	local cmd="$*"
-	echo "Running: $cmd"
+	if command -v ci::log >/dev/null 2>&1; then ci::log "Running: $cmd"; else echo "Running: $cmd"; fi
 	if ! env GO111MODULE=on GOBIN="$GOBIN" bash -lc "$cmd"; then
-		echo "\nWARNING: failed to install via: $cmd"
+		if command -v ci::warn >/dev/null 2>&1; then ci::warn "failed to install via: $cmd"; else echo "\nWARNING: failed to install via: $cmd"; fi
 		return 1
 	fi
 	return 0
@@ -42,8 +49,8 @@ try_install_golangci() {
 	os_name="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	arch="$(uname -m)"
 	case "$arch" in
-		x86_64|amd64) arch="amd64" ;; 
-		aarch64|arm64) arch="arm64" ;; 
+		x86_64|amd64) arch="amd64" ;;
+		aarch64|arm64) arch="arm64" ;;
 		*) echo "Unsupported arch: $arch"; return 1 ;;
 	esac
 	case "$os_name" in

@@ -12,6 +12,11 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR"; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=ci/lib/common.sh
+if [[ -f "$SCRIPTS_DIR/ci/lib/common.sh" ]]; then source "$SCRIPTS_DIR/ci/lib/common.sh"; fi
+
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 REPORT_MD="${ROOT_DIR}/SECURITY_REPORT.md"
 
@@ -42,6 +47,7 @@ require() {
 }
 
 require jq
+if command -v ci::log >/dev/null 2>&1; then ci::log "Starting security gate"; fi
 
 STATUS_ANY_FAIL=0
 

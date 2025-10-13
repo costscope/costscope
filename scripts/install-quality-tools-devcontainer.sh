@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # DevContainer Quality Tools Setup Script for CostScope
 # Installing code quality tools inside the container
 
-set -euo pipefail
+# Source common logging helpers if available
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+    # shellcheck disable=SC1090
+    . "$COMMON_SH"
+fi
 
 # ================= Configuration =================
 # Allow overriding pinned versions via env if needed (avoids surprise breakages on 'latest').

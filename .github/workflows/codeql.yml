@@ -5,7 +5,7 @@ on:
         branches: [main]
     pull_request:
         branches: [main]
-    workflow_dispatch:
+    workflow_dispatch: {}
 
 permissions:
     contents: read
@@ -13,16 +13,18 @@ permissions:
 
 jobs:
     noop-act:
-        # Skip by default when running locally under nektos/act; allow manual dispatch
-        if: ${{ github.actor == 'nektos/act' && github.event_name != 'workflow_dispatch' }}
+        # Run this lightweight noop when running locally under act
+        # Some local runners set actor to 'github-actions[bot]' instead of 'nektos/act',
+        # so treat both as local act to avoid attempting CodeQL under act.
+        if: ${{ github.actor == 'nektos/act' || github.actor == 'github-actions[bot]' }}
         runs-on: ubuntu-latest
         steps:
             - name: noop (act)
               run: echo "Skipping CodeQL under act; use GitHub-hosted runners for real analysis."
 
     analyze:
-        # Run on GitHub-hosted or when manually dispatched
-        if: ${{ github.actor != 'nektos/act' || github.event_name == 'workflow_dispatch' }}
+        # Run only on GitHub-hosted (skip under act)
+        if: ${{ github.actor != 'nektos/act' && github.actor != 'github-actions[bot]' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         steps:

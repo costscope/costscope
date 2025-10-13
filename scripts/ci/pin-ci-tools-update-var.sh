@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
 # pin-ci-tools-update-var.sh
 # Creates or updates the repository Actions variable CI_TOOLS_IMAGE via GitHub API
 # Inputs (env):
@@ -10,6 +14,8 @@ set -euo pipefail
 #   IMAGE        - image reference to pin (required)
 #   GH_API       - API base (optional; default https://api.github.com)
 
+ci::require_cmd curl
+
 owner="${OWNER:-}"
 repo="${REPO:-}"
 token="${GH_TOKEN:-}"
@@ -17,8 +23,7 @@ image="${IMAGE:-}"
 api_base="${GH_API:-https://api.github.com}"
 
 if [[ -z "$owner" || -z "$repo" || -z "$token" || -z "$image" ]]; then
-  echo "OWNER, REPO, GH_TOKEN, and IMAGE are required" >&2
-  exit 2
+  ci::die "OWNER, REPO, GH_TOKEN, and IMAGE are required"
 fi
 
 name="CI_TOOLS_IMAGE"
@@ -46,9 +51,7 @@ if [[ "$status" == "404" ]]; then
 fi
 
 if [[ "$status" =~ ^2[0-9]{2}$ ]]; then
-  echo "Pinned CI_TOOLS_IMAGE to ${image}"
+  ci::log "Pinned CI_TOOLS_IMAGE to ${image}"
 else
-  echo "API call failed with status ${status}:" >&2
-  cat /tmp/resp.json >&2 || true
-  exit 4
+  ci::die "API call failed with status ${status}: $(cat /tmp/resp.json 2>/dev/null || echo '<no body>')"
 fi

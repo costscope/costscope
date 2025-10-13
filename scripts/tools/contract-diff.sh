@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
 
 # contract-diff.sh - Compare generated OpenAPI specs against baseline snapshots.
 # Exit 0 if no breaking changes, >0 otherwise.
@@ -18,8 +22,24 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 BASE_DIR="$REPO_ROOT/api"
 GEN_PUBLIC="$REPO_ROOT/internal/api/docs/openapi.yaml"
 GEN_ENT="$REPO_ROOT/internal/api/docs/enterprise-openapi.yaml"
-BASE_PUBLIC="$BASE_DIR/openapi.v1.json"
-BASE_ENT="$BASE_DIR/openapi.enterprise.v1.json"
+
+# Resolve baseline path preferring api/baseline/*, falling back to api/*
+resolve_baseline() {
+  local name="$1"
+  local preferred="$BASE_DIR/baseline/$name"
+  local fallback="$BASE_DIR/$name"
+  if [ -f "$preferred" ]; then
+    echo "$preferred"
+  elif [ -f "$fallback" ]; then
+    echo "$fallback"
+  else
+    # Return preferred path for clearer error messaging in callers
+    echo "$preferred"
+  fi
+}
+
+BASE_PUBLIC="$(resolve_baseline "openapi.v1.json")"
+BASE_ENT="$(resolve_baseline "openapi.enterprise.v1.json")"
 
 fail_msgs=()
 
@@ -45,6 +65,9 @@ check_file() {
   local baseline=$1
   local generated=$2
   local label=$3
+  if [ ! -f "$baseline" ]; then
+    echo -e "${RED}[contract] Missing baseline spec for $label: $baseline${RESET}"; fail_msgs+=("$label missing baseline spec"); return
+  fi
   if [ ! -f "$generated" ]; then
     echo -e "${RED}[contract] Missing generated spec: $generated${RESET}"; fail_msgs+=("$label missing generated spec"); return
   fi

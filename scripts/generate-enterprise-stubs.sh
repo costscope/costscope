@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+  # shellcheck disable=SC1090
+  . "$COMMON_SH"
+fi
+
 usage() {
   cat <<'EOF'
 Usage: scripts/generate-enterprise-stubs.sh <feature_label> <package_dir> <type_name> [interface_name]
@@ -38,8 +45,12 @@ TYPE_NAME="$3"            # EnterpriseStreamingEngine
 IFACE_NAME="${4:-}"       # optional
 
 if [[ ! -d "$PKG_DIR" ]]; then
-  echo "Package dir $PKG_DIR does not exist" >&2
-  exit 2
+  if command -v ci::die >/dev/null 2>&1; then
+    ci::die "Package dir $PKG_DIR does not exist"
+  else
+    echo "Package dir $PKG_DIR does not exist" >&2
+    exit 2
+  fi
 fi
 
 snake() {
@@ -62,7 +73,7 @@ H
 if [[ -f "$STUB_FILE" ]]; then
   echo "Skip (exists): $STUB_FILE" >&2
 else
-  echo "Creating stub: $STUB_FILE" >&2
+  if command -v ci::log >/dev/null 2>&1; then ci::log "Creating stub: $STUB_FILE"; else echo "Creating stub: $STUB_FILE" >&2; fi
   {
     echo "//go:build !enterprise"; echo; header
     echo "package $(basename "$PKG_DIR")"; echo
@@ -99,7 +110,7 @@ fi
 if [[ -f "$REAL_FILE" ]]; then
   echo "Skip (exists): $REAL_FILE" >&2
 else
-  echo "Creating enterprise scaffold: $REAL_FILE" >&2
+  if command -v ci::log >/dev/null 2>&1; then ci::log "Creating enterprise scaffold: $REAL_FILE"; else echo "Creating enterprise scaffold: $REAL_FILE" >&2; fi
   {
     echo "//go:build enterprise"; echo; header
     echo "package $(basename "$PKG_DIR")"; echo
@@ -119,4 +130,4 @@ REAL
   } > "$REAL_FILE"
 fi
 
-echo "Done." >&2
+if command -v ci::log >/dev/null 2>&1; then ci::log "Done."; else echo "Done." >&2; fi

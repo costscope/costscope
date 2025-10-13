@@ -3,24 +3,37 @@
 # Usage: build-distroless-from-image.sh <source_image> <target_image>
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/common.sh
+source "${SCRIPT_DIR}/lib/common.sh"
+
 SRC_IMAGE="${1:-}"
 DST_IMAGE="${2:-}"
 
 if [[ -z "${SRC_IMAGE}" || -z "${DST_IMAGE}" ]]; then
-  echo "usage: $0 <source_image> <target_image>" >&2
-  exit 2
+  ci::die "usage: $0 <source_image> <target_image>"
 fi
 
+ci::require_cmd docker
+
 workdir="$(mktemp -d)"
-trap 'rm -rf "$workdir"' EXIT
+container_id=""
+cleanup() {
+  local ec=$?
+  if [[ -n "$container_id" ]]; then
+    docker rm -f "$container_id" >/dev/null 2>&1 || true
+  fi
+  rm -rf "$workdir" || true
+  exit $ec
+}
+trap cleanup EXIT INT TERM
 
-# Extract binary from source image
-id=$(docker create "$SRC_IMAGE")
+ci::log "Extracting binary from $SRC_IMAGE"
+container_id=$(docker create "$SRC_IMAGE")
 mkdir -p "$workdir/extracted"
-docker cp "$id:/app/costscope" "$workdir/extracted/costscope"
-docker rm -f "$id" >/dev/null
+docker cp "$container_id:/app/costscope" "$workdir/extracted/costscope"
 
-# Build distroless Dockerfile
+ci::log "Building distroless image $DST_IMAGE"
 cat > "$workdir/Dockerfile.distroless" <<'EOF'
 FROM gcr.io/distroless/static:nonroot
 WORKDIR /app
@@ -30,10 +43,10 @@ USER nonroot
 CMD ["./costscope", "api", "enterprise", "--host", "0.0.0.0", "--port", "8080"]
 EOF
 
-# Build and optionally push
 docker build -t "$DST_IMAGE" -f "$workdir/Dockerfile.distroless" "$workdir/extracted"
-if [[ "${GITHUB_ACTOR:-}" != "nektos/act" ]]; then
-  docker push "$DST_IMAGE"
+if ci::is_act; then
+  ci::log "[act] Skipping push for $DST_IMAGE"
 else
-  echo "[act] Skipping push for $DST_IMAGE"
+  ci::log "Pushing $DST_IMAGE"
+  docker push "$DST_IMAGE"
 fi

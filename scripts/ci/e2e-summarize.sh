@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
 # Summarize E2E results by merging available provider reports and writing a table to $GITHUB_STEP_SUMMARY.
 # Expects files in e2e-artifacts/: e2e_report.json (aws), azure_report.json, gcp_report.json (if present)
 
 require_jq() {
   if ! command -v jq >/dev/null 2>&1; then
-    if [ "${IS_ACT:-false}" != "true" ] && command -v sudo >/dev/null 2>&1; then
+    if ! ci::is_act && command -v sudo >/dev/null 2>&1; then
       sudo apt-get update || true
       sudo apt-get install -y jq || true
     else
-      echo "jq not found; skipping apt install under act or without sudo. Summary will be limited." >&2
+      ci::warn "jq not found; skipping apt install under act or without sudo. Summary will be limited."
     fi
   fi
 }
@@ -20,7 +24,7 @@ require_jq || true
 mkdir -p e2e-artifacts
 summary='{}'
 add_report() { # args: key file
-  if [ -f "$2" ] && command -v jq >/dev/null 2>&1; then
+  if [[ -f "$2" ]] && command -v jq >/dev/null 2>&1; then
     summary=$(jq --arg k "$1" --slurpfile d "$2" '.[$k]=$d[0]' <<<"$summary")
   fi
 }
@@ -58,7 +62,6 @@ if command -v jq >/dev/null 2>&1 && jq -e '.aws' e2e-artifacts/summary.json >/de
 
   # Fail the job if any provider failed or has violations
   if jq 'to_entries | map(select(.value.passed==false or ((.value.invariants.violations // [])|length) > 0)) | length > 0' e2e-artifacts/summary.json | grep -q true; then
-    echo "One or more E2E provider checks failed or reported violations" >&2
-    exit 1
+    ci::die "One or more E2E provider checks failed or reported violations"
   fi
 fi

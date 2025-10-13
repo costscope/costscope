@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # CostScope - Quality Tools Installation Script for macOS
 # This script installs comprehensive code quality tools
 
-set -euo pipefail
+# Source common logging helpers if available
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+    # shellcheck disable=SC1090
+    . "$COMMON_SH"
+fi
 
 # Colors for output
 RED='\033[0;31m'

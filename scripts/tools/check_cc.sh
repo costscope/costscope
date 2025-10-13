@@ -5,15 +5,20 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 THRESHOLD="${CC_THRESHOLD:-25}"
 ALLOW="${ALLOW_HIGH_COMPLEXITY:-0}"
 
 # Ensure gocyclo exists
 if ! command -v gocyclo >/dev/null 2>&1; then
   if command -v apt-get >/dev/null 2>&1; then
-    echo "[cc-check] gocyclo not installed. Install via: make lint-tools-install" >&2
+    ci::warn "[cc-check] gocyclo not installed. Install via: make lint-tools-install"
   else
-    echo "[cc-check] gocyclo not installed. Install via: brew install gocyclo (macOS) or make lint-tools-install (Linux)" >&2
+    ci::warn "[cc-check] gocyclo not installed. Install via: brew install gocyclo (macOS) or make lint-tools-install (Linux)"
   fi
   exit 1
 fi
@@ -25,7 +30,7 @@ if [ ${#FILES[@]} -eq 0 ]; then
 fi
 
 if [ ${#FILES[@]} -eq 0 ]; then
-  echo "[cc-check] No Go files to scan"; exit 0; fi
+  ci::log "[cc-check] No Go files to scan"; exit 0; fi
 
 # Run gocyclo across selected files (filtering to just them)
 # gocyclo lacks direct include list, so pipe subset.
@@ -50,14 +55,14 @@ done < <(gocyclo -over "$THRESHOLD" $(cat "$TMP_LIST") || true)
 rm -f "$TMP_LIST"
 
 if [ ${#VIOLATIONS[@]} -gt 0 ]; then
-  echo "[cc-check] Functions exceeding cyclomatic complexity threshold ($THRESHOLD):"
+  ci::warn "[cc-check] Functions exceeding cyclomatic complexity threshold ($THRESHOLD):"
   printf '  %s\n' "${VIOLATIONS[@]}"
   if [ "$ALLOW" != "1" ]; then
-    echo "[cc-check] FAIL (set ALLOW_HIGH_COMPLEXITY=1 to bypass temporarily)" >&2
+    ci::warn "[cc-check] FAIL (set ALLOW_HIGH_COMPLEXITY=1 to bypass temporarily)"
     exit 1
   else
-    echo "[cc-check] WARN bypass enabled (ALLOW_HIGH_COMPLEXITY=1)"
+    ci::log "[cc-check] WARN bypass enabled (ALLOW_HIGH_COMPLEXITY=1)"
   fi
 else
-  echo "[cc-check] OK (no functions > $THRESHOLD)"
+  ci::log "[cc-check] OK (no functions > $THRESHOLD)"
 fi

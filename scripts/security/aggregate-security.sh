@@ -4,6 +4,13 @@ set -euo pipefail
 # Policy: Fail build if any HIGH/CRITICAL (CVSS>=7) vulnerabilities or HIGH severity gosec issues or secrets found.
 # Medium severities -> warnings (non-blocking) but listed.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
+ci::require_cmd jq
+
 OUTPUT_MD="docs/security/security-summary.md"
 OUTPUT_JSON="docs/security/security-summary.json"
 
@@ -16,6 +23,8 @@ warn_count=0
 > "$OUTPUT_MD"
 echo "# Security Scan Summary" >> "$OUTPUT_MD"
 echo "Generated: $(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> "$OUTPUT_MD"
+
+ci::log "Aggregating security findings into $OUTPUT_MD and $OUTPUT_JSON"
 
 # GOVULNCHECK
 if [[ -f govulncheck.json ]]; then
@@ -92,4 +101,4 @@ if [ "$risk_fail" -gt 0 ] 2>/dev/null; then
   exit 1
 fi
 
-echo "Security gate passed (see $OUTPUT_MD)"
+ci::log "Security aggregation complete: $( [ "$risk_fail" -eq 0 ] && echo PASS || echo FAIL ) (see $OUTPUT_MD)"

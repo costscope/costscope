@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
 # Container smoke test script for CostScope
 # Requirements:
 #  - env IMAGE_STD (standard image, e.g. ghcr.io/org/costscope:sha)
@@ -13,15 +17,19 @@ set -euo pipefail
 #  * Always cleans up containers
 #  * Exits non‑zero on any failure
 
+ci::require_cmd curl
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # If running under act and Docker is not accessible, skip gracefully.
-if [[ "${IS_ACT:-false}" == "true" ]]; then
+if ci::is_act; then
   if ! command -v docker >/dev/null 2>&1 || ! docker info >/dev/null 2>&1; then
-    echo "[act] Docker unavailable in this environment; skipping container smoke tests" >&2
+    ci::warn "[act] Docker unavailable in this environment; skipping container smoke tests"
     exit 0
   fi
 fi
+ci::require_cmd docker
+
 LOG_DIR="${ROOT_DIR}/smoke-logs"
 mkdir -p "${LOG_DIR}" || true
 
@@ -30,9 +38,9 @@ SLEEP_INTERVAL=2  # seconds between retries
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
-fail() { echo "[FAIL] $*" >&2; exit 1; }
+fail() { ci::die "$*"; }
 
-log() { echo "[INFO] $*"; }
+log() { ci::log "$*"; }
 
 probe_http() {
   local url=$1; shift
@@ -107,14 +115,14 @@ smoke_tls() {
 
 main() {
   local failures=0
-  if [ -z "${IMAGE_STD:-}" ] && [ -z "${IMAGE_DISTROLESS:-}" ]; then
+  if [[ -z "${IMAGE_STD:-}" && -z "${IMAGE_DISTROLESS:-}" ]]; then
     fail "IMAGE_STD or IMAGE_DISTROLESS must be set"
   fi
-  if [ -n "${IMAGE_STD:-}" ]; then
+  if [[ -n "${IMAGE_STD:-}" ]]; then
     smoke_http "$IMAGE_STD" std || failures=$((failures+1))
     smoke_tls "$IMAGE_STD" std || failures=$((failures+1))
   fi
-  if [ -n "${IMAGE_DISTROLESS:-}" ]; then
+  if [[ -n "${IMAGE_DISTROLESS:-}" ]]; then
     smoke_http "$IMAGE_DISTROLESS" distroless || failures=$((failures+1))
     smoke_tls "$IMAGE_DISTROLESS" distroless || failures=$((failures+1))
   fi

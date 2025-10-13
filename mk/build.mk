@@ -6,7 +6,8 @@ build: build-slim ## Default: build slim binary (no DuckDB/SQLite; CGO disabled)
 
 build-slim: ## Build slim binary without DuckDB/Arrow/Thrift/SQLite (default)
 	@echo " Building slim binary (no DuckDB/SQLite)..."
-	CGO_ENABLED=0 go build $(LDFLAGS) -o bin/costscope ./
+	@mkdir -p .cache/go-build .cache/go-tmp
+	GOTMPDIR=$$(pwd)/.cache/go-tmp GOCACHE=$$(pwd)/.cache/go-build CGO_ENABLED=0 go build $(LDFLAGS) -o bin/costscope ./
 
 build-clean: ## Build with clean cache to catch compilation issues (keeps strip/trimpath flags)
 	@echo " Building with clean cache..."
@@ -35,12 +36,14 @@ build-optimized: ## Build optimized binary with maximum performance flags (no Du
 
 build-optimized-duckdb: ## Build optimized binary with DuckDB-enabled features (adds size; includes Arrow/Thrift)
 	@echo " Building optimized binary (with DuckDB, CGO enabled)..."
-	CGO_ENABLED=1 go build $(LDFLAGS) -tags duckdb -o bin/costscope-optimized-duckdb ./ || { echo " DuckDB build failed"; exit 1; }
+	@mkdir -p .cache/go-build .cache/go-tmp
+	GOTMPDIR=$$(pwd)/.cache/go-tmp GOCACHE=$$(pwd)/.cache/go-build CGO_ENABLED=1 go build $(LDFLAGS) -tags duckdb -o bin/costscope-optimized-duckdb ./ || { echo " DuckDB build failed"; exit 1; }
 	@echo " Optimized DuckDB build completed"
 
 build-duckdb-debug: ## Build unstripped DuckDB debug binary (no LDFLAGS/GCFLAGS) for diagnostics
 	@echo "  Building DuckDB debug binary (unstripped)..."
-	CGO_ENABLED=1 go build -tags duckdb -o bin/costscope-duckdb-debug ./ || { echo " DuckDB debug build failed"; exit 1; }
+	@mkdir -p .cache/go-build .cache/go-tmp
+	GOTMPDIR=$$(pwd)/.cache/go-tmp GOCACHE=$$(pwd)/.cache/go-build CGO_ENABLED=1 go build -tags duckdb -o bin/costscope-duckdb-debug ./ || { echo " DuckDB debug build failed"; exit 1; }
 	@echo " DuckDB debug build: bin/costscope-duckdb-debug"
 
 duckdb-smoke: build-duckdb-debug ## Run a minimal DuckDB driver smoke test (SELECT 42)

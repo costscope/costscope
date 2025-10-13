@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[act] Preparing smoke fixtures for local act run"
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
+ci::log "[act] Preparing smoke fixtures for local act run"
 # Prefer the lightweight generator which doesn't depend on the built binary
 if [[ -f ./scripts/e2e/generate-fixtures.sh ]]; then
   bash ./scripts/e2e/generate-fixtures.sh
 elif [[ -f ./scripts/e2e/run.sh ]]; then
   bash ./scripts/e2e/run.sh
 else
-  echo "No fixture generator found (generate-fixtures.sh or run.sh)" >&2
-  exit 1
+  ci::die "No fixture generator found (generate-fixtures.sh or run.sh)"
 fi
 
 mkdir -p tests/fixtures/aws tests/fixtures/azure tests/fixtures/gcp

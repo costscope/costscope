@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# shellcheck source=lib/common.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
 # pin-ci-tools-resolve.sh
 # Resolves the target CI tools image reference based on event payload or manual inputs
 # Inputs (env):
@@ -14,8 +18,7 @@ set -euo pipefail
 
 owner="${OWNER:-}"
 if [[ -z "$owner" ]]; then
-  echo "OWNER is required" >&2
-  exit 2
+  ci::die "OWNER is required"
 fi
 
 client_image="${CLIENT_IMAGE:-}"
@@ -36,17 +39,15 @@ if [[ -n "$input_image" ]]; then
   image="$input_image"
 else
   if [[ -z "$input_tag" ]]; then
-    echo "Either 'image' or 'tag' must be provided." >&2
-    exit 2
+    ci::die "Either 'image' or 'tag' must be provided."
   fi
   image="ghcr.io/${owner}/ci-base:${input_tag}"
 fi
 
 # Basic immutability check (avoid floating tags)
 if echo "$image" | grep -qE ':(latest|main|dev)$'; then
-  echo "Refusing to pin a floating tag: $image" >&2
-  exit 3
+  ci::die "Refusing to pin a floating tag: $image"
 fi
 
-echo "image=$image" >> "${GITHUB_OUTPUT}"
-echo "Resolved image: $image"
+echo "image=$image" >> "${GITHUB_OUTPUT:-/dev/stdout}"
+ci::log "Resolved image: $image"

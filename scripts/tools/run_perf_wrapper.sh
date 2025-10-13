@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # Wrapper to run perf-bench with safe runtime OUT path computation and go fallback.
 # Usage: run_perf_wrapper.sh <input_csv_gz> [extra args...]
 
@@ -26,7 +31,7 @@ else
   fi
 fi
 
-echo "Using go: $($GO_BIN version)"
+ci::log "Using go: $($GO_BIN version)"
 
 # Run the perf bench tool
-"$GO_BIN" run ./scripts/tools/perf-bench -input "$INPUT" "${OUT_ARGS[@]}" "$@" || { echo " Performance regression detected"; exit 1; }
+"$GO_BIN" run ./scripts/tools/perf-bench -input "$INPUT" "${OUT_ARGS[@]}" "$@" || { ci::warn " Performance regression detected"; exit 1; }

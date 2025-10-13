@@ -163,3 +163,33 @@ oasdiff-install: ## Install oasdiff at the CI-pinned revision for local checks
 	@echo " Installing oasdiff (pinned to CI revision)..."; \
 	GOBIN=$$(pwd)/bin go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8; \
 	echo " oasdiff installed to ./bin/oasdiff"
+
+# ---- Shell lint/format/test helpers ----
+.PHONY: shellcheck shfmt shfmt-check sh-test test-sh
+
+shellcheck: ## Run ShellCheck on all tracked shell scripts
+	@bash scripts/ci/run-shellcheck.sh
+
+shfmt-check: ## Check shell formatting (shfmt -d; requires shfmt)
+	@command -v shfmt >/dev/null 2>&1 || { echo "shfmt required: go install mvdan.cc/sh/v3/cmd/shfmt@latest"; exit 2; }
+	@git ls-files -z -- '*.sh' | xargs -0 -r shfmt -d -s -i 2 -ci
+
+shfmt: ## Format shell scripts in-place (shfmt -w; requires shfmt)
+	@command -v shfmt >/dev/null 2>&1 || { echo "shfmt required: go install mvdan.cc/sh/v3/cmd/shfmt@latest"; exit 2; }
+	@git ls-files -z -- '*.sh' | xargs -0 -r shfmt -w -s -i 2 -ci
+
+sh-test test-sh: ## Run bash smoke tests (bats -r tests/sh), skip if bats is missing
+	@command -v bats >/dev/null 2>&1 || { echo "bats not found; skipping (install: npm i -g bats or apt-get install bats)"; exit 0; }
+	@bats -r tests/sh
+
+.PHONY: shfmt-install bats-install
+shfmt-install: ## Install shfmt locally to ./bin (pinned latest)
+	@echo " Installing shfmt to ./bin..."; \
+	GOBIN=$$(pwd)/bin go install mvdan.cc/sh/v3/cmd/shfmt@latest; \
+	echo " shfmt installed to ./bin/shfmt"
+
+bats-install: ## Install bats via npm (requires node/npm)
+	@command -v npm >/dev/null 2>&1 || { echo "npm not found: install Node.js/npm first"; exit 2; }
+	@echo " Installing bats globally (npm i -g bats)..."; \
+	npm i -g bats >/dev/null 2>&1 || true; \
+	if command -v bats >/dev/null 2>&1; then echo " bats installed"; else echo " bats not found after install attempt (check npm prefix/PATH)"; fi

@@ -13,27 +13,30 @@
 #   >1 -> script/build error
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR"; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 EPOCH="${1:-1716249600}"
 BIN_NAME="${2:-costscope}"
 
 if ! command -v sha256sum >/dev/null 2>&1; then
-  echo "sha256sum not found" >&2
-  exit 2
+  ci::die "sha256sum not found"
 fi
 
 # Require clean working tree for provenance
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "Working tree dirty; commit or stash changes before reproducibility check." >&2
-  exit 2
+  ci::die "Working tree dirty; commit or stash changes before reproducibility check."
 fi
 
 tmpdir="$(mktemp -d)"
-echo "[repro] epoch=$EPOCH tmp=$tmpdir"
+ci::log "[repro] epoch=$EPOCH tmp=$tmpdir"
 
 build_once() {
   local label="$1"
   rm -f "$BIN_NAME"
-  SOURCE_DATE_EPOCH="$EPOCH" make -s build-release >/dev/null 2>&1 || { echo "build failed" >&2; exit 3; }
+  SOURCE_DATE_EPOCH="$EPOCH" make -s build-release >/dev/null 2>&1 || { ci::die "build failed"; }
   if [[ ! -f "$BIN_NAME" ]]; then
     echo "expected binary '$BIN_NAME' missing" >&2
     exit 3
@@ -49,12 +52,12 @@ sleep 1
 SUM2=$(build_once B)
 
 if [[ "$SUM1" != "$SUM2" ]]; then
-  echo "[repro] DRIFT: sha256 mismatch" >&2
+  ci::warn "[repro] DRIFT: sha256 mismatch"
   echo " A: $SUM1" >&2
   echo " B: $SUM2" >&2
   echo "Artifacts: $tmpdir/${BIN_NAME}_A $tmpdir/${BIN_NAME}_B" >&2
   exit 1
 fi
 
-echo "[repro] OK: sha256 $SUM1 (artifacts in $tmpdir)"
+ci::log "[repro] OK: sha256 $SUM1 (artifacts in $tmpdir)"
 exit 0

@@ -52,14 +52,17 @@ perf-short: ## Run short perf bench (3 iterations) on synthetic dataset (if pres
 	go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations 3 -output bench_results.json $(EXTRA_ARGS) || (echo " Short perf bench failed" && exit 1)
 	@echo " Short perf bench complete"
 
-parity-check: ## Generate legacy & unified parquet outputs and compare aggregate parity
-	@echo " Generating legacy parquet output..."
-	bin/costscope convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output /tmp/aws_legacy.parquet --streaming >/dev/null 2>&1 || true
-	@echo " Generating unified parquet output..."
-	COSTSCOPE_USE_UNIFIED_MAPPER=true bin/costscope convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output /tmp/aws_unified.parquet --streaming >/dev/null 2>&1 || true
-	@echo " Comparing aggregate parity (effective_cost, usage_quantity, records)..."
-	go run ./scripts/tools/parity-check --legacy `ls -1 /tmp/aws_legacy-*.parquet | tail -n1` -unified `ls -1 /tmp/aws_unified-*.parquet | tail -n1` || (echo " Parity mismatch" && exit 1)
-	@echo " Parity aggregates match"
+parity-check: build-slim ## Generate legacy & unified parquet outputs and compare aggregate parity
+	@echo " Using slim binary for parquet conversion (no CGO)"
+	BIN=bin/costscope; OUT_DIR=$$(pwd)/.cache/parquet; \
+	 mkdir -p $$OUT_DIR; \
+	 echo " Generating legacy parquet output..."; \
+	 $$BIN convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output $$OUT_DIR/aws_legacy.parquet --streaming --rotate-size 10000000000 || { echo " legacy convert failed"; exit 1; }; \
+	 echo " Generating unified parquet output..."; \
+	 COSTSCOPE_USE_UNIFIED_MAPPER=true $$BIN convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output $$OUT_DIR/aws_unified.parquet --streaming --rotate-size 10000000000 || { echo " unified convert failed"; exit 1; }; \
+	 echo " Comparing aggregate parity (effective_cost, usage_quantity, records)..."; \
+	 go run ./scripts/tools/parity-check --legacy $$OUT_DIR/aws_legacy.parquet --unified $$OUT_DIR/aws_unified.parquet || { echo " Parity mismatch"; exit 1; }; \
+	 echo " Parity aggregates match"
 
 perf-parity: perf-short parity-check ## Run short perf bench then parity check (aggregates)
 	@echo " Perf + Parity sequence complete"
@@ -75,7 +78,7 @@ parity-json: ## Generate fast & unified parquet outputs and write parity.json (f
 
 invariants-guard: build-optimized-duckdb build-duckdb-debug ## Run invariants drift guard against baseline
 	@echo " Using DuckDB binary for invariants guard"
-	DBG=bin/costscope-duckdb-debug; OPT=bin/costscope-optimized-duckdb; BIN=$$DBG; BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_synth_invariants.json}; \
+	DBG=bin/costscope-duckdb-debug; OPT=bin/costscope-optimized-duckdb; BIN=$$DBG; BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_invariants.json}; \
 	if [ ! -f $$BASE ]; then echo " Baseline not found: $$BASE"; exit 1; fi; \
 	echo " Converting (fast path only – invariants via regenerate) vs baseline=$$BASE (preferred debug=$$BIN)"; \
 	if ! $$BIN convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output focus_fast.parquet --streaming --rotate-size 10000000000 >/dev/null 2>&1; then \
@@ -103,7 +106,7 @@ data-parity-guard: parity-json invariants-guard ## Run combined fast/unified par
 
 invariants-update-baseline: build-optimized-duckdb ## Recompute invariants baseline JSON from current fast path output
 	@echo "️  Recomputing invariants baseline (synthetic dataset)"
-	BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_synth_invariants.json}; BIN=bin/costscope-optimized-duckdb; DBG=bin/costscope-duckdb-debug; \
+	BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_invariants.json}; BIN=bin/costscope-optimized-duckdb; DBG=bin/costscope-duckdb-debug; \
 	echo " Converting (fast path) with large rotate-size to minimize rotation"; \
 	bin/costscope convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output focus_fast.parquet --streaming --rotate-size 10000000000 >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }; \
 	LATEST=$$(ls -1t focus_fast*.parquet 2>/dev/null | head -n1); [ -n "$$LATEST" ] || { echo " No focus_fast parquet produced"; exit 2; }; \

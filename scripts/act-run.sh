@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR"; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
 # Wrapper for invoking `act` that ensures containers receive a hosts mapping for 'mic'.
 # Usage: scripts/act-run.sh [act-args...]
 
@@ -35,4 +40,5 @@ else
   out_args=("${args[@]}")
 fi
 
+ci::log "Executing act with args: ${out_args[*]}"
 exec act "${out_args[@]}"

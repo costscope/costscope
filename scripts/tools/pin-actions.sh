@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$SCRIPT_DIR/../ci/lib" ]]; then SCRIPTS_DIR="$SCRIPT_DIR/.."; else SCRIPTS_DIR="$SCRIPT_DIR"; fi
+# shellcheck source=../ci/lib/common.sh
+source "$SCRIPTS_DIR/ci/lib/common.sh"
+
+ci::require_cmd git
+
 # pin-actions.sh
 # Resolves action refs (owner/repo@tag) in .github/workflows/*.yml to immutable commit SHAs in-place.
 #
@@ -26,6 +33,8 @@ fi
 
 ROOT_DIR=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 cd "$ROOT_DIR"
+
+ci::log "Pinning GitHub Actions in .github/workflows (dry-run=${1:-no})"
 
 changed=0
 # initialize changes safely so `set -u` doesn't cause an unbound variable error
@@ -147,3 +156,5 @@ fi
 if [[ "$DRY_RUN" -eq 1 ]]; then
   echo "(dry-run) No files were modified." >&2
 fi
+
+ci::log "Pin actions complete"

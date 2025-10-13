@@ -1,9 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 #  CostScope Production Deployment Script
 # Final deployment with optimizations
 
-set -euo pipefail
+# Try to source common helper for consistent logging, if present
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+COMMON_SH="$ROOT_DIR/scripts/ci/lib/common.sh"
+if [[ -f "$COMMON_SH" ]]; then
+    # shellcheck disable=SC1090
+    . "$COMMON_SH"
+fi
 
 echo " CostScope Production Deployment"
 echo "=================================="
