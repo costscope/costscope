@@ -11,6 +11,28 @@ permissions:
   security-events: write
 
 jobs:
+  resolve-ci-image:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: Resolve CI tools image
+    runs-on: ubuntu-latest
+    outputs:
+      ci_tools_image: ${{ steps.out.outputs.image }}
+    env:
+      CI_IMAGE_REPO: ghcr.io/costscope/ci-base
+    steps:
+      - id: out
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
+          TAG="${CI_IMAGE_TAG:-}"
+          if [ -z "$TAG" ]; then
+            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
+            TAG="latest"
+            echo "[warn] Falling back to latest (not recommended)" >&2
+          fi
+          IMG="$CI_IMAGE_REPO:$TAG"
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
   noop-act:
     if: ${{ github.actor == 'nektos/act' }}
     runs-on: ubuntu-latest
@@ -22,7 +44,8 @@ jobs:
   security-gate:
     if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
-    container: ghcr.io/costscope/ci-base:latest
+    needs: resolve-ci-image
+    container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     timeout-minutes: 30
     env:
       RUN_UPLOADS: "false"
@@ -48,13 +71,6 @@ jobs:
             echo "note: ACTIONS_RUNTIME_TOKEN present" > SECURITY_RUN_METADATA.md
           fi
 
-      - name: Setup Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version-file: go.mod
-          cache: true
-
       - name: "Sanity: go version"
         run: go version
 
@@ -68,39 +84,13 @@ jobs:
             .trivy-cache
           key: sec-${{ runner.os }}-${{ hashFiles('go.sum') }}-${{ env.TRIVY_VERSION }}
 
-      - name: Install security tools
+      - name: Verify security toolchain
         run: |
           set -euxo pipefail
-          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz | tar -xz gitleaks
-          # Try to install into /usr/local/bin if permitted, otherwise leave in workspace bin
-          if [ -w /usr/local/bin ]; then
-            mv gitleaks /usr/local/bin/
-          else
-            mkdir -p ./bin
-            mv gitleaks ./bin/
-            echo "PATH=$PWD/bin:$PATH" >> $GITHUB_ENV
-          fi
-          go install github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}
-          go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
-          # Install trivy in a pinned manner using `go install` to avoid piping remote scripts.
-          # We rely on the earlier 'Setup Go' step to provide a Go toolchain.
-          if command -v go >/dev/null 2>&1; then
-            # TRIVY_VERSION is expected to be a semver with leading 'v', e.g. v0.51.1
-            # Use the v4 module path and pin to the exact version.
-            GO_BIN_DIR=$(go env GOPATH)/bin
-            if go install github.com/aquasecurity/trivy/v4/cmd/trivy@${TRIVY_VERSION}; then
-              echo "PATH=$GO_BIN_DIR:$PATH" >> $GITHUB_ENV
-            else
-              echo "warning: go install for trivy@${TRIVY_VERSION} failed; trivy may be unavailable" >&2
-            fi
-          else
-            echo "warning: 'go' not available; skipping trivy install (tool may be missing)" >&2
-          fi
-          export PATH="$(go env GOPATH)/bin:$PATH"
-          trivy --version || true
-          gitleaks version || true
-          gosec -version || true
-          govulncheck -version || true
+          trivy --version
+          gitleaks version
+          gosec -version
+          govulncheck -version
 
       - name: Pre-download Trivy DB
         run: trivy --cache-dir "$TRIVY_CACHE_DIR" image --download-db-only alpine:3.19 || true

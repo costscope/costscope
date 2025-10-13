@@ -18,6 +18,29 @@ jobs:
         run: |
           echo "This full govulncheck job targets a self-hosted runner; under act we no-op."
           echo "Run 'make security-tools-install' and scripts/security/run-govulncheck.sh locally instead."
+
+  resolve-ci-image:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: Resolve CI tools image
+    runs-on: ubuntu-latest
+    outputs:
+      ci_tools_image: ${{ steps.out.outputs.image }}
+    env:
+      CI_IMAGE_REPO: ghcr.io/costscope/ci-base
+    steps:
+      - id: out
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
+          TAG="${CI_IMAGE_TAG:-}"
+          if [ -z "$TAG" ]; then
+            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
+            TAG="latest"
+            echo "[warn] Falling back to latest (not recommended)" >&2
+          fi
+          IMG="$CI_IMAGE_REPO:$TAG"
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
   govulncheck:
     name: Full govulncheck and upload report (self-hosted large-memory)
     # Skip this heavy job when running under nektos/act locally
@@ -27,6 +50,8 @@ jobs:
     # will run there. If you prefer GitHub-hosted runners, change `runs-on`
     # to `ubuntu-22.04`, but be aware hosted runners may not have >=16 GiB RAM.
     runs-on: [self-hosted, linux, x64, large-memory]
+    needs: resolve-ci-image
+    container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     timeout-minutes: 180
 
     steps:
@@ -34,22 +59,11 @@ jobs:
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
-      - name: Set up Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
       - name: "Sanity: go version"
         run: go version
 
-      - name: Install govulncheck
-        run: |
-          GOBIN=$GITHUB_WORKSPACE/.bin
-          mkdir -p "$GOBIN"
-          export PATH="$GOBIN:$PATH"
-          go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
-          govulncheck -version || true
+      - name: Verify govulncheck availability
+        run: govulncheck -version || true
 
       - name: Run full govulncheck (module)
         env:

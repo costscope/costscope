@@ -7,20 +7,38 @@ on:
     branches: [main, master]
 
 jobs:
+  resolve-ci-image:
+    name: Resolve CI tools image
+    runs-on: ubuntu-latest
+    outputs:
+      ci_tools_image: ${{ steps.out.outputs.image }}
+    env:
+      CI_IMAGE_REPO: ghcr.io/costscope/ci-base
+    steps:
+      - id: out
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
+          TAG="${CI_IMAGE_TAG:-}"
+          if [ -z "$TAG" ]; then
+            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
+            # As a safe fallback, still emit latest but warn
+            TAG="latest"
+            echo "[warn] Falling back to latest (not recommended)" >&2
+          fi
+          IMG="$CI_IMAGE_REPO:$TAG"
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+
   coverage-guard-production:
     name: Run production coverage guard
     runs-on: ubuntu-latest
-    container: ghcr.io/costscope/ci-base:latest
+    needs: resolve-ci-image
+    container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-
-      - name: Set up Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: "1.24"
 
       - name: "Sanity: go version"
         run: go version
