@@ -16,17 +16,21 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
     name: Validate .golangci.yml syntax
+    container: ghcr.io/costscope/ci-base:latest
     steps:
       - name: Checkout
         # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
 
-      - name: Install yq (for YAML validation)
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: "1.24"
+
+      - name: Install yq (via Go)
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq
           GO111MODULE=on go install github.com/mikefarah/yq/v4@v4.30.6
-          export PATH="$PATH:$(go env GOPATH)/bin"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       - name: Validate .golangci.yml
         run: |

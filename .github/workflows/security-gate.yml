@@ -22,6 +22,7 @@ jobs:
   security-gate:
     if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
+    container: ghcr.io/costscope/ci-base:latest
     timeout-minutes: 30
     env:
       RUN_UPLOADS: "false"
@@ -70,14 +71,10 @@ jobs:
       - name: Install security tools
         run: |
           set -euxo pipefail
-          # Use sudo only when available to avoid noisy warnings in containerized runners
-          if command -v sudo >/dev/null 2>&1; then SUDO=sudo; else SUDO=; fi
-          $SUDO apt-get update -y || true
-          $SUDO apt-get install -y jq || true
           curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz | tar -xz gitleaks
           # Try to install into /usr/local/bin if permitted, otherwise leave in workspace bin
           if [ -w /usr/local/bin ]; then
-            $SUDO mv gitleaks /usr/local/bin/
+            mv gitleaks /usr/local/bin/
           else
             mkdir -p ./bin
             mv gitleaks ./bin/

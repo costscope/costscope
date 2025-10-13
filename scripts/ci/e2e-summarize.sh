@@ -9,13 +9,11 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Expects files in e2e-artifacts/: e2e_report.json (aws), azure_report.json, gcp_report.json (if present)
 
 require_jq() {
+  # We no longer attempt to install packages at runtime. CI base images should
+  # include jq; local/dev runs can install it via the system package manager.
   if ! command -v jq >/dev/null 2>&1; then
-    if ! ci::is_act && command -v sudo >/dev/null 2>&1; then
-      sudo apt-get update || true
-      sudo apt-get install -y jq || true
-    else
-      ci::warn "jq not found; skipping apt install under act or without sudo. Summary will be limited."
-    fi
+    ci::warn "jq not found; JSON summary will be limited. Use the ci-base image or pre-install jq."
+    return 1
   fi
 }
 

@@ -10,6 +10,7 @@ jobs:
   coverage-guard-production:
     name: Run production coverage guard
     runs-on: ubuntu-latest
+    container: ghcr.io/costscope/ci-base:latest
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
@@ -35,17 +36,6 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Install Make
-        if: ${{ github.actor != 'nektos/act' }}
-        run: |
-          # Use sudo only if available to avoid noisy warnings in containerized runners
-          if command -v sudo >/dev/null 2>&1; then
-            sudo apt-get update || true
-            sudo apt-get install -y make || true
-          else
-            echo "sudo not available; assuming 'make' is present in runner image or provided elsewhere" >&2
-          fi
 
       - name: Run production coverage guard
         run: make coverage-guard-production
