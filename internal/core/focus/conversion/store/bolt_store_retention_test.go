@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	focustypes "local/costscope/internal/core/focus/types"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestBoltJobStore_RemoveOlderThan(t *testing.T) {

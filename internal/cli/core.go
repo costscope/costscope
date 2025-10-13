@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"sort"
 
-	"local/costscope/internal/framework"
+	"github.com/costscope/costscope/internal/framework"
 
 	"github.com/spf13/cobra"
 )

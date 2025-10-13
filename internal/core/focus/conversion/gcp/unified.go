@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // ApplyUnifiedPostMapGCP finalizes a FocusRecord using fields from a JSON object map.

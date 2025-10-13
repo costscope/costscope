@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // DerivePricing determines pricing category and charge class from record fields.

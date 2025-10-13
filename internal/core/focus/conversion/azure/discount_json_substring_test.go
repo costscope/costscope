@@ -3,12 +3,13 @@ package azure_test
 import (
 	"context"
 	"encoding/json"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestAzureDiscountJSONSubstring validates substring discount normalization for JSON input parity.

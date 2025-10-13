@@ -10,8 +10,8 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	"local/costscope/internal/core/focus/quality"
-	focustypes "local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // ComputeInvariantsFromFile dispatches to DuckDB for supported extensions.

@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports/exporters"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports/exporters"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // BasicReportService provides a basic implementation of the ReportService interface.

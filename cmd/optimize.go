@@ -10,9 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/streaming"
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/streaming"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // Constants for component names

@@ -3,7 +3,7 @@ package gcp
 import (
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Verifies that in a mixed credits array, commitment fields are taken from the first

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"local/costscope/cmd/modules/integration/types"
+	"github.com/costscope/costscope/cmd/modules/integration/types"
 )
 
 // WebhookManager handles advanced webhook functionality

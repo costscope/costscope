@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"local/costscope/cmd/modules/analytics/types"
-	"local/costscope/internal/core/analytics"
-	"local/costscope/internal/core/config/precedence"
-	focusanalysis "local/costscope/internal/core/focus/analysis"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/cmd/modules/analytics/types"
+	"github.com/costscope/costscope/internal/core/analytics"
+	"github.com/costscope/costscope/internal/core/config/precedence"
+	focusanalysis "github.com/costscope/costscope/internal/core/focus/analysis"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )

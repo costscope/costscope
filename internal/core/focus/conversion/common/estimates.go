@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // EstimateFromFile returns a heuristic conversion estimate based on input file size and config.

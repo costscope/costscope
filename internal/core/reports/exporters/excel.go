@@ -9,8 +9,8 @@ import (
 	"errors"
 	"fmt"
 
-	"local/costscope/internal/core/reports/outputpath"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/outputpath"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 type excelStubRenderer struct{}

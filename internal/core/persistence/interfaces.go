@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 // Repository defines the interface for data persistence

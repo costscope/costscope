@@ -3,12 +3,13 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/focus/validation"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/validation"
 
 	"github.com/spf13/cobra"
 )

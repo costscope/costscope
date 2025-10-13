@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // FullRowMapper maps a CSV row to a FocusRecord using header name lookup.

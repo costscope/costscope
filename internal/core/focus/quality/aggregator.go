@@ -10,8 +10,9 @@ package quality
 // later behind additive JSON fields.
 
 import (
-	focustypes "local/costscope/internal/core/focus/types"
 	"time"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // InvariantsAggregator accumulates metrics row-by-row.

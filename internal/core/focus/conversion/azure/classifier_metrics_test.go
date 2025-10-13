@@ -10,9 +10,9 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 
-	azure "local/costscope/internal/core/focus/conversion/azure"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // getAzureClassifierCount reads the current counter value for the given label set.

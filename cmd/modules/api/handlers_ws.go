@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"local/costscope/internal/api/jobs"
-	wsman "local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/jobs"
+	wsman "github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // sharedWSManager is assigned during server setup; falls back to a local manager in tests.

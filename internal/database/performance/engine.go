@@ -10,11 +10,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"local/costscope/internal/core/logging"
 	"math"
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // PerformanceEngine integrates memory management, parallel processing, and caching (runtime‑gated extras)

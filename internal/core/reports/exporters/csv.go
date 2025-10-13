@@ -11,8 +11,8 @@ import (
 	"strconv"
 	"strings"
 
-	"local/costscope/internal/core/reports/outputpath"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/outputpath"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // CSVExporter implements exporting reports to CSV format

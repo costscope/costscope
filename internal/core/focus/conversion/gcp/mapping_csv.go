@@ -1,10 +1,10 @@
 package gcp
 
 import (
-	"local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/framework/mapping"
+	"github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/framework/mapping"
 )
 
 // legacyCSVMapper uses FullRowMapper and increments classifier metrics per record.

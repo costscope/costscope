@@ -1,9 +1,10 @@
 package conversion
 
 import (
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
 	"testing"
+
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // This lightweight test keeps coverage around the shared classification path

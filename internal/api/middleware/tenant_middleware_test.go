@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/multitenant"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/multitenant"
 
 	"github.com/gin-gonic/gin"
 )

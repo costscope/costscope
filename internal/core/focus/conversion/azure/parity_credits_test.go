@@ -3,14 +3,15 @@ package azure_test
 import (
 	"context"
 	"fmt"
-	convutil "local/costscope/internal/core/focus/conversion"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	convutil "github.com/costscope/costscope/internal/core/focus/conversion"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestAzure_CreditsAndChargesParity validates deterministic lite hash parity between legacy and unified paths plus semantic checks.

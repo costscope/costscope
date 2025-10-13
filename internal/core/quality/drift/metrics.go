@@ -1,6 +1,6 @@
 package drift
 
-import "local/costscope/internal/core/monitoring/telemetry"
+import "github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 // RecordMetrics publishes Prometheus metrics for a drift Report.
 // Caller should invoke after successful Run (CLI/API) – kept separate to preserve purity of Run.

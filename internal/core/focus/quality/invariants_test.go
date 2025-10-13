@@ -2,10 +2,11 @@ package quality
 
 import (
 	"encoding/json"
-	focustypes "local/costscope/internal/core/focus/types"
 	"os"
 	"path/filepath"
 	"testing"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // helper to load baseline

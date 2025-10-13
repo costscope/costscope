@@ -3,16 +3,17 @@ package azure_test
 import (
 	"bytes"
 	"encoding/csv"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
 	dto "github.com/prometheus/client_model/go"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 func getAzureUnifiedCount(_ string, _ string, decision string) float64 { // provider=azure, path=unified

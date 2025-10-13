@@ -5,7 +5,7 @@ package streaming
 import (
 	"testing"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
 )
 
 // Test ensuring advanced streaming runtime constructors yield disabled behavior in non-enterprise builds.

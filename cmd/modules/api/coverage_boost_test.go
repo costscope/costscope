@@ -6,8 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/api/handlers"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/handlers"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestBuildModuleRouteGroups_Exhaustive(t *testing.T) {

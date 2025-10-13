@@ -3,7 +3,7 @@ package aws
 import (
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Compile-time assertion that aws.Converter implements types.StreamingConverter.

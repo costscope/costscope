@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Test rotation by time interval

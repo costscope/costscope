@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/config/precedence"
-	"local/costscope/internal/core/logging"
-	rtypes "local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/config/precedence"
+	"github.com/costscope/costscope/internal/core/logging"
+	rtypes "github.com/costscope/costscope/internal/core/reports/types"
 )
 
 const defaultReportsDir = "costscope-data/reports"

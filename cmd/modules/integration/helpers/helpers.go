@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // RunEWithLogging wraps a cobra RunE with standardized start/finish logging and duration.

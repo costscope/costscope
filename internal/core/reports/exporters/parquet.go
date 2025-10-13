@@ -11,11 +11,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"local/costscope/internal/core/reports/outputpath"
+	"github.com/costscope/costscope/internal/core/reports/outputpath"
 
-	focustypes "local/costscope/internal/core/focus/types"
-	focuswriters "local/costscope/internal/core/focus/writers"
-	"local/costscope/internal/core/reports/types"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
+	focuswriters "github.com/costscope/costscope/internal/core/focus/writers"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // ParquetExporter writes generic report structs as Parquet by embedding the JSON payload into a string field of a minimal FocusRecord.

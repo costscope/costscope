@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"local/costscope/internal/core/focus/validation"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/focus/validation"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // computeAPIInvariantsFromFile (duckdb/noduckdb variants) and the invariants route were removed

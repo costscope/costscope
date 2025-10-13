@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 const (

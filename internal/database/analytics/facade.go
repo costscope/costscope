@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/multitenant"
-	"local/costscope/internal/database"
-	"local/costscope/internal/database/focus"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/multitenant"
+	"github.com/costscope/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database/focus"
 )
 
 // QueryExecutor is a minimal contract satisfied by DuckDBEngine and fakes in tests.

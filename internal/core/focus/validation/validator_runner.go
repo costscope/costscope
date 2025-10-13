@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/quality"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestMulticloudRecommendationsHandler_SuccessAndErrors(t *testing.T) {

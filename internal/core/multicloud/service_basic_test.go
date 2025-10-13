@@ -3,8 +3,8 @@ package multicloud
 import (
 	"testing"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 func TestNewMulticloudService_Defaults(t *testing.T) {

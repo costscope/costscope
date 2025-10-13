@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"sync"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	_ "local/costscope/internal/providers/aws"   // side-effect registration
-	_ "local/costscope/internal/providers/azure" // side-effect registration
-	_ "local/costscope/internal/providers/gcp"   // side-effect registration
-	"local/costscope/internal/providers/registry"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	_ "github.com/costscope/costscope/internal/providers/aws"   // side-effect registration
+	_ "github.com/costscope/costscope/internal/providers/azure" // side-effect registration
+	_ "github.com/costscope/costscope/internal/providers/gcp"   // side-effect registration
+	"github.com/costscope/costscope/internal/providers/registry"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // ProviderManager manages all cloud providers through unified interfaces

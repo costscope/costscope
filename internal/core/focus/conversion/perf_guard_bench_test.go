@@ -25,8 +25,8 @@ import (
 	"testing"
 	"time"
 
-	awsp "local/costscope/internal/core/focus/conversion/aws"
-	"local/costscope/internal/core/focus/types"
+	awsp "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // generatePerfGuardSyntheticCSV creates N synthetic AWS-like CUR rows (minimal subset of fields).

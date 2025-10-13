@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"local/costscope/cmd/modules/streaming/commands"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/cmd/modules/streaming/commands"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	focuscmd "local/costscope/cmd/modules/focus/commands"
-	"local/costscope/internal/testutil"
+	focuscmd "github.com/costscope/costscope/cmd/modules/focus/commands"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // invariantsReport holds just the fields we assert for the smoke test.

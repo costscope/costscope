@@ -7,12 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // =====================================================================================

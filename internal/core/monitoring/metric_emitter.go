@@ -3,7 +3,7 @@ package monitoring
 import (
 	"context"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // LoggingMetricEmitter outputs a compact summary into unified logs.

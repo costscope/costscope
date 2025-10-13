@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/testutil"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // Test_UnifiedMapper_Parity validates parity of selected fields between legacy and unified paths.

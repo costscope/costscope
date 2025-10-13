@@ -25,16 +25,21 @@ fi
 
 # Under act for the slim variant, run a reduced test set that excludes packages requiring large external fixtures
 if [[ "${IS_ACT:-false}" == "true" && "${VARIANT}" == "slim" && "${ACT_FULL:-false}" != "true" ]]; then
-  echo "[act] Running reduced slim test set (excluding internal/core/focus/conversion)"
+  echo "[act] Running reduced slim test set (excluding heavy/DB-dependent packages)"
   # Tolerate no matches without failing the script under 'set -o pipefail'
-  pkgs=$(go list ./... | grep -Ev '^local/costscope/internal/core/focus/conversion($|/)' || true)
+  # Exclude:
+  #  - internal/core/focus/conversion (heavy fixtures)
+  #  - scripts/tools/parity-check (depends on duckdb)
+  #  - tests/parity (depends on duckdb)
+  pkgs=$(go list ./... | grep -Ev '^(github.com/costscope/costscope/internal/core/focus/conversion|github.com/costscope/costscope/scripts/tools/parity-check|github.com/costscope/costscope/tests/parity)($|/)' || true)
   if [[ -n "${pkgs}" ]]; then
     echo "[act] Package count: $(echo "$pkgs" | wc -w | tr -d ' ')"
     failed=0
     # Run package-by-package to surface the exact failing package under act
     for pkg in ${pkgs}; do
-      echo "[act] >>> go test -v -race -cover ${pkg}"
-      if ! env -u GOROOT GOTOOLCHAIN=auto go test -v -race -cover "${pkg}"; then
+      echo "[act] >>> go test -v -cover ${pkg}"
+      # Under act, avoid -race to reduce memory pressure in constrained containers
+      if ! env -u GOROOT GOTOOLCHAIN=auto go test -v -cover "${pkg}"; then
         echo "[act] FAIL: ${pkg}"
         failed=1
       fi

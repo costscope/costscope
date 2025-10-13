@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // sqlCapturingExec captures the executed SQL for inspection.

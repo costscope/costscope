@@ -1,8 +1,9 @@
 package mapping
 
 import (
-	ftypes "local/costscope/internal/core/focus/types"
 	"testing"
+
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestAdapter_FromRules_BasicMappingAndTypes(t *testing.T) {

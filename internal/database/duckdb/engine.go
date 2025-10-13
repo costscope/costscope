@@ -14,9 +14,9 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/database"
-	"local/costscope/internal/database/performance"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database/performance"
 )
 
 // DuckDBEngine provides a DuckDB-backed implementation of the database execution

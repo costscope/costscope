@@ -2,8 +2,9 @@ package production
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // minimal fake deps reused from service_basic_test.go (could refactor but keep local for isolation)

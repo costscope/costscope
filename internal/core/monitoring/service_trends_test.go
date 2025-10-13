@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/integration"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/integration"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // stubProduction implements production.ProductionService minimally

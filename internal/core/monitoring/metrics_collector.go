@@ -7,9 +7,9 @@ import (
 	"runtime"
 	"time"
 
-	"local/costscope/internal/core/integration"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/integration"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // secureRandFloat64 generates a cryptographically secure random float64 between 0 and 1

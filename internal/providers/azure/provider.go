@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // AzureProvider implements the CloudProvider interface for Azure

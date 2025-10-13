@@ -25,7 +25,7 @@ build-release: ## Build reproducible release (stamps Version, Commit, BuildDate,
 	 COMMIT_FLAG=$(shell git rev-parse --short=12 HEAD 2>/dev/null || echo none); \
 	 BUILD_DATE_FLAG=$(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then date -u -d @$$SOURCE_DATE_EPOCH +%Y-%m-%dT%H:%M:%SZ; else date -u +%Y-%m-%dT%H:%M:%SZ; fi); \
 	 GO_VERSION_FLAG=$(shell go version | awk '{print $$3}'); \
-	 CGO_ENABLED=0 GOOS=linux go build -trimpath -buildvcs=false -ldflags="-s -w -X main.Version=$$VERSION_FLAG -X main.Commit=$$COMMIT_FLAG -X main.BuildDate=$$BUILD_DATE_FLAG -X main.GoVersion=$$GO_VERSION_FLAG -X local/costscope/cmd.Version=$$VERSION_FLAG -X local/costscope/cmd.Commit=$$COMMIT_FLAG -X local/costscope/cmd.BuildDate=$$BUILD_DATE_FLAG -X local/costscope/cmd.GoVersion=$$GO_VERSION_FLAG" -o costscope ./; \
+	 CGO_ENABLED=0 GOOS=linux go build -trimpath -buildvcs=false -ldflags="-s -w -X main.Version=$$VERSION_FLAG -X main.Commit=$$COMMIT_FLAG -X main.BuildDate=$$BUILD_DATE_FLAG -X main.GoVersion=$$GO_VERSION_FLAG -X github.com/costscope/costscope/cmd.Version=$$VERSION_FLAG -X github.com/costscope/costscope/cmd.Commit=$$COMMIT_FLAG -X github.com/costscope/costscope/cmd.BuildDate=$$BUILD_DATE_FLAG -X github.com/costscope/costscope/cmd.GoVersion=$$GO_VERSION_FLAG" -o costscope ./; \
 	 echo " Built release binary: costscope"; echo "Version: $$VERSION_FLAG"; echo "Commit: $$COMMIT_FLAG"; echo "BuildDate: $$BUILD_DATE_FLAG"; echo "Go: $$GO_VERSION_FLAG";
 
 build-optimized: ## Build optimized binary with maximum performance flags (no DuckDB)

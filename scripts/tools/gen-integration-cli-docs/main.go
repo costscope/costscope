@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	integration "local/costscope/cmd/modules/integration"
-	"local/costscope/internal/cli/specs"
+	integration "github.com/costscope/costscope/cmd/modules/integration"
+	"github.com/costscope/costscope/internal/cli/specs"
 )
 
 // gen-integration-cli-docs: prototype generator for integration ActionSpec summary.

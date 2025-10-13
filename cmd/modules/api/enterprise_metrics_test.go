@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // TestEnterpriseRouterMetricsEndpoint verifies that the enterprise Gin router exposes /metrics

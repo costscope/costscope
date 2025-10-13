@@ -16,9 +16,9 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	conv "local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/quality"
-	focustypes "local/costscope/internal/core/focus/types"
+	conv "github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Report describes the end-to-end pipeline execution.

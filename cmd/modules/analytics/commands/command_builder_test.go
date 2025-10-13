@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"local/costscope/internal/core/analytics"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/analytics"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestNewAnalyticsCommands(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"local/costscope/internal/api/handlers"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/handlers"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // 1: containsWildcardOrigin returns true when '*' present

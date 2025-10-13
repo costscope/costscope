@@ -1,7 +1,7 @@
 package interfaces
 
 import (
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // ProviderRowMapper defines a minimal, provider-agnostic contract for mapping

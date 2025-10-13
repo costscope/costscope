@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/database/performance"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/database/performance"
 )
 
 // EnterpriseStreamingEngine handles enterprise-scale streaming operations

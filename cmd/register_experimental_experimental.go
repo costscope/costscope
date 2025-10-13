@@ -3,8 +3,8 @@
 package cmd
 
 import (
-	advanced "local/costscope/cmd/modules/analytics_advanced/commands"
-	complex "local/costscope/cmd/modules/analytics_complex/commands"
+	advanced "github.com/costscope/costscope/cmd/modules/analytics_advanced/commands"
+	complex "github.com/costscope/costscope/cmd/modules/analytics_complex/commands"
 
 	"github.com/spf13/cobra"
 )

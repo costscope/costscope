@@ -7,14 +7,14 @@ import (
 	"sync"
 	"time"
 
-	awsp "local/costscope/internal/core/focus/conversion/aws"
-	azp "local/costscope/internal/core/focus/conversion/azure"
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	store "local/costscope/internal/core/focus/conversion/store"
-	u "local/costscope/internal/core/focus/conversion/universal"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	awsp "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	azp "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	store "github.com/costscope/costscope/internal/core/focus/conversion/store"
+	u "github.com/costscope/costscope/internal/core/focus/conversion/universal"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // =====================================================================================

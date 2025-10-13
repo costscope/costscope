@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // analyticsAnalyzeHandler - placeholder async analyze job submission (mirrors other job style)

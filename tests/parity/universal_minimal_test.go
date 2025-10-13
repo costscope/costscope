@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	conversion "local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/types"
+	conversion "github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestUniversalMinimalInvalidConfig ensures Convert returns error on invalid config

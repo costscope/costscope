@@ -16,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	_ "github.com/marcboeker/go-duckdb"
 )

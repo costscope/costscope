@@ -2,9 +2,10 @@ package production
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
 	"testing"
 	"time"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func newTestAssessor() *BasicDeploymentAssessor {

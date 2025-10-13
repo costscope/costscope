@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/logging"
-	rtypes "local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	rtypes "github.com/costscope/costscope/internal/core/reports/types"
 )
 
 func TestResolveOutputPath_Table(t *testing.T) {

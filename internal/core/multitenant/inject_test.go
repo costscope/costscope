@@ -2,9 +2,10 @@ package multitenant
 
 import (
 	"context"
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/database"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // testResolver implements TenantResolver returning a fixed id.

@@ -3,13 +3,14 @@ package azure_test
 import (
 	"compress/gzip"
 	"context"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Ensures gzipped CSV input is supported end-to-end

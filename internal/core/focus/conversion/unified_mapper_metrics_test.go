@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	awsp "local/costscope/internal/core/focus/conversion/aws"
-	azp "local/costscope/internal/core/focus/conversion/azure"
-	c "local/costscope/internal/core/focus/conversion/common"
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	awsp "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	azp "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )

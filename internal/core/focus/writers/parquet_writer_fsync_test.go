@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Test that fsync is only invoked at rotation finalization and final Close (once per output file),

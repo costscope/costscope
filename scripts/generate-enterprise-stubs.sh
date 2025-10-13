@@ -68,8 +68,8 @@ else
     echo "package $(basename "$PKG_DIR")"; echo
     cat <<STUB
 import (
-    "context"
-    "local/costscope/internal/core/enterprise"
+  "context"
+  "github.com/costscope/costscope/internal/core/enterprise"
 )
 
 // ${TYPE_NAME} stub (non-enterprise build).

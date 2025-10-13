@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/cmd/modules/integration/types"
+	"github.com/costscope/costscope/cmd/modules/integration/types"
 )
 
 // AlertManager handles advanced alerting capabilities

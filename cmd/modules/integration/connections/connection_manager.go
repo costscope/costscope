@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/cmd/modules/integration/helpers"
-	"local/costscope/cmd/modules/integration/types"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/cmd/modules/integration/helpers"
+	"github.com/costscope/costscope/cmd/modules/integration/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // ConnectionManager handles third-party system connections with enhanced features

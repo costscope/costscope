@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/persistence"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/persistence"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // PersistentJobManager extends DefaultJobManager with database persistence

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	focquality "local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/quality/drift"
+	focquality "github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/quality/drift"
 
 	"github.com/spf13/cobra"
 )

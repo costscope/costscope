@@ -10,11 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 // =====================================================================================

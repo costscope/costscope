@@ -1,10 +1,11 @@
 package quality
 
 import (
-	focustypes "local/costscope/internal/core/focus/types"
 	"math"
 	"strconv"
 	"testing"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // floatEquals checks approximate equality with fixed absolute epsilon (1e-9).

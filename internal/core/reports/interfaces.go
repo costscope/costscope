@@ -3,7 +3,7 @@ package reports
 import (
 	"context"
 
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // ReportService defines the interface for report generation and management

@@ -8,12 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/reports"
-	"local/costscope/internal/core/streaming"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/reports"
+	"github.com/costscope/costscope/internal/core/streaming"
 )
 
 // =====================================================================================

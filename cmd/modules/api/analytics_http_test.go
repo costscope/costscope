@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/testutil"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // resolveDemoParquet searches up the tree for demo/focus-conversion/demo-focus.parquet.

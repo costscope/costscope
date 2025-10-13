@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	focustypes "local/costscope/internal/core/focus/types"
 	"math"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // InvariantMetrics captures aggregate invariants for a FOCUS dataset.

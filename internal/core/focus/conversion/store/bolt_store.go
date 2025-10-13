@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	focustypes "local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	bbolt "go.etcd.io/bbolt"
 )

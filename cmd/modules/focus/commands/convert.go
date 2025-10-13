@@ -10,11 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Config precedence resolution now uses stateless Resolve*Field helpers (no legacy resolver struct).

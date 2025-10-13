@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // parquetOptionsKey is a private context key for passing ParquetOptions

@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	analysisTypes "local/costscope/internal/core/focus/analysis"
-	"local/costscope/internal/core/logging"
+	analysisTypes "github.com/costscope/costscope/internal/core/focus/analysis"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // NewAnalyzeCommand creates the enhanced analyze command for FOCUS data analysis

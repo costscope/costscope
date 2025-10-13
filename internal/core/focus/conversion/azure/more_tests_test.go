@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestAzureJSONStreaming_Array(t *testing.T) {

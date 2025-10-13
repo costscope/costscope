@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestWrapServerWithCasbinIfEnabled_DisabledNoop(t *testing.T) {

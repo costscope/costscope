@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestValidateEnterpriseJWTSecret(t *testing.T) {

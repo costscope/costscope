@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

@@ -2,8 +2,9 @@ package multitenant
 
 import (
 	"context"
-	"local/costscope/internal/core/config"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/config"
 )
 
 func TestIsEnabled_DefaultFalse(t *testing.T) {

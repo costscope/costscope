@@ -8,9 +8,9 @@ import (
 	"runtime/pprof"
 	"time"
 
-	awsc "local/costscope/internal/core/focus/conversion/aws"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
+	awsc "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func main() {

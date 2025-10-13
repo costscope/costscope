@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	convutil "local/costscope/internal/core/focus/conversion"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	convutil "github.com/costscope/costscope/internal/core/focus/conversion"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestAzure_JSONParity_CreditsAndCharges exercises the JSON ingestion path ensuring classification

@@ -2,11 +2,12 @@ package validation
 
 import (
 	"fmt"
-	focustypes "local/costscope/internal/core/focus/types"
 	"math"
 	"path/filepath"
 	"strings"
 	"time"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Data type constants

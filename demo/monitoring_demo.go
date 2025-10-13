@@ -8,7 +8,7 @@ import (
 	"log"
 	"time"
 
-	"local/costscope/cmd"
+	"github.com/costscope/costscope/cmd"
 )
 
 // Demo script to showcase monitoring functionality

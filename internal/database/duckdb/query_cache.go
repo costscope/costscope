@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // QueryCache provides intelligent caching for DuckDB query results

@@ -5,7 +5,8 @@ package gcp_test
 
 import (
 	"context"
-	"local/costscope/internal/core/focus/types"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // testWriter is a minimal in-memory DataWriter for provider tests.

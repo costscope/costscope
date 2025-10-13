@@ -3,8 +3,8 @@ package gcp_test
 import (
 	"testing"
 
-	providergcp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
+	providergcp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestFullRowMapper_NegativeCostClassification(t *testing.T) {

@@ -3,7 +3,7 @@
 package analytics_complex
 
 import (
-	"local/costscope/cmd/modules/analytics_complex/commands"
+	"github.com/costscope/costscope/cmd/modules/analytics_complex/commands"
 
 	"github.com/spf13/cobra"
 )

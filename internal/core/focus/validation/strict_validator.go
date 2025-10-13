@@ -2,7 +2,8 @@ package validation
 
 import (
 	"fmt"
-	focustypes "local/costscope/internal/core/focus/types"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // StrictValidator performs stricter, record-level invariants using schema metadata.

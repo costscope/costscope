@@ -3,7 +3,7 @@ package conversion
 import (
 	"context"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // fakeWriter is a minimal in-memory DataWriter for tests.

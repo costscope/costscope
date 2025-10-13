@@ -8,9 +8,9 @@ import (
 	"sort"
 	"time"
 
-	"local/costscope/cmd/modules/multicloud/common"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/multicloud"
+	"github.com/costscope/costscope/cmd/modules/multicloud/common"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/multicloud"
 )
 
 // CommandFlags represents command flags for reporting operations

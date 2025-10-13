@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 // Job status constants

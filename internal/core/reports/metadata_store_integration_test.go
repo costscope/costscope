@@ -2,9 +2,10 @@ package reports
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports/types"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // Test that injecting a metadata store results in a Save call (implicitly via presence of entry).

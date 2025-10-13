@@ -5,7 +5,7 @@ package commands
 import (
 	"fmt"
 
-	"local/costscope/internal/core/analytics_advanced"
+	"github.com/costscope/costscope/internal/core/analytics_advanced"
 
 	"github.com/spf13/cobra"
 )

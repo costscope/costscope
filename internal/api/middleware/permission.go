@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/security"
 
 	"github.com/gin-gonic/gin"
 )

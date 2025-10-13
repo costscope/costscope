@@ -12,9 +12,9 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/core/logging"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 // SQLiteRepository implements Repository interface using SQLite

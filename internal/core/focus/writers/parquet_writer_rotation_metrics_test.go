@@ -12,8 +12,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // TestParquetWriter_RotationMetrics validates that ParquetRotationSize summary receives an observation

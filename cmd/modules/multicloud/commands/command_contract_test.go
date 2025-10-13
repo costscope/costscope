@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"local/costscope/internal/providers"
 	"strings"
 	"testing"
+
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // TestMulticloudCommands_CommandSurfaceSnapshot ensures newly added advanced commands stay stable (basic help surface)

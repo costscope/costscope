@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestLintUtilization references shared helpers to avoid unused warnings from the linter.

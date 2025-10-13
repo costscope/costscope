@@ -4,7 +4,8 @@ package api
 
 import (
 	"fmt"
-	"local/costscope/internal/core/focus/quality"
+
+	"github.com/costscope/costscope/internal/core/focus/quality"
 )
 
 // computeAPIInvariantsFromFile is retained only for historical reference and excluded from builds.

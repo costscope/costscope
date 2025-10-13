@@ -2,8 +2,9 @@ package production
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Test real optimization engine Analyze with all categories and aggressive flag.

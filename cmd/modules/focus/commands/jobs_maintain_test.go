@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	store "local/costscope/internal/core/focus/conversion/store"
-	"local/costscope/internal/core/focus/types"
+	store "github.com/costscope/costscope/internal/core/focus/conversion/store"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Test that the `jobs maintain --remove-older` command removes older entries from a Bolt DB

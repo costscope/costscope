@@ -1,8 +1,9 @@
 package comparison
 
 import (
-	focusTypes "local/costscope/internal/core/focus/analysis"
 	"time"
+
+	focusTypes "github.com/costscope/costscope/internal/core/focus/analysis"
 )
 
 // Re-export analysis types for comparison module

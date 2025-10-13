@@ -3,14 +3,15 @@ package azure_test
 import (
 	"context"
 	"encoding/csv"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	types "local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	types "github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )

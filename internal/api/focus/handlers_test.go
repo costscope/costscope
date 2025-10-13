@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // write minimal YAML including focus.use_unified_mapper_default

@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/focus/writers"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/writers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

@@ -9,10 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"local/costscope/internal/api/middleware"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/api/middleware"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 // buildTestRBAC constructs an RBAC service with a single role 'analyst' having the provided permissions.

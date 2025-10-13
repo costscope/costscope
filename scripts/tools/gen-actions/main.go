@@ -12,7 +12,7 @@ import (
 	"text/template"
 	"time"
 
-	integration "local/costscope/cmd/modules/integration"
+	integration "github.com/costscope/costscope/cmd/modules/integration"
 )
 
 // Minimal validator/codegen stub for Integration Action DSL
@@ -446,7 +446,7 @@ func generateAPIArtifacts(yamlPath string) error {
 import (
 	"net/http"
 	"github.com/gin-gonic/gin"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 type %sHandler struct { logger *logging.Logger }

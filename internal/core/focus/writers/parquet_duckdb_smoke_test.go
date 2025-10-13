@@ -13,7 +13,7 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Smoke test: write a tiny Parquet and ensure DuckDB can read it back.

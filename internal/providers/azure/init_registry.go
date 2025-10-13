@@ -1,8 +1,8 @@
 package azure
 
 import (
-	"local/costscope/internal/providers/registry"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/providers/registry"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 func init() {

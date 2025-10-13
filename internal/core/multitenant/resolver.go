@@ -7,7 +7,8 @@ package multitenant
 
 import (
 	"context"
-	"local/costscope/internal/core/config"
+
+	"github.com/costscope/costscope/internal/core/config"
 )
 
 // TenantResolver resolves a tenant identifier from a request context (e.g. auth token, headers).

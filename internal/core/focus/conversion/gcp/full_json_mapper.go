@@ -1,9 +1,10 @@
 package gcp
 
 import (
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
 	"time"
+
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // FullJSONMapper maps a JSON object (map[string]any) to a FocusRecord fields-only.

@@ -1,4 +1,4 @@
-module local/costscope
+module github.com/costscope/costscope
 
 go 1.24.6
 

@@ -1,9 +1,10 @@
 package analytics
 
 import (
-	analyticsTypes "local/costscope/cmd/modules/analytics/types"
-	"local/costscope/internal/core/logging"
 	"testing"
+
+	analyticsTypes "github.com/costscope/costscope/cmd/modules/analytics/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func BenchmarkAnalyzeBasic(b *testing.B) {

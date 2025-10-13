@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"local/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/quality"
 )
 
 // ComputeInvariantsFromFile stub when DuckDB is not linked. This preserves functionality

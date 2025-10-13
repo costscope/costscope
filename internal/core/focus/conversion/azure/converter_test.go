@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	azure "local/costscope/internal/core/focus/conversion/azure"
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestAzureCSVStreaming_Minimal(t *testing.T) {

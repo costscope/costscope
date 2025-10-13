@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/providers"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/providers"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 // MockProvider implements CloudProvider interface for testing

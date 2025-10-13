@@ -2,10 +2,11 @@ package multicloud
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
 	"testing"
 	"time"
+
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // TestMulticloudService_StatusAndDisabledFlags covers GetServiceStatus and disabled feature branches.

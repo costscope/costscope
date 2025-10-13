@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // AnalysisEngine provides comprehensive FOCUS dataset analysis capabilities

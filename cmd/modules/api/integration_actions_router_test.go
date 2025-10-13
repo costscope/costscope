@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	integration "local/costscope/cmd/modules/integration"
-	"local/costscope/internal/core/logging"
+	integration "github.com/costscope/costscope/cmd/modules/integration"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/gin-gonic/gin"
 )

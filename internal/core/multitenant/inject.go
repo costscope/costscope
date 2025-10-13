@@ -7,8 +7,9 @@ package multitenant
 
 import (
 	"context"
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/database"
+
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // InjectTenantFilter mutates filters to set TenantID when ALL conditions hold:

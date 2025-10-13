@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	cfg "local/costscope/internal/core/config"
+	cfg "github.com/costscope/costscope/internal/core/config"
 )
 
 func TestIsProductionEnv_ConfigPriority(t *testing.T) {

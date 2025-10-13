@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/multitenant"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/multitenant"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

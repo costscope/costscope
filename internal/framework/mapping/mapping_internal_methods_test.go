@@ -1,9 +1,10 @@
 package mapping
 
 import (
-	ftypes "local/costscope/internal/core/focus/types"
 	"testing"
 	"time"
+
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Helper to build a mapper quickly

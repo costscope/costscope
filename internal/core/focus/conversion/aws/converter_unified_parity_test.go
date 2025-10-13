@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 const (

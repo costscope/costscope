@@ -1,5 +1,5 @@
 package_name: commands
-package_import: local/costscope/cmd/modules/multicloud/commands
+package_import: github.com/costscope/costscope/cmd/modules/multicloud/commands
 receiver: MulticloudCommands
 root:
   use: multicloud

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	azure "local/costscope/internal/core/focus/conversion/azure"
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Parity test (lightweight): map sample Azure CSV rows via existing row mapper vs direct logic replication subset.

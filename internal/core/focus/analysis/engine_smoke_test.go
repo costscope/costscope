@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	analysis "local/costscope/internal/core/focus/analysis"
-	"local/costscope/internal/core/logging"
+	analysis "github.com/costscope/costscope/internal/core/focus/analysis"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func newTestLogger() *logging.Logger { return logging.NewLogger(logging.LevelInfo) }

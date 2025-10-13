@@ -2,9 +2,10 @@ package monitoring
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
 	"testing"
 	"time"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestBasicMonitoringService_Loops exercise metricsCollectionLoop, healthCheckLoop and alertProcessingLoop early stop paths.

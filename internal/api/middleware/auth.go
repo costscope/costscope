@@ -13,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // =====================================================================================

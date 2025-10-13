@@ -11,10 +11,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/integration"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/production"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/core/integration"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // BuildEnhancedProductionCommands builds the enhanced production commands

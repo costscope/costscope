@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // routesSummaryHandler returns a lightweight JSON summary of all declared routes.

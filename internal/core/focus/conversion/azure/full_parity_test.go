@@ -3,14 +3,15 @@ package azure_test
 import (
 	"context"
 	"fmt"
-	conv "local/costscope/internal/core/focus/conversion"
-	azure "local/costscope/internal/core/focus/conversion/azure"
-	types "local/costscope/internal/core/focus/types"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	conv "github.com/costscope/costscope/internal/core/focus/conversion"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	types "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestAzure_FullParity_LegacyVsLegacy placeholder: ensures hash stable; later second run switches to unified mapper path.

@@ -12,8 +12,8 @@ import (
 	_ "github.com/marcboeker/go-duckdb" // register duckdb driver
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/focus/quality"
-	focustypes "local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // buildRegenerateSubcommand (duckdb) creates `costscope invariants regenerate` with DuckDB-backed loaders.

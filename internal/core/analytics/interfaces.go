@@ -1,6 +1,6 @@
 package analytics
 
-import "local/costscope/cmd/modules/analytics/types"
+import "github.com/costscope/costscope/cmd/modules/analytics/types"
 
 // Service defines the interface for analytics operations
 type Service interface {

@@ -1,8 +1,9 @@
 package azure
 
 import (
-	"local/costscope/internal/core/focus/types"
 	"strings"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // EnrichUnified fills fields not directly produced by generic field mapping so that

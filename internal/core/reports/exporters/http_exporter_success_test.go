@@ -2,10 +2,11 @@ package exporters
 
 import (
 	"context"
-	"local/costscope/internal/core/reports/types"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // TestHTTPExporter_SimpleSuccess covers 200 branch without retries.

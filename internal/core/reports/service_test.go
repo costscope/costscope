@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 func TestBasicReportService_GenerateCostAnalysisReport(t *testing.T) {

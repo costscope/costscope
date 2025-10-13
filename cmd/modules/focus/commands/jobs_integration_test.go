@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	rootpkg "local/costscope/cmd"
-	commands "local/costscope/cmd/modules/focus/commands"
+	rootpkg "github.com/costscope/costscope/cmd"
+	commands "github.com/costscope/costscope/cmd/modules/focus/commands"
 
 	"github.com/spf13/cobra"
 )

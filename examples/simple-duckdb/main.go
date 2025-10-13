@@ -11,7 +11,7 @@ import (
 
 	"database/sql"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	_ "github.com/marcboeker/go-duckdb"
 	"github.com/spf13/cobra"

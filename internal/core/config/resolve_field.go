@@ -3,10 +3,11 @@ package config
 import (
 	"time"
 
-	"local/costscope/internal/core/config/precedence"
-	"local/costscope/internal/core/logging"
 	"os"
 	"strings"
+
+	"github.com/costscope/costscope/internal/core/config/precedence"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // ResolveIntField is the unified high-level helper for resolving an int configuration field

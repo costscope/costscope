@@ -12,13 +12,13 @@ import (
 	"strings"
 	"time"
 
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/focus/writers"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/framework/mapping"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/writers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/framework/mapping"
 )
 
 const (

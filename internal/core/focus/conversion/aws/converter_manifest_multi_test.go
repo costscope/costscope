@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestAWSManifest_MultiReportKeys_OutputPerFile(t *testing.T) {

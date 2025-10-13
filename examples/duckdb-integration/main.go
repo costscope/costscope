@@ -6,9 +6,9 @@ package main
 import (
 	"fmt"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/database/duckdb"
-	"local/costscope/internal/database/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/database/duckdb"
+	"github.com/costscope/costscope/internal/database/types"
 )
 
 func main() {

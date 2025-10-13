@@ -1,6 +1,6 @@
 package azure
 
-import "local/costscope/internal/core/focus/types"
+import "github.com/costscope/costscope/internal/core/focus/types"
 
 // getAzureMappingRules returns Azure to FOCUS mapping rules (minimal starter).
 func getAzureMappingRules() *types.MappingRules {

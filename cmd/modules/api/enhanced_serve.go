@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )
@@ -78,7 +78,7 @@ API Endpoints:
 • /api/v2/realtime/costs - Real-time cost streaming
 • /api/v2/analytics/dashboard - Interactive dashboards
 • /api/v2/reports/enhanced - Enhanced reporting
-	docsb "local/costscope/internal/core/docs"
+	docsb "github.com/costscope/costscope/internal/core/docs"
 • /ws/realtime - WebSocket for real-time updates
 • /graphql - GraphQL query interface
 

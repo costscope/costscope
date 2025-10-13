@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // =====================================================================================

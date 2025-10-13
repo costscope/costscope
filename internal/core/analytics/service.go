@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"local/costscope/cmd/modules/analytics/types"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/cmd/modules/analytics/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // BasicService implements the analytics Service interface

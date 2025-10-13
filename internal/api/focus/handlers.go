@@ -11,15 +11,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/config"
-	focusanalysis "local/costscope/internal/core/focus/analysis"
-	focuscomparison "local/costscope/internal/core/focus/comparison"
-	focquality "local/costscope/internal/core/focus/quality"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/quality/drift"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/config"
+	focusanalysis "github.com/costscope/costscope/internal/core/focus/analysis"
+	focuscomparison "github.com/costscope/costscope/internal/core/focus/comparison"
+	focquality "github.com/costscope/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/quality/drift"
 )
 
 // tenantFromContext extracts tenant_id from Gin context if present.

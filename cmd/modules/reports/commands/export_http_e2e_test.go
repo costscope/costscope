@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports"
-	rtypes "local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports"
+	rtypes "github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // TestReportsExportHTTP_E2E spins up a test HTTP server and drives the Cobra command

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	pipeline "local/costscope/tests/e2e/pipeline"
+	pipeline "github.com/costscope/costscope/tests/e2e/pipeline"
 )
 
 // Helper to print invariant metrics JSON for a provider's current test fixtures.

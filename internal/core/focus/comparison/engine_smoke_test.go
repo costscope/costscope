@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	comparison "local/costscope/internal/core/focus/comparison"
-	"local/costscope/internal/core/logging"
+	comparison "github.com/costscope/costscope/internal/core/focus/comparison"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func newCompLogger() *logging.Logger { return logging.NewLogger(logging.LevelInfo) }

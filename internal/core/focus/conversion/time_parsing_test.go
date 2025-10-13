@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	conv "local/costscope/internal/core/focus/conversion/common"
+	conv "github.com/costscope/costscope/internal/core/focus/conversion/common"
 )
 
 // TestParseTimeAnyFormats ensures multiple timestamp formats are parsed consistently.

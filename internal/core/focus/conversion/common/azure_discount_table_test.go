@@ -3,7 +3,7 @@ package common
 import (
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestAzureEnsureDiscount_Table(t *testing.T) {

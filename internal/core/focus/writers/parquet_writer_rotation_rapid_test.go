@@ -16,7 +16,7 @@ import (
 	_ "github.com/marcboeker/go-duckdb"
 	"pgregory.net/rapid"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestParquetWriter_RotationRapidProperties performs property-based randomized testing of size rotation.

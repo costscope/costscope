@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/compliance"
+	"github.com/costscope/costscope/internal/core/compliance"
 )
 
 // ComplianceCommands groups compliance CLI commands

@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	docsb "local/costscope/internal/core/docs"
-	"local/costscope/internal/testutil"
+	docsb "github.com/costscope/costscope/internal/core/docs"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 func main() {

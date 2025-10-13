@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	_ "github.com/mattn/go-sqlite3" // sqlite driver
 )

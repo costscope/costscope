@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	focustypes "local/costscope/internal/core/focus/types"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // JobStore is a small persistence abstraction used to store conversion results

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/testutil"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // TestCasbinExamplesPresent validates example model/policy files exist and have basic markers.

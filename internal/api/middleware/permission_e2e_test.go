@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/security"
 
 	"github.com/gin-gonic/gin"
 )

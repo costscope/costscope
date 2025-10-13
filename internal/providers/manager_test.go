@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // MockProvider implements the CloudProvider interface for testing

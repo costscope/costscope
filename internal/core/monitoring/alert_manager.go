@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // BasicAlertManager implements AlertManager interface

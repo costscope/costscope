@@ -17,15 +17,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/logging"
-	persistence "local/costscope/internal/core/persistence"
-	"local/costscope/internal/providers"
-	providerTypes "local/costscope/internal/providers/types"
-	"local/costscope/internal/testutil"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/logging"
+	persistence "github.com/costscope/costscope/internal/core/persistence"
+	"github.com/costscope/costscope/internal/providers"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // unwrapEnvelope normalizes the new unified API response envelope to the original

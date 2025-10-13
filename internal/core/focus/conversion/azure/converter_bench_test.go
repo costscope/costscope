@@ -2,14 +2,15 @@ package azure_test
 
 import (
 	"context"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
 
-	focustypes "local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 const (

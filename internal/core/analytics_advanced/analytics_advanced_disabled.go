@@ -15,7 +15,7 @@ package analytics_advanced
 import (
 	"errors"
 
-	"local/costscope/internal/core/enterprise"
+	"github.com/costscope/costscope/internal/core/enterprise"
 )
 
 // We duplicate the interface + types here because the canonical versions are

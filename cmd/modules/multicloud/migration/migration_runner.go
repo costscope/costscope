@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // CommandFlags represents command flags for migration operations

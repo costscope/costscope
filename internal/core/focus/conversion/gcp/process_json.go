@@ -7,7 +7,7 @@ import (
 	"io"
 	"path/filepath"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // ProcessJSON streams GCP JSON data. It supports both array-of-objects and NDJSON forms.

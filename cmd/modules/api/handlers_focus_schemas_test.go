@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestFocusSchemasHandler verifies the schemas discovery endpoint returns ordered specs.

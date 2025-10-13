@@ -3,9 +3,9 @@ package conversion
 import (
 	"testing"
 
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )

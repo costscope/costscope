@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/database/performance"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/database/performance"
 )
 
 // EnterpriseConnectionManager handles enterprise-scale database connection management

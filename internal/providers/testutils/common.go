@@ -1,8 +1,9 @@
 package testutils
 
 import (
-	"local/costscope/internal/providers/types"
 	"testing"
+
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // CreateTestProviderConfig creates a standardized test provider configuration

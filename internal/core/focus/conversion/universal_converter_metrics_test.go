@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	promtest "github.com/prometheus/client_golang/prometheus/testutil"
 )

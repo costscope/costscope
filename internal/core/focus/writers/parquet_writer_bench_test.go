@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Benchmark the Parquet writer throughput and allocations.

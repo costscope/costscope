@@ -3,11 +3,11 @@ package common
 import (
 	"strings"
 
-	"local/costscope/internal/core/cache"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/focus/validation"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/normalization"
+	"github.com/costscope/costscope/internal/core/cache"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/validation"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/normalization"
 )
 
 var (

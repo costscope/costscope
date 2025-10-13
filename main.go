@@ -1,8 +1,8 @@
 package main
 
 import (
-	"local/costscope/cmd"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/cmd"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // main is the entry point for the CostScope application

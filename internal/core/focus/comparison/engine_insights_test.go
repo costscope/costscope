@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	comparison "local/costscope/internal/core/focus/comparison"
-	"local/costscope/internal/core/logging"
+	comparison "github.com/costscope/costscope/internal/core/focus/comparison"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestComparisonEngine_GenerateComparisonInsights(t *testing.T) {

@@ -12,13 +12,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/cmd/modules/multicloud/migration"
-	"local/costscope/cmd/modules/multicloud/optimization"
-	"local/costscope/cmd/modules/multicloud/reporting"
-	"local/costscope/cmd/modules/multicloud/validation"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/multicloud"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/cmd/modules/multicloud/migration"
+	"github.com/costscope/costscope/cmd/modules/multicloud/optimization"
+	"github.com/costscope/costscope/cmd/modules/multicloud/reporting"
+	"github.com/costscope/costscope/cmd/modules/multicloud/validation"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/multicloud"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // MulticloudCommands manages all multicloud-related commands

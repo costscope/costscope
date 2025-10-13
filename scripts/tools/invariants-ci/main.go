@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/quality"
-	pipeline "local/costscope/tests/e2e/pipeline"
+	"github.com/costscope/costscope/internal/core/focus/quality"
+	pipeline "github.com/costscope/costscope/tests/e2e/pipeline"
 )
 
 type Config struct {

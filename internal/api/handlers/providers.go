@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // =====================================================================================

@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/database"
-	"local/costscope/internal/database/analytics"
-	"local/costscope/internal/database/duckdb"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database/analytics"
+	"github.com/costscope/costscope/internal/database/duckdb"
 )
 
 // analyticsBreakdownHandler (duckdb): load a parquet path then compute summary + top 5 services

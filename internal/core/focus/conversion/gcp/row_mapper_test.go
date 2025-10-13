@@ -3,8 +3,8 @@ package gcp_test
 import (
 	"testing"
 
-	providergcp "local/costscope/internal/core/focus/conversion/gcp"
-	ftypes "local/costscope/internal/core/focus/types"
+	providergcp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestRowMapper_MapRaw(t *testing.T) {

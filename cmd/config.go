@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )

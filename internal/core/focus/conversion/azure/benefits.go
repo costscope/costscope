@@ -3,7 +3,7 @@ package azure
 import (
 	"strings"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // local constants to avoid repeating string literals

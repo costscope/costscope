@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	"local/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/cmd/modules/streaming/types"
 )
 
 func TestNewStreamingCommands(t *testing.T) {

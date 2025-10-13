@@ -9,8 +9,8 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 func getAWSCount(path, decision string) float64 {

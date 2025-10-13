@@ -3,11 +3,11 @@ package providers_test
 import (
 	"testing"
 
-	"local/costscope/internal/providers/aws"
-	"local/costscope/internal/providers/azure"
-	"local/costscope/internal/providers/gcp"
-	"local/costscope/internal/providers/testutils"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/providers/aws"
+	"github.com/costscope/costscope/internal/providers/azure"
+	"github.com/costscope/costscope/internal/providers/gcp"
+	"github.com/costscope/costscope/internal/providers/testutils"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // TestTestutilsUsage provides an integration-style smoke test showing how the shared

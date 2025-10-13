@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // simpleReport is a tiny struct to send

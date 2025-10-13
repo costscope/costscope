@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/testutil"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 func TestSecurityCommands_Build(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // Helper functions for production readiness assessment

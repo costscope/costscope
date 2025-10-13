@@ -2,9 +2,10 @@ package multicloud
 
 import (
 	"context"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // TestMulticloudService_ValidateProvidersBranches covers success and error paths.

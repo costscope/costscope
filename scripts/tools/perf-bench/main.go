@@ -25,11 +25,11 @@ import (
 	"strconv"
 	"time"
 
-	awsc "local/costscope/internal/core/focus/conversion/aws"
-	azc "local/costscope/internal/core/focus/conversion/azure"
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	ftypes "local/costscope/internal/core/focus/types"
-	"local/costscope/internal/database/performance"
+	awsc "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	azc "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/database/performance"
 )
 
 type runMetrics struct {

@@ -17,12 +17,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 
-	"local/costscope/cmd/modules/integration/alerts"
-	"local/costscope/cmd/modules/integration/connections"
-	"local/costscope/cmd/modules/integration/dashboard"
-	"local/costscope/cmd/modules/integration/webhooks"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/cmd/modules/integration/alerts"
+	"github.com/costscope/costscope/cmd/modules/integration/connections"
+	"github.com/costscope/costscope/cmd/modules/integration/dashboard"
+	"github.com/costscope/costscope/cmd/modules/integration/webhooks"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // FlagSpec describes a CLI flag for an action.

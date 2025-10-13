@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/cmd/modules/integration/types"
+	"github.com/costscope/costscope/cmd/modules/integration/types"
 )
 
 // DashboardManager handles enhanced dashboard functionality

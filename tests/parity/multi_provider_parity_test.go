@@ -14,8 +14,8 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	conversion "local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/types"
+	conversion "github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestMultiProviderLegacyUnifiedParity: lightweight parity check between default fast path

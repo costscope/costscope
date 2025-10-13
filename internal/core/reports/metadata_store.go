@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // ReportMetadata holds persisted export level metadata (MVP – minimal fields)

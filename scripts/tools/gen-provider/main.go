@@ -4,11 +4,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"local/costscope/internal/testutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 const providerReadmeTemplate = `# {{TITLE}} Provider (Scaffold)
@@ -36,7 +37,7 @@ package {{name}}`
 
 const providerConfigTemplate = `package {{name}}
 
-import "local/costscope/internal/providers/types"
+import "github.com/costscope/costscope/internal/providers/types"
 
 // {{Title}}Config extends ProviderConfig with {{TITLE}} specific settings (extend as needed).
 type {{Title}}Config struct {
@@ -60,8 +61,8 @@ const providerMainTemplate = `package {{name}}
 import (
 	"context"
 	"errors"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // Err{{Title}}NotImplemented indicates unimplemented stub logic.
@@ -117,9 +118,9 @@ func (p *Provider) GetSupportedRegions() []string { return []string{} }
 const providerRegisterTemplate = `package {{name}}
 
 import (
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/registry"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/registry"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // Auto-register minimal instance for registry discovery (expand as needed).
@@ -153,8 +154,8 @@ var ExpectedHeaders = []string{
 const convMapperTemplate = `package {{name}}
 
 import (
-    "local/costscope/internal/core/focus/conversion/common"
-    "local/costscope/internal/core/focus/conversion/universal"
+    "github.com/costscope/costscope/internal/core/focus/conversion/common"
+    "github.com/costscope/costscope/internal/core/focus/conversion/universal"
 )
 
 // recordMapper implements universal.RecordMapper.
@@ -173,7 +174,7 @@ const convConverterTemplate = `package {{name}}
 import (
     "context"
     "io"
-    "local/costscope/internal/core/focus/conversion/universal"
+    "github.com/costscope/costscope/internal/core/focus/conversion/universal"
 )
 
 // Converter implements streaming conversion for {{TITLE}} (stub).
@@ -192,8 +193,8 @@ import (
     "bytes"
     "context"
     "testing"
-    "local/costscope/internal/core/focus/conversion/{{name}}"
-    "local/costscope/internal/core/focus/conversion/universal"
+    "github.com/costscope/costscope/internal/core/focus/conversion/{{name}}"
+    "github.com/costscope/costscope/internal/core/focus/conversion/universal"
 )
 
 func Test{{Title}}ConverterStub(t *testing.T) {
@@ -274,9 +275,9 @@ func testProviderTemplate(name string) string {
 import (
 	"context"
 	"testing"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/%[1]s"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/%[1]s"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 func TestProviderBasic(t *testing.T) {
@@ -314,7 +315,7 @@ func ensureManagerImport(root, name string) error {
 		return err
 	}
 	content := string(b)
-	line := fmt.Sprintf("\t_ \"local/costscope/internal/providers/%s\"   // side-effect registration", name)
+	line := fmt.Sprintf("\t_ \"github.com/costscope/costscope/internal/providers/%s\"   // side-effect registration", name)
 	if strings.Contains(content, line) {
 		return nil
 	}

@@ -11,7 +11,7 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Ensures that when rotation is disabled, the single output parquet file at base path is readable by DuckDB

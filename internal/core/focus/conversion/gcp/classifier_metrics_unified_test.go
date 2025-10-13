@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	dto "github.com/prometheus/client_model/go"
 )

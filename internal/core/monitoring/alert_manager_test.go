@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestAlertManager_RuleLifecycle exercises create/update/delete/list paths plus rule field mutations.

@@ -7,8 +7,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"local/costscope/internal/core/reports/outputpath"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/outputpath"
+	"github.com/costscope/costscope/internal/core/reports/types"
 
 	"gopkg.in/yaml.v3"
 )

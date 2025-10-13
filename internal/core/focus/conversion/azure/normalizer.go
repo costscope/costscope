@@ -1,8 +1,8 @@
 package azure
 
 import (
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Normalizer applies provider-specific and shared normalization to a FocusRecord.

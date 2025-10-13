@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	c "local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/interfaces"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/interfaces"
 )
 
 // RowMapper maps CSV rows to FocusRecord.

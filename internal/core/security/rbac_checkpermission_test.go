@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

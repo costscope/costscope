@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestFocusValidateHandler_ReturnsJSON(t *testing.T) {

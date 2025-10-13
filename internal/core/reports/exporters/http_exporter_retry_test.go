@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // TestHTTPExporter_RetryFailure exercises the retry loop and final error path

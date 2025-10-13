@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // TestMulticloudCommands_BuildMulticloudCommand tests the main command building

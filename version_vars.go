@@ -1,6 +1,6 @@
 package main
 
-import "local/costscope/cmd"
+import "github.com/costscope/costscope/cmd"
 
 // Build metadata variables stamped via -ldflags (-X main.Version, etc.).
 // They default to placeholders for dev builds.

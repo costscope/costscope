@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // NDJSONWriter implements types.DataWriter to write one JSON record per line

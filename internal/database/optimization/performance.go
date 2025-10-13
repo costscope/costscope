@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // perfDeps is the minimal dependency surface for performance optimization.

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func Test_LoggingMetricEmitter_Emit_nil(t *testing.T) {

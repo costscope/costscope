@@ -9,14 +9,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/normalization"
-	"local/costscope/internal/core/persistence"
-	duckdb "local/costscope/internal/database/duckdb"
-	"local/costscope/internal/providers/registry"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/normalization"
+	"github.com/costscope/costscope/internal/core/persistence"
+	duckdb "github.com/costscope/costscope/internal/database/duckdb"
+	"github.com/costscope/costscope/internal/providers/registry"
 )
 
 // =====================================================================================

@@ -1,8 +1,9 @@
 package mapping
 
 import (
-	ftypes "local/costscope/internal/core/focus/types"
 	"strings"
+
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Adapter provides a bridge from existing MappingRules to the new FieldMapper.

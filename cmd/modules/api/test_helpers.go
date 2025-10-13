@@ -1,7 +1,7 @@
 package api
 
 import (
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // testLogger returns a lightweight logger for use in unit tests.

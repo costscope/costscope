@@ -3,13 +3,14 @@ package azure_test
 import (
 	"context"
 	"fmt"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestAzureDiscountClassificationCSV ensures discount variants across legacy and unified CSV paths

@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // =====================================================================================

@@ -2,7 +2,8 @@ package azure
 
 import (
 	"io"
-	raz "local/costscope/internal/core/focus/reader/azure"
+
+	raz "github.com/costscope/costscope/internal/core/focus/reader/azure"
 )
 
 // CSVRowSource and JSONStream are forwarded types from reader/azure to provide

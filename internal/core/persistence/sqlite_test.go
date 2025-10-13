@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 func TestSQLiteRepository(t *testing.T) {

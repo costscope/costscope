@@ -3,7 +3,7 @@ package azure
 import (
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // UpdateProgress updates and publishes progress via callback (if provided).

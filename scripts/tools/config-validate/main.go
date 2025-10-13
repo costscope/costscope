@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	cfg "local/costscope/internal/core/config"
+	cfg "github.com/costscope/costscope/internal/core/config"
 
 	"gopkg.in/yaml.v3"
 )

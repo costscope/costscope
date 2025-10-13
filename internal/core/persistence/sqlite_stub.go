@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	providerTypes "local/costscope/internal/providers/types"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	providerTypes "github.com/costscope/costscope/internal/providers/types"
 )
 
 // SQLiteRepository is an in-memory implementation of Repository used in slim builds.

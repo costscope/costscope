@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"sync"
 
-	u "local/costscope/internal/core/focus/conversion/universal"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/logging"
+	u "github.com/costscope/costscope/internal/core/focus/conversion/universal"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Re-export to preserve backward-compatible imports

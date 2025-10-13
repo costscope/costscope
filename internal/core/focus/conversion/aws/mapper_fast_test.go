@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	ftypes "local/costscope/internal/core/focus/types"
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Test MapRowFast for a minimal synthetic row covering core fields

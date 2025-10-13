@@ -2,7 +2,7 @@
 set -euo pipefail
 mkdir -p govuln_reports
 # pick packages likely to touch application code (avoid tooling libs)
-go list ./... | grep -E '(^local/costscope/internal|^local/costscope/cmd|^local/costscope/examples|^local/costscope/internal/api|^local/costscope/internal/core)' > /tmp/pkgs_to_scan.txt
+go list ./... | grep -E '(^github.com/costscope/costscope/internal|^github.com/costscope/costscope/cmd|^github.com/costscope/costscope/examples|^github.com/costscope/costscope/internal/api|^github.com/costscope/costscope/internal/core)' > /tmp/pkgs_to_scan.txt
 while read -r pkg; do
   safe=$(echo "$pkg" | sed 's;/;__;g')
   out="govuln_reports/${safe}.json"

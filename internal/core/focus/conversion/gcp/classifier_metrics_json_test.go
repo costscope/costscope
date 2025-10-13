@@ -11,9 +11,9 @@ import (
 
 	dto "github.com/prometheus/client_model/go"
 
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // getClassifierCountJSON reads the counter for a given decision on the legacy path.

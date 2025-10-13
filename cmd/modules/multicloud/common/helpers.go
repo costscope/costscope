@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/multicloud"
+	"github.com/costscope/costscope/internal/core/multicloud"
 )
 
 // ParseDateRange parses start and end dates in YYYY-MM-DD format.

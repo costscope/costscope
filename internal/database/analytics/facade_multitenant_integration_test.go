@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/multitenant"
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/multitenant"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // capturingExecMulti reuses simple capturing executor logic (kept local to avoid test coupling).

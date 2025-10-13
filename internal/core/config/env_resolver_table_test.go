@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestResolveBoolField_Precedence_Log(t *testing.T) {

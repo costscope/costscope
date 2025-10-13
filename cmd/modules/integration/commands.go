@@ -3,11 +3,11 @@ package integration
 import (
 	"fmt"
 
-	"local/costscope/cmd/modules/integration/alerts"
-	"local/costscope/cmd/modules/integration/connections"
-	"local/costscope/cmd/modules/integration/dashboard"
-	"local/costscope/cmd/modules/integration/webhooks"
-	"local/costscope/internal/core/integration"
+	"github.com/costscope/costscope/cmd/modules/integration/alerts"
+	"github.com/costscope/costscope/cmd/modules/integration/connections"
+	"github.com/costscope/costscope/cmd/modules/integration/dashboard"
+	"github.com/costscope/costscope/cmd/modules/integration/webhooks"
+	"github.com/costscope/costscope/internal/core/integration"
 
 	"github.com/spf13/cobra"
 )

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Test 1: High-load with backpressure (1M messages simulated with smaller loop for CI constraints)

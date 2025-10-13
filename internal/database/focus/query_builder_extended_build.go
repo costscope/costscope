@@ -2,7 +2,7 @@
 
 package focus
 
-import "local/costscope/internal/core/monitoring/telemetry"
+import "github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 // Extended build-only query forms for COUNT / EXPLAIN.
 

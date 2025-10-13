@@ -10,8 +10,8 @@ import (
 	awscreds "github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // stsAPI abstracts STS for testability.

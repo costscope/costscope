@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	azure "local/costscope/internal/core/focus/conversion/azure"
-	"local/costscope/internal/core/focus/types"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // writeCSV writes a minimal Azure CSV with headers and rows and returns the file path.

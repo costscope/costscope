@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Error-inducing optimization engine variants to exercise distinct error branches.

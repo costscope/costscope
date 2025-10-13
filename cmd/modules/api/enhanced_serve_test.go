@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // captureStdout captures stdout while fn runs and returns the output.

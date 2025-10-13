@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/config"
 )
 
 func TestBuildTenantMiddleware_RequiresTenantWhenMultiTenant(t *testing.T) {

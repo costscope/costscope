@@ -5,8 +5,8 @@ package database
 import (
 	"context"
 
-	"local/costscope/internal/core/enterprise"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/enterprise"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Intentional stub (enterprise gating): minimal surface for feature detection.

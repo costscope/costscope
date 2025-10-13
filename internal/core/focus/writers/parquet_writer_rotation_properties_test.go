@@ -14,7 +14,7 @@ import (
 
 	_ "github.com/marcboeker/go-duckdb"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // TestParquetWriter_RotationProperties validates multiple formal properties of the

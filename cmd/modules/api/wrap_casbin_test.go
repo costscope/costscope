@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestWrapServerWithCasbinIfEnabled_EmptyPaths ensures that when Casbin is enabled but

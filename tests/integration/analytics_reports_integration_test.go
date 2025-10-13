@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	analyticsTypes "local/costscope/cmd/modules/analytics/types"
-	"local/costscope/internal/core/analytics"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports"
-	reportTypes "local/costscope/internal/core/reports/types"
+	analyticsTypes "github.com/costscope/costscope/cmd/modules/analytics/types"
+	"github.com/costscope/costscope/internal/core/analytics"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports"
+	reportTypes "github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // TestAnalyticsToReportsIntegration validates cross-module basic flow:

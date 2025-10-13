@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"local/costscope/internal/core/focus/compliance"
+	"github.com/costscope/costscope/internal/core/focus/compliance"
 )
 
 // FOCUS column name constants

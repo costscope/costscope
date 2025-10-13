@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // Severity level constants

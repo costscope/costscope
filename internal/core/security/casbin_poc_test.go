@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/testutil"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // helper to create a temp policy file with provided content

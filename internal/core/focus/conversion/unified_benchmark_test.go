@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	awsp "local/costscope/internal/core/focus/conversion/aws"
-	azp "local/costscope/internal/core/focus/conversion/azure"
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
+	awsp "github.com/costscope/costscope/internal/core/focus/conversion/aws"
+	azp "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // generateSyntheticCSV generates N synthetic AWS-like rows for benchmarking

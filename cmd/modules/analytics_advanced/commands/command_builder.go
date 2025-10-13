@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"local/costscope/internal/core/analytics_advanced"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/analytics_advanced"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )

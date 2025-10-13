@@ -4,7 +4,8 @@ package focus
 
 import (
 	"fmt"
-	"local/costscope/internal/database"
+
+	"github.com/costscope/costscope/internal/database"
 )
 
 // Join adds a JOIN clause (extended build only)

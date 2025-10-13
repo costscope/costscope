@@ -5,8 +5,8 @@ package conversion
 import (
 	"context"
 
-	u "local/costscope/internal/core/focus/conversion/universal"
-	"local/costscope/internal/core/focus/types"
+	u "github.com/costscope/costscope/internal/core/focus/conversion/universal"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // UniversalConverter is a type alias to preserve backward-compatible imports

@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/focus/quality"
+	"github.com/costscope/costscope/internal/core/focus/quality"
 )
 
 // BuildInvariantsCommand creates the root invariants command.

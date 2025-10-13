@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/database"
-	dbcommon "local/costscope/internal/database/common"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/database"
+	dbcommon "github.com/costscope/costscope/internal/database/common"
 )
 
 // DuckDBQueryBuilder wraps FOCUS query builder to ensure interface compatibility

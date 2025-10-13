@@ -3,7 +3,7 @@ package azure
 import (
 	"strings"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // Classifier applies provider-aware category classification to a partially-mapped record.

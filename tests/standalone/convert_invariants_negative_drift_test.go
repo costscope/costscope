@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	focuscmd "local/costscope/cmd/modules/focus/commands"
-	"local/costscope/internal/testutil"
+	focuscmd "github.com/costscope/costscope/cmd/modules/focus/commands"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // TestConvert_InvariantsNegativeDrift simulates a drift violation by using a baseline

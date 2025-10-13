@@ -3,9 +3,10 @@ package conversion
 import (
 	"bufio"
 	"encoding/json"
-	"local/costscope/internal/core/focus/types"
 	"os"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // readAllFocusRecordsFromNDJSON loads every line as FocusRecord.

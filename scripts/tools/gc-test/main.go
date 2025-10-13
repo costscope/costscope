@@ -1,7 +1,7 @@
 package main
 
 import (
-	"local/costscope/scripts/tools/internal/gcshared"
+	"github.com/costscope/costscope/scripts/tools/internal/gcshared"
 )
 
 func main() {

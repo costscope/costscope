@@ -7,10 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/response"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/multicloud"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/api/response"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/multicloud"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // MulticloudHandler provides HTTP endpoints for multicloud advanced operations

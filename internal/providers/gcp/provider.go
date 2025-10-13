@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // GCPProvider implements the CloudProvider interface for Google Cloud Platform

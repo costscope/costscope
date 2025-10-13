@@ -6,13 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	integration "local/costscope/cmd/modules/integration"
-	"local/costscope/internal/core/logging"
+	integration "github.com/costscope/costscope/cmd/modules/integration"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	// Generated API stubs (if present)
-	apiconnections "local/costscope/internal/api/handlers/integration/connections"
-	apidashboard "local/costscope/internal/api/handlers/integration/dashboard"
-	apiwebhook "local/costscope/internal/api/handlers/integration/webhook"
+	apiconnections "github.com/costscope/costscope/internal/api/handlers/integration/connections"
+	apidashboard "github.com/costscope/costscope/internal/api/handlers/integration/dashboard"
+	apiwebhook "github.com/costscope/costscope/internal/api/handlers/integration/webhook"
 )
 
 // buildIntegrationActionRoutes generates Gin routes for Integration Action DSL specs.

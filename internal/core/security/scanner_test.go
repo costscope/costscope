@@ -1,8 +1,9 @@
 package security
 
 import (
-	"local/costscope/internal/core/logging"
 	"testing"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestScanner_ScanVulnerabilities(t *testing.T) {

@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/compliance"
-	"local/costscope/internal/core/focus/schemas"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/focus/compliance"
+	"github.com/costscope/costscope/internal/core/focus/schemas"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // File format constants

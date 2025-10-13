@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/testutil"
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
+
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 // TestAzure_UnifiedMapper_Parity checks that core fields match between legacy and unified paths.

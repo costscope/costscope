@@ -5,8 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	docsb "local/costscope/internal/core/docs"
-	"local/costscope/internal/core/logging"
+	docsb "github.com/costscope/costscope/internal/core/docs"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // =====================================================================================

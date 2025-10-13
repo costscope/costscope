@@ -6,9 +6,9 @@ import (
 	"context"
 	"testing"
 
-	"local/costscope/internal/core/enterprise"
-	"local/costscope/internal/core/integration"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/enterprise"
+	"github.com/costscope/costscope/internal/core/integration"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // minimal fake integration service for constructor parity

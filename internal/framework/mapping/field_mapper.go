@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"time"
 
-	ftypes "local/costscope/internal/core/focus/types"
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // FieldMapper provides unified field mapping abstraction for all cloud providers

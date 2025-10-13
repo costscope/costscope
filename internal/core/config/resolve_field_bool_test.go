@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/config/precedence"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/config/precedence"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestResolveBoolField_PrecedenceMatrix validates explicit > YAML > ENV > fallback ordering.

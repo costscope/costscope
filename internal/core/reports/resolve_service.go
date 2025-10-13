@@ -6,12 +6,12 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/config"
-	"local/costscope/internal/core/config/precedence"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/reports/outputpath"
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/config"
+	"github.com/costscope/costscope/internal/core/config/precedence"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/reports/outputpath"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // ResolveRequest expresses inputs for resolving final output path.

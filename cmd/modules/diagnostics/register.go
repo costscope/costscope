@@ -3,9 +3,9 @@
 package diagnostics
 
 import (
-	diagcmd "local/costscope/cmd/modules/diagnostics/commands"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
+	diagcmd "github.com/costscope/costscope/cmd/modules/diagnostics/commands"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // CreateDiagnosticsCommands is a small factory used by tests or external wiring

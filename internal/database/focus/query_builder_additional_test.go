@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // local helper (duplicated intentionally; kept private to avoid exporting test-only utils)

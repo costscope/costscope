@@ -1,6 +1,6 @@
 package gcp
 
-import "local/costscope/internal/core/focus/types"
+import "github.com/costscope/costscope/internal/core/focus/types"
 
 // GetMappingRules returns GCP field mapping rules for the unified mapper.
 func GetMappingRules() *types.MappingRules {

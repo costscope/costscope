@@ -12,8 +12,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 func TestNewManager(t *testing.T) {

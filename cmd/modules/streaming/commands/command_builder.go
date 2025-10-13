@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/core/logging"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // StreamingCommands manages all streaming-related commands

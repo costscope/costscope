@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // TestDuckDBQueryBuilder_HelperDelegation ensures the shared common helpers (ORDER BY, LEFT JOIN, cost threshold)

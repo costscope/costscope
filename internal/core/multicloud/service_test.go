@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // stubProvider implements types.CloudProvider for tests

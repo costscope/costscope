@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // ProcessCSV streams CSV records in chunks, maps them via the provided mapper, writes using dw,

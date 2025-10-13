@@ -4,7 +4,7 @@ package main
 // Reads a YAML/JSON spec and generates Go code for Cobra commands.
 // Usage:
 //   go run ./scripts/tools/commandgen \
-//     -package local/costscope/cmd/modules/analytics/commands \
+//     -package github.com/costscope/costscope/cmd/modules/analytics/commands \
 //     -receiver AnalyticsCommands \
 //     -spec cmd/modules/analytics/commands/command_spec.yaml \
 //     -out cmd/modules/analytics/commands/zz_generated_command_builder.go

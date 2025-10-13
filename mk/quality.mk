@@ -69,7 +69,7 @@ duplicates-func-gate: ## Gate: fail if function-level duplicate groups exceed th
 	 if [ -n "$$CURRENT_FUNC_GROUPS" ] && [ $$CURRENT_FUNC_GROUPS -gt $(DUPL_FUNC_MAX_GROUPS) ]; then echo " Function duplicate groups ($$CURRENT_FUNC_GROUPS) exceed threshold ($(DUPL_FUNC_MAX_GROUPS))"; exit 2; else echo " Function duplicate groups within threshold"; fi
 
 # Dead code
-DEADCODE_EXCLUDE_REGEX ?= '^(local/costscope/(_archive|examples|monitoring|charts|scripts)(/|$$))|^(local/costscope/internal/(api|framework|optimization|database|core/production|core/docs)(/|$$))|^(local/costscope/cmd/modules/(analytics|analytics_advanced|analytics_complex|integration|streaming))(/|$$)'
+DEADCODE_EXCLUDE_REGEX ?= '^(github.com/costscope/costscope/(_archive|examples|monitoring|charts|scripts)(/|$$))|^(github.com/costscope/costscope/internal/(api|framework|optimization|database|core/production|core/docs)(/|$$))|^(github.com/costscope/costscope/cmd/modules/(analytics|analytics_advanced|analytics_complex|integration|streaming))(/|$$)'
 
 .PHONY: deadcode deadcode-full deadcode-guard deadcode-baseline-guard allowlist-rationale-lint allowlist-lint
 

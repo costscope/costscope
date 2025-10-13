@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"local/costscope/internal/core/monitoring/telemetry"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 const auditDenyHeaderValue = "deny"

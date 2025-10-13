@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // TestMonitoringService_PerformanceAndHealthChecks covers GetPerformanceMetrics (collect path) and RunHealthChecks.

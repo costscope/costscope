@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/focus/conversion/store"
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/focus/conversion/store"
+	"github.com/costscope/costscope/internal/core/focus/types"
 
 	"github.com/spf13/cobra"
 )

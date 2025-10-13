@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"time"
 
-	rgcp "local/costscope/internal/core/focus/reader/gcp"
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	rgcp "github.com/costscope/costscope/internal/core/focus/reader/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // ProcessCSV streams GCP CSV records in chunks, maps them via the provided mapper,

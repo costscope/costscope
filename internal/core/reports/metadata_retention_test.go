@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // TestInMemoryRetention ensures age and count pruning works for in-memory store.

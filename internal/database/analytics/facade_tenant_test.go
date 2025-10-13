@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // fake executor captures the last query

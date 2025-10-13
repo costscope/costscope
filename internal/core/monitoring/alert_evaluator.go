@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // DefaultAlertEvaluator is a stateless evaluator that inspects metrics and emits alert candidates.

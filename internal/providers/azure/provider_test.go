@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"local/costscope/internal/providers/testutils"
-	"local/costscope/internal/providers/types"
+	"github.com/costscope/costscope/internal/providers/testutils"
+	"github.com/costscope/costscope/internal/providers/types"
 )
 
 // Helper function to create test Azure provider

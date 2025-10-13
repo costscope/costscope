@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 // HTTPExporter sends the report as JSON to an HTTP endpoint via POST or PUT with retries and auth headers.

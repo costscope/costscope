@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	ftypes "local/costscope/internal/core/focus/types"
+	ftypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 const defaultCurrencyUSD = "USD"

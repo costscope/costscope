@@ -6,9 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"local/costscope/internal/core/focus/validation"
 	"path/filepath"
 	"strings"
+
+	"github.com/costscope/costscope/internal/core/focus/validation"
 )
 
 const (

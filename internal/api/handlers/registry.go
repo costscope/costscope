@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"local/costscope/internal/api/jobs"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/focus/conversion"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports"
-	"local/costscope/internal/core/streaming"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/api/jobs"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/focus/conversion"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports"
+	"github.com/costscope/costscope/internal/core/streaming"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // =====================================================================================

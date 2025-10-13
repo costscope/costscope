@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestParquetWriter_OptionsPath(t *testing.T) {

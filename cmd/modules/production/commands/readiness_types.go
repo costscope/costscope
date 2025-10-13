@@ -3,7 +3,7 @@ package commands
 import (
 	"time"
 
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // Production assessment result types

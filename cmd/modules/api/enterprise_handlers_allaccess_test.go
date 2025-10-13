@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/handlers"
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/api/handlers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 func TestInvokeAllModuleRoutes_WithAllAccessRole(t *testing.T) {

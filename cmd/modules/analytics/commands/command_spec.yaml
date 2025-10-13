@@ -1,5 +1,5 @@
 package_name: commands
-package_import: local/costscope/cmd/modules/analytics/commands
+package_import: github.com/costscope/costscope/cmd/modules/analytics/commands
 receiver: AnalyticsCommands
 root:
   use: analytics

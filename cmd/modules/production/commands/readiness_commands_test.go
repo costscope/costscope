@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/production"
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/providers"
 )
 
 // TestProductionReadinessCommands tests the production readiness commands

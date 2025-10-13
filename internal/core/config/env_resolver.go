@@ -4,9 +4,10 @@ package config
 // This file now only retains the optional YAML loader shim reused by helpers.
 
 import (
-	"local/costscope/internal/core/logging"
 	"os"
 	"path/filepath"
+
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // LoadOptionalYAML loads YAML configuration from COSTSCOPE_CONFIG or ~/.costscope/config.yaml if present.

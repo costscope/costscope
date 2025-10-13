@@ -1,7 +1,7 @@
 package gcp
 
 import (
-	c "local/costscope/internal/core/focus/conversion/common"
+	c "github.com/costscope/costscope/internal/core/focus/conversion/common"
 )
 
 func unitPrice(cost float64, qty float64) float64 {

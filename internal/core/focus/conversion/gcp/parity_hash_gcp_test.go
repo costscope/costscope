@@ -3,8 +3,8 @@ package gcp_test
 import (
 	"testing"
 
-	conv "local/costscope/internal/core/focus/conversion"
-	providergcp "local/costscope/internal/core/focus/conversion/gcp"
+	conv "github.com/costscope/costscope/internal/core/focus/conversion"
+	providergcp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
 )
 
 func TestLiteParityHash(t *testing.T) {

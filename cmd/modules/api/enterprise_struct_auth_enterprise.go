@@ -6,8 +6,8 @@ package api
 import (
 	"net/http"
 
-	"local/costscope/internal/api/middleware"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/middleware"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/gin-gonic/gin"
 )

@@ -3,8 +3,8 @@ package commands
 import (
 	"testing"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/reports"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/reports"
 )
 
 func TestNewReportsCommands(t *testing.T) {

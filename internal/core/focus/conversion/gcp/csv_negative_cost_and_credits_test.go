@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	gcpp "local/costscope/internal/core/focus/conversion/gcp"
-	"local/costscope/internal/core/focus/types"
+	gcpp "github.com/costscope/costscope/internal/core/focus/conversion/gcp"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestCSV_NegativeCostAndCredits(t *testing.T) {

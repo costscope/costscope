@@ -14,8 +14,8 @@ import (
 	"github.com/xitongsys/parquet-go/parquet"
 	pqwriter "github.com/xitongsys/parquet-go/writer"
 
-	"local/costscope/internal/core/focus/types"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

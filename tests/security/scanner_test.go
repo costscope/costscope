@@ -3,8 +3,8 @@ package security_test
 import (
 	"testing"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 func TestSecurityScannerBasic(t *testing.T) {

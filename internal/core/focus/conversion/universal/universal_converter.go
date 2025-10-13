@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
-	val "local/costscope/internal/core/focus/validation"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/focus/types"
+	val "github.com/costscope/costscope/internal/core/focus/validation"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // UniversalConverter implements comprehensive multi-cloud FOCUS conversion

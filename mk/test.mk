@@ -47,8 +47,8 @@ coverage-enforce: test-coverage ## Fail if coverage is below COVERAGE_MIN
 	fi
 
 # Runtime coverage subset
-RUNTIME_PKG_REGEX ?= '^(local/costscope/internal/(core|providers))'
-EXCLUDE_PKG_REGEX ?= '^(local/costscope/(scripts|_archive|examples|monitoring|charts)(/|$$))|^(local/costscope/scripts/tools)(/|$$)|^(local/costscope/internal/core/production)(/|$$)|^(local/costscope/internal/core/docs)(/|$$)|^(local/costscope/internal/providers/testutils)(/|$$)|^(local/costscope/internal/core/reports/types)(/|$$)'
+RUNTIME_PKG_REGEX ?= '^(github.com/costscope/costscope/internal/(core|providers))'
+EXCLUDE_PKG_REGEX ?= '^(github.com/costscope/costscope/(scripts|_archive|examples|monitoring|charts)(/|$$))|^(github.com/costscope/costscope/scripts/tools)(/|$$)|^(github.com/costscope/costscope/internal/core/production)(/|$$)|^(github.com/costscope/costscope/internal/core/docs)(/|$$)|^(github.com/costscope/costscope/internal/providers/testutils)(/|$$)|^(github.com/costscope/costscope/internal/core/reports/types)(/|$$)'
 PKGS_RUNTIME := $(shell go list ./... | grep -E $(RUNTIME_PKG_REGEX) | grep -Ev $(EXCLUDE_PKG_REGEX))
 
 coverage-runtime: ## Run coverage for runtime packages only (excludes scripts/dev-tools)

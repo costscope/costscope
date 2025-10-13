@@ -7,10 +7,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/handlers"
-	"local/costscope/internal/api/middleware"
-	"local/costscope/internal/api/websocket"
-	"local/costscope/internal/core/security"
+	"github.com/costscope/costscope/internal/api/handlers"
+	"github.com/costscope/costscope/internal/api/middleware"
+	"github.com/costscope/costscope/internal/api/websocket"
+	"github.com/costscope/costscope/internal/core/security"
 )
 
 // Exercise a few inline closures in buildModuleRouteGroups without starting a server.

@@ -1,8 +1,8 @@
 package azure
 
 import (
-	"local/costscope/internal/core/focus/conversion/common"
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/conversion/common"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // CategoryDiscount mirrors the canonical label from the shared common package.

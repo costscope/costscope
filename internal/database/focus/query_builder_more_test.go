@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database"
 )
 
 // Test CTE, Join/LeftJoin, Having, Limit/Offset paths and overall SQL shape.

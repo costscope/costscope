@@ -4,10 +4,11 @@ import (
 	"bufio"
 	"compress/gzip"
 	"io"
-	azure "local/costscope/internal/core/focus/conversion/azure"
 	"os"
 	"path/filepath"
 	"testing"
+
+	azure "github.com/costscope/costscope/internal/core/focus/conversion/azure"
 )
 
 func writeTempFile(t *testing.T, dir, name, content string) string {

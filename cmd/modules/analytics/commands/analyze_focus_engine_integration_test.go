@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"local/costscope/internal/core/analytics"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/analytics"
+	"github.com/costscope/costscope/internal/core/logging"
 
 	"github.com/spf13/cobra"
 )

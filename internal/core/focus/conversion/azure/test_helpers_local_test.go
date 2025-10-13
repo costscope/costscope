@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // readAllFocusRecordsFromNDJSONLocal loads all NDJSON FocusRecord lines from the given path.

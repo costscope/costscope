@@ -3,7 +3,7 @@ package validation
 import (
 	"github.com/spf13/cobra"
 
-	parent "local/costscope/cmd/modules/focus/commands"
+	parent "github.com/costscope/costscope/cmd/modules/focus/commands"
 )
 
 // BuildValidateCommand returns the canonical validate command from the parent commands package.

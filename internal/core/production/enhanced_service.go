@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	"local/costscope/internal/core/integration"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/core/integration"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // EnhancedProductionService extends BasicProductionService with integration capabilities

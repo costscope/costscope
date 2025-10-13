@@ -8,10 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/core/logging"
-	"local/costscope/internal/providers"
-	"local/costscope/internal/providers/types"
-	verify "local/costscope/internal/providers/verify"
+	"github.com/costscope/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/providers/types"
+	verify "github.com/costscope/costscope/internal/providers/verify"
 )
 
 // ProviderCommands manages all provider-related commands

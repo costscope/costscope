@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	clispecs "local/costscope/internal/cli/specs"
+	clispecs "github.com/costscope/costscope/internal/cli/specs"
 
 	"github.com/spf13/cobra"
 )

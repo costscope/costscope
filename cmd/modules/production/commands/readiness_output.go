@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"local/costscope/internal/core/production"
+	"github.com/costscope/costscope/internal/core/production"
 )
 
 // Output format constants

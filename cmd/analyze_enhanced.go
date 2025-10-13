@@ -11,9 +11,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"local/costscope/internal/database"
-	"local/costscope/internal/database/analytics"
-	"local/costscope/internal/database/duckdb"
+	"github.com/costscope/costscope/internal/database"
+	"github.com/costscope/costscope/internal/database/analytics"
+	"github.com/costscope/costscope/internal/database/duckdb"
 )
 
 var analyzeEnhancedCmd = &cobra.Command{

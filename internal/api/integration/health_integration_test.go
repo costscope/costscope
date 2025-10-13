@@ -17,8 +17,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"local/costscope/internal/api/handlers"
-	"local/costscope/internal/core/logging"
+	"github.com/costscope/costscope/internal/api/handlers"
+	"github.com/costscope/costscope/internal/core/logging"
 )
 
 // pollUntil polls the given URL until the predicate returns true or timeout passes.

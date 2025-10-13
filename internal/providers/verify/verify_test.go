@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"local/costscope/internal/core/reports/types"
+	"github.com/costscope/costscope/internal/core/reports/types"
 )
 
 func TestProcessParseError(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"local/costscope/internal/core/cache"
-	"local/costscope/internal/core/monitoring/telemetry"
+	"github.com/costscope/costscope/internal/core/cache"
+	"github.com/costscope/costscope/internal/core/monitoring/telemetry"
 )
 
 // regionVariants maps provider -> variant(lowercased trimmed) -> canonical region code

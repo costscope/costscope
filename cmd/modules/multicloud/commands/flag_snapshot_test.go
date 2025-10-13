@@ -8,7 +8,7 @@ import (
 	"sort"
 	"testing"
 
-	"local/costscope/internal/providers"
+	"github.com/costscope/costscope/internal/providers"
 
 	"github.com/spf13/pflag"
 )

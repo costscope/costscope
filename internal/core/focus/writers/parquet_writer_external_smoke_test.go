@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"local/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/core/focus/types"
 )
 
 // NOTE: This is a scaffold for external engine smoke tests.

@@ -36,6 +36,9 @@ help-lint: ## Verify all public targets have help comments (##)
 targets-duplicate-guard: ## Fail if duplicate public targets are defined across fragments
 	@awk -v pfx="${INTERNAL_PREFIX:_}" -F: '/^[A-Za-z0-9_.-]+:/{t=$$1; if(t ~ /%/ || t==".PHONY" || index(t,pfx)==1) next; seen[t]++; files[t]=files[t]" "FILENAME} END{e=0; for(k in seen) if(seen[k]>1){print "Duplicate target:" k " in" files[k]; e=1} exit e}' Makefile mk/*.mk
 
+.PHONY: duplicates-gate
+duplicates-gate: targets-duplicate-guard ## Alias for CI: duplicate targets guard
+
 .PHONY: sanity
 sanity: ## Fast pre-commit sanity (fmt-check, vet, staticcheck, build-slim)
 	@$(MAKE) --no-print-directory fmt-check

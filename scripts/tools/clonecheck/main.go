@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"local/costscope/internal/testutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/costscope/costscope/internal/testutil"
 )
 
 type snippet struct {

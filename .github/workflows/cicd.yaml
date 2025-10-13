@@ -6,6 +6,8 @@ env:
   GO_VERSION: "1.24.x"
   GOVULNCHECK_VERSION: latest
   TRIVY_VERSION: "0.56.2"
+  # Default tag for our CI container image; overridden under act via projects config
+  CI_IMAGE_TAG: latest
 
 concurrency:
   group: ci-cd-${{ github.ref }}
@@ -19,8 +21,12 @@ on:
 
 jobs:
   build-test-scan-sign-push:
+    # Skip the matrix job entirely under act to avoid starting multiple heavy containers locally.
+    if: ${{ github.actor != 'nektos/act' }}
     name: build-test-scan-sign-push (${{ matrix.variant }})
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
     strategy:
       fail-fast: false
       matrix:
@@ -34,6 +40,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Set up Go
+        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
@@ -43,6 +50,7 @@ jobs:
             **/go.sum
 
       - name: "Sanity: go version"
+        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
         run: go version
 
       - name: Detect act runtime
@@ -52,20 +60,12 @@ jobs:
         if: ${{ always() }}
         run: bash ./scripts/ci/skip-non-slim-under-act.sh "${{ matrix.variant }}"
 
-      - name: Install CA certificates (act)
-        if: ${{ env.IS_ACT == 'true' && matrix.variant == 'slim' }}
-        run: |
-          if command -v apt-get >/dev/null 2>&1; then
-            apt-get update -y || true
-            apt-get install -y ca-certificates || true
-            update-ca-certificates || true
-          fi
-
       - name: Prepare smoke fixtures (for act)
         if: ${{ env.IS_ACT == 'true' || github.actor == 'nektos/act' }}
         run: bash ./scripts/ci/prepare-act-fixtures.sh
 
       - name: Build and test (matrix)
+        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
         run: ./scripts/ci/build-test-matrix.sh "${{ matrix.variant }}"
 
       - name: Spec-driven CLI builders drift check
@@ -234,6 +234,98 @@ jobs:
       - name: Optional DAST with OWASP ZAP Baseline
         if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
         # pinned zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed - source: https://github.com/zaproxy/action-baseline/commits/main (2025-09-28)
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed
+        with:
+          target: ${{ steps.zap.outputs.target }}
+          cmd_options: "-a -m 5"
+
+  build-test-scan-sign-push-slim:
+    # Run a single lightweight variant locally under act to reduce resource pressure.
+    if: ${{ github.actor == 'nektos/act' }}
+    name: build-test-scan-sign-push (slim)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: |
+            **/go.sum
+
+      - name: "Sanity: go version"
+        run: go version
+
+      - name: Detect act runtime
+        run: bash ./scripts/ci/detect-act.sh
+
+      - name: Prepare smoke fixtures (for act)
+        run: bash ./scripts/ci/prepare-act-fixtures.sh
+
+      - name: Build and test (slim)
+        run: ./scripts/ci/build-test-matrix.sh "slim"
+
+      - name: Spec-driven CLI builders drift check
+        run: make gen-commands-drift
+
+      - name: Integration CLI drift check
+        run: |
+          if [ "${IS_ACT:-false}" = "true" ] && [ ! -f integration_commands.json ]; then
+            echo "[act] integration_commands.json baseline missing; generating via make gen-integration-cli-docs"
+            make gen-integration-cli-docs
+          fi
+          make gen-integration-cli-drift
+
+      - name: Duplication gate
+        run: make duplicates-gate
+
+      - name: End-to-end pipeline tests & collect reports
+        run: bash ./scripts/ci/run-e2e-and-collect.sh
+
+      - name: Summarize E2E results
+        if: ${{ always() }}
+        run: ./scripts/ci/e2e-summarize.sh
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: govulncheck
+        run: bash -c 'go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && govulncheck ./...'
+
+      - name: Security scan (gosec)
+        uses: securego/gosec@15d5c61e866bc2e2e8389376a31f1e5e09bde7d8
+        with:
+          args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
+
+      - name: Secrets scan (gitleaks)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          args: detect --source . --no-banner --redact --config .gitleaks.toml
+
+      - name: Determine ZAP target
+        id: zap
+        env:
+          ZAP_TARGET_URL: ${{ secrets.ZAP_TARGET_URL }}
+        run: |
+          if [ -n "$ZAP_TARGET_URL" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "target=$ZAP_TARGET_URL" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Optional DAST with OWASP ZAP Baseline
+        if: ${{ steps.zap.outputs.enabled == 'true' }}
         uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed
         with:
           target: ${{ steps.zap.outputs.target }}

@@ -2,8 +2,9 @@ package validation
 
 import (
 	"fmt"
-	"local/costscope/internal/core/focus/schemas"
 	"strings"
+
+	"github.com/costscope/costscope/internal/core/focus/schemas"
 )
 
 // SchemaValidator validates data against FOCUS schemas

@@ -5,11 +5,11 @@ package streaming
 import (
 	"context"
 
-	streamingTypes "local/costscope/cmd/modules/streaming/types"
-	"local/costscope/internal/core/enterprise"
-	"local/costscope/internal/core/logging"
-	persistence "local/costscope/internal/core/persistence"
-	providers "local/costscope/internal/providers"
+	streamingTypes "github.com/costscope/costscope/cmd/modules/streaming/types"
+	"github.com/costscope/costscope/internal/core/enterprise"
+	"github.com/costscope/costscope/internal/core/logging"
+	persistence "github.com/costscope/costscope/internal/core/persistence"
+	providers "github.com/costscope/costscope/internal/providers"
 )
 
 // Intentional enterprise stub for advanced streaming runtime components (job manager,

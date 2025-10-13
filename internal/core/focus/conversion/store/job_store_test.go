@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	focustypes "local/costscope/internal/core/focus/types"
+	focustypes "github.com/costscope/costscope/internal/core/focus/types"
 )
 
 func TestInMemoryJobStore_SaveAndList(t *testing.T) {
