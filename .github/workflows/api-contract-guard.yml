@@ -38,6 +38,8 @@ jobs:
     # Allow running under act when invoked via workflow_dispatch (for local parity)
     if: ${{ github.actor != 'nektos/act' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/costscope/ci-base:latest
     steps:
       - name: Early guard (skip under act unless full)
         id: guard
@@ -52,18 +54,22 @@ jobs:
       - if: ${{ steps.guard.outputs.skip != 'true' }}
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
-      - name: Set up Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+      # Ensure required build tools are present when running under act local runner
+      - name: Ensure build tools (act)
         if: ${{ steps.guard.outputs.skip != 'true' }}
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: "1.24.x"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${ACT:-}" != "true" ]; then echo "[act] Skip build-tools install (not running under act)"; exit 0; fi
+          if ! command -v make >/dev/null 2>&1; then
+            echo "[act] Installing make inside job container…"
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make
+          else
+            echo "[act] make already present"
+          fi
 
-      - name: Install oasdiff
-        # pinned to commit fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8 — source: https://github.com/oasdiff/oasdiff/commit/fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8 (pinned on 2025-09-28)
-        # Decision: use an exact commit SHA for stronger supply-chain reproducibility for this critical contract-check step.
-        if: ${{ steps.guard.outputs.skip != 'true' }}
-        run: go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8
+      # Go toolchain and oasdiff are preinstalled in the CI container image
       - name: Evaluate override flag (manual dispatch)
         if: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
