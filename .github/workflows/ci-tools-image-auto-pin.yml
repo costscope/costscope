@@ -1,102 +1,52 @@
 name: Pin CI tools image
 
 on:
-    workflow_dispatch:
-        inputs:
-            image:
-                description: "Full image ref to pin (e.g., ghcr.io/costscope/ci-base:2025.10.12-<sha> or @sha256:<digest>). If empty, 'tag' will be used to build ghcr.io/<owner>/ci-base:<tag>."
-                required: false
-                default: ""
-            tag:
-                description: "Tag to pin for ghcr.io/<owner>/ci-base (e.g., 2025.10.12-<sha> or vX.Y.Z). Ignored if 'image' is provided."
-                required: false
-                default: ""
-    repository_dispatch:
-        types: [ci-tools-image-update]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Full image ref to pin (e.g., ghcr.io/costscope/ci-base:2025.10.12-<sha> or @sha256:<digest>). If empty, 'tag' will be used to build ghcr.io/<owner>/ci-base:<tag>."
+        required: false
+        default: ""
+      tag:
+        description: "Tag to pin for ghcr.io/<owner>/ci-base (e.g., 2025.10.12-<sha> or vX.Y.Z). Ignored if 'image' is provided."
+        required: false
+        default: ""
+  repository_dispatch:
+    types: [ci-tools-image-update]
 
 permissions:
-    contents: read
-    actions: write
+  contents: read
+  actions: write
 
 jobs:
-    pin:
-        name: Update repository variable CI_TOOLS_IMAGE
-        runs-on: ubuntu-latest
+  pin:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: Update repository variable CI_TOOLS_IMAGE
+    runs-on: ubuntu-latest
+    env:
+      OWNER: ${{ github.repository_owner }}
+      REPO: ${{ github.event.repository.name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Resolve image reference
+        id: resolve
+        shell: bash
         env:
-            OWNER: ${{ github.repository_owner }}
-            REPO: ${{ github.event.repository.name }}
-        steps:
-            - name: Resolve image reference
-              id: resolve
-              shell: bash
-              run: |
-                  set -euo pipefail
-                  # Prefer repository_dispatch payload when present
-                  input_image='${{ github.event.client_payload.image }}'
-                  input_tag='${{ github.event.client_payload.tag }}'
-                  # Fallback to manual inputs
-                  if [ -z "$input_image" ] && [ -z "$input_tag" ]; then
-                    input_image='${{ inputs.image }}'
-                    input_tag='${{ inputs.tag }}'
-                  fi
-                  if [ -n "$input_image" ]; then
-                    image="$input_image"
-                  else
-                    if [ -z "$input_tag" ]; then
-                      echo "Either 'image' or 'tag' must be provided." >&2
-                      exit 2
-                    fi
-                    image="ghcr.io/${OWNER}/ci-base:${input_tag}"
-                  fi
-                  # Basic immutability check (avoid floating tags)
-                  if echo "$image" | grep -qE ':(latest|main|dev)$'; then
-                    echo "Refusing to pin a floating tag: $image" >&2
-                    exit 3
-                  fi
-                  echo "image=$image" >> "$GITHUB_OUTPUT"
+          CLIENT_IMAGE: ${{ github.event.client_payload.image }}
+          CLIENT_TAG: ${{ github.event.client_payload.tag }}
+          INPUT_IMAGE: ${{ inputs.image }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: bash ./scripts/ci/pin-ci-tools-resolve.sh
 
-            - name: Create or update CI_TOOLS_IMAGE repo variable
-              shell: bash
-              env:
-                  GH_API: https://api.github.com
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  IMAGE: ${{ steps.resolve.outputs.image }}
-              run: |
-                  set -euo pipefail
-                  owner="$OWNER"
-                  repo="$REPO"
-                  name="CI_TOOLS_IMAGE"
+      - name: Create or update CI_TOOLS_IMAGE repo variable
+        shell: bash
+        env:
+          GH_API: https://api.github.com
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ steps.resolve.outputs.image }}
+        run: bash ./scripts/ci/pin-ci-tools-update-var.sh
 
-                  headers=(
-                    -H "Accept: application/vnd.github+json"
-                    -H "Authorization: Bearer ${GH_TOKEN}"
-                    -H "X-GitHub-Api-Version: 2022-11-28"
-                  )
-
-                  # Prepare minimal JSON without external tools
-                  update_body=$(printf '{"value":"%s"}' "${IMAGE}")
-                  create_body=$(printf '{"name":"%s","value":"%s"}' "${name}" "${IMAGE}")
-
-                  # Try update (PATCH). If 404, try create (POST).
-                  status=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X PATCH \
-                    "${GH_API}/repos/${owner}/${repo}/actions/variables/${name}" \
-                    "${headers[@]}" \
-                    -d "$update_body") || true
-
-                  if [ "$status" = "404" ]; then
-                    status=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X POST \
-                      "${GH_API}/repos/${owner}/${repo}/actions/variables" \
-                      "${headers[@]}" \
-                      -d "$create_body") || true
-                  fi
-
-                  if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
-                    echo "Pinned CI_TOOLS_IMAGE to ${IMAGE}"
-                  else
-                    echo "API call failed with status ${status}:" >&2
-                    cat /tmp/resp.json >&2 || true
-                    exit 4
-                  fi
-
-            - name: Echo result
-              run: echo "CI_TOOLS_IMAGE is now set to ${{ steps.resolve.outputs.image }}"
+      - name: Echo result
+        run: echo "CI_TOOLS_IMAGE is now set to ${{ steps.resolve.outputs.image }}"
