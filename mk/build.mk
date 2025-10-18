@@ -1,6 +1,6 @@
 # mk/build.mk - build related targets
 
-.PHONY: build build-clean build-duckdb-debug build-enterprise build-optimized build-optimized-duckdb build-production build-release build-slim duckdb-smoke
+.PHONY: build build-clean build-duckdb-debug build-enterprise build-optimized build-optimized-duckdb build-production build-release build-slim duckdb-smoke prepare-parity-binaries
 
 build: build-slim ## Default: build slim binary (no DuckDB/SQLite; CGO disabled)
 
@@ -60,3 +60,6 @@ build-enterprise: ## Build enterprise binary with enterprise features
 	@echo " Building enterprise binary..."
 	CGO_ENABLED=0 go build $(LDFLAGS) $(GCFLAGS) -tags enterprise -o bin/costscope-enterprise ./
 	@echo " Enterprise build completed"
+
+prepare-parity-binaries: build-slim build-optimized-duckdb build-duckdb-debug ## Build all binaries needed for parity + invariants guards (single pass)
+	@echo " Prepared parity + invariants binaries"

@@ -1,0 +1,27 @@
+# Pre-commit hooks for CostScope
+# Runs a fast data parity smoke guard on a tiny synthetic dataset (50 rows)
+# to catch regressions locally before pushing.
+
+repos:
+  - repo: local
+    hooks:
+      - id: data-parity-smoke
+        name: Data parity smoke guard
+        entry: make data-parity-smoke
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: precommit-max
+        name: Pre-commit max guard (sanity+quality+config+parity)
+        entry: make precommit-max
+        language: system
+        pass_filenames: false
+        stages: [manual]
+      - id: precommit-supply-chain
+        name: Pre-commit supply-chain gate (SBOM+vuln)
+        entry: make precommit-supply-chain
+        language: system
+        pass_filenames: false
+        stages: [manual]
+        # Keep the run lightweight; relies on existing Go toolchain and Make targets.
+        # If performance is a concern, consider setting PARQUET_ROTATE_SIZE to a smaller value via env.

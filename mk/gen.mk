@@ -34,27 +34,9 @@ gen-commands: ## Generate Cobra command builders from specs (analytics, multiclo
 	go run ./scripts/tools/commandgen -receiver MulticloudCommands -spec cmd/modules/multicloud/commands/command_spec.yaml -out cmd/modules/multicloud/commands/zz_generated_command_builder.go
 	@echo " Command builders generated"
 
-gen-commands-drift: gen-commands ## Guard: fail if regenerated command builders introduce diff
-		@echo " Checking generated command builders for drift..."
-		@if [ -n "$$ACT" ]; then \
-			echo " ACT detected - reporting diff but not failing (local act run)"; \
-			if ! git diff --exit-code -- $(GENERATED_COMMAND_FILES) >/dev/null; then \
-				echo "Run make gen-commands and commit updated zz_generated_* files"; \
-				echo "--- Diff (generated command builders) ---"; \
-				git --no-pager diff -- $(GENERATED_COMMAND_FILES); \
-			else \
-				echo " No drift detected"; \
-			fi; \
-		else \
-			if ! git diff --exit-code -- $(GENERATED_COMMAND_FILES) >/dev/null; then \
-				echo "Run make gen-commands and commit updated zz_generated_* files"; \
-				echo "--- Diff (generated command builders) ---"; \
-				git --no-pager diff -- $(GENERATED_COMMAND_FILES); \
-				exit 1; \
-			else \
-				echo " No drift detected"; \
-			fi; \
-		fi
+gen-commands-drift: ## Guard: fail if regenerated command builders introduce diff (delegates to script)
+	@echo " Running CLI drift check script..."
+	bash scripts/ci/cli-drift-check.sh
 
 gen-integration-cli-docs: ## Generate integration CLI command summary (prototype)
 	@echo " Generating integration CLI command summary..."

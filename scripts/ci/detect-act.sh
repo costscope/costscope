@@ -9,14 +9,26 @@ source "${SCRIPT_DIR}/lib/common.sh"
 # Inputs: environment variables GITHUB_ACTOR, ACT_FULL (optional)
 ENV_FILE="${GITHUB_ENV:-/dev/null}"
 
-if [[ "${GITHUB_ACTOR:-}" == "nektos/act" ]]; then
-  {
-    echo "IS_ACT=true"
-    echo "ACT=true"
-  } >> "$ENV_FILE"
-  ci::log "Detected local act runtime; will skip heavy network/apt steps"
+if [[ "${IS_ACT:-}" == "true" ]]; then
+  # Preserve an explicitly injected IS_ACT=true (e.g. passed via act runner -e IS_ACT=true)
+  ci::log "[act-detect] Preserving pre-set IS_ACT=true from environment"
 else
-  echo "IS_ACT=false" >> "$ENV_FILE"
+  if [[ "${GITHUB_ACTOR:-}" == "nektos/act" ]]; then
+    {
+      echo "IS_ACT=true"
+      echo "ACT=true"
+    } >> "$ENV_FILE"
+    ci::log "Detected local act runtime (actor match); enabling IS_ACT=true"
+  else
+    # Fallback heuristics: allow forcing act mode when running locally using dev-local tag or explicit FORCE_ACT
+    if [[ "${FORCE_ACT:-}" == "true" || "${CI_IMAGE_TAG:-}" == "dev-local" ]]; then
+      echo "IS_ACT=true" >> "$ENV_FILE"
+      echo "ACT=true" >> "$ENV_FILE"
+      ci::log "[act-detect] FORCE_ACT or dev-local CI_IMAGE_TAG detected; setting IS_ACT=true"
+    else
+      echo "IS_ACT=false" >> "$ENV_FILE"
+    fi
+  fi
 fi
 
 if [[ "${ACT_FULL:-}" == "true" ]]; then

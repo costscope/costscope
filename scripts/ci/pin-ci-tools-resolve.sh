@@ -39,9 +39,29 @@ if [[ -n "$input_image" ]]; then
   image="$input_image"
 else
   if [[ -z "$input_tag" ]]; then
-    ci::die "Either 'image' or 'tag' must be provided."
+    # Under act, prefer CI_IMAGE_TAG from env instead of hardcoding any default
+    if ci::is_act; then
+      ci_tag="${CI_IMAGE_TAG:-}"
+      if [[ -z "$ci_tag" ]]; then
+        ci::die "No image/tag provided under act and CI_IMAGE_TAG is empty. Set CI_IMAGE_TAG in .github/act.env (see act.env.example) or provide inputs.image/tag."
+      fi
+      if [[ "$ci_tag" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+        image="ghcr.io/${owner}/ci-base@${ci_tag}"
+      else
+        image="ghcr.io/${owner}/ci-base:${ci_tag}"
+      fi
+      ci::warn "No inputs provided; using CI_IMAGE_TAG for act: ${image}"
+    else
+      ci::die "Either 'image' or 'tag' must be provided."
+    fi
+  else
+    # If tag is a digest, use @; otherwise use :
+    if [[ "$input_tag" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+      image="ghcr.io/${owner}/ci-base@${input_tag}"
+    else
+      image="ghcr.io/${owner}/ci-base:${input_tag}"
+    fi
   fi
-  image="ghcr.io/${owner}/ci-base:${input_tag}"
 fi
 
 # Basic immutability check (avoid floating tags)

@@ -45,6 +45,9 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     name: sbom-verify (source tree)
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      options: --user 0:0 --privileged
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
@@ -60,11 +63,10 @@ jobs:
             exit 1
           fi
           scripts/check-clean-repo.sh || { echo 'Repository is dirty; aborting release prepare step' >&2; exit 1; }
-      - name: Setup Go (for syft install path if needed)
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
+      - name: Toolchain (container)
+        run: |
+          syft version
+          go version
       - name: Generate & validate SBOM (make sbom-syft + sbom-verify)
         run: |
           make sbom-syft
@@ -81,6 +83,9 @@ jobs:
     # Only run prepare when triggered by a tag ref or when manually dispatched
     if: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      options: --user 0:0 --privileged
     outputs:
       version: ${{ steps.meta.outputs.version }}
       prerelease: ${{ steps.meta.outputs.prerelease }}
@@ -100,10 +105,8 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
         run: bash ./scripts/release/derive-version.sh
 
-      - name: Install git-cliff
-        env:
-          GITCLIFF_VERSION: ${{ env.GITCLIFF_VERSION }}
-        run: bash ./scripts/release/install-git-cliff.sh
+      - name: Verify git-cliff in image
+        run: git-cliff --version
 
       - name: Generate / update CHANGELOG
         run: bash ./scripts/release/generate-changelog.sh "${{ steps.meta.outputs.version }}"
@@ -155,6 +158,9 @@ jobs:
     if: ${{ github.actor != 'nektos/act' }}
     needs: [prepare, build, sbom]
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      options: --user 0:0 --privileged
     permissions:
       contents: write
       id-token: write
@@ -171,13 +177,10 @@ jobs:
           path: dist
       - name: List artifacts
         run: ls -R dist || true
-      - name: Install syft (pinned)
-        env:
-          SYFT_VERSION: ${{ env.SYFT_VERSION }}
-        run: bash ./scripts/release/install-syft.sh
-      - name: Install cosign (action)
-        # pinned sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 — source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
-        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
+      - name: Toolchain (container)
+        run: |
+          syft version
+          cosign version
       - name: Generate SBOM (source)
         run: syft dir:. -o cyclonedx-json=sbom.json
       - name: Checksums + sign + attest

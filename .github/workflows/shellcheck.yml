@@ -9,16 +9,45 @@ permissions:
   contents: read
 
 jobs:
+  _env_init:
+    runs-on: ubuntu-latest
+    outputs:
+      is_act: ${{ steps.detect.outputs.is_act }}
+    steps:
+      - id: detect
+        shell: bash
+        run: |
+          if [ "${IS_ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
   lint-shell:
     runs-on: ubuntu-latest
-    # Run inside official ShellCheck container to avoid apt installs and speed up under act
+    needs: [_env_init, resolve-ci-image]
+    # Run inside our CI image with bash + shellcheck preinstalled (no runtime installs)
     container:
-      image: koalaman/shellcheck-alpine:stable
+      image: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Run ShellCheck
-        shell: sh
-        run: sh ./scripts/ci/run-shellcheck.sh
+        continue-on-error: ${{ needs._env_init.outputs.is_act == 'true' }}
+        shell: bash
+        run: bash ./scripts/ci/run-shellcheck.sh
+  resolve-ci-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.out.outputs.image }}
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - id: out
+        env:
+          CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-shellcheck
+        run: bash ./scripts/ci/resolve-ci-image.sh
+      - name: Echo image
+        run: echo "Resolved image=${{ steps.out.outputs.image }}"

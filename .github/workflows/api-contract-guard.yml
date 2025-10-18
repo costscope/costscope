@@ -23,7 +23,22 @@ on:
         required: false
         default: "false"
 
+permissions:
+  contents: read
+
 jobs:
+  resolve-ci-image:
+    name: Resolve CI tools image (contract)
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.out.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - id: out
+        env:
+          CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-contract
+        run: bash ./scripts/ci/resolve-ci-image.sh
   noop-act:
     # Provide a visible, successful job when running under nektos/act locally
     if: ${{ github.actor == 'nektos/act' && github.event_name != 'workflow_dispatch' }}
@@ -38,8 +53,11 @@ jobs:
     # Allow running under act when invoked via workflow_dispatch (for local parity)
     if: ${{ github.actor != 'nektos/act' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: resolve-ci-image
     container:
-      image: ghcr.io/costscope/ci-base:latest
+      image: ${{ needs.resolve-ci-image.outputs.image }}
+      options: --user 0:0
     steps:
       - name: Early guard (skip under act unless full)
         id: guard
@@ -55,18 +73,21 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       # Ensure required build tools are present when running under act local runner
+      # The CI container image contains required build tools; avoid runtime installs under act as well
       - name: Ensure build tools (act)
         if: ${{ steps.guard.outputs.skip != 'true' }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${ACT:-}" != "true" ]; then echo "[act] Skip build-tools install (not running under act)"; exit 0; fi
-          if ! command -v make >/dev/null 2>&1; then
-            echo "[act] Installing make inside job container…"
-            apt-get update
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends make
+          if [ "${ACT:-}" = "true" ]; then
+            if command -v make >/dev/null 2>&1; then
+              echo "[act] make present"
+            else
+              echo "[act] make not found; please rebuild local ci-contract image or run in full mode" >&2
+              exit 1
+            fi
           else
-            echo "[act] make already present"
+            echo "[act] Not running under act; build tools provided by container"
           fi
 
       # Go toolchain and oasdiff are preinstalled in the CI container image
@@ -82,6 +103,8 @@ jobs:
           fi
       - name: Run contract check
         if: ${{ steps.guard.outputs.skip != 'true' }}
+        env:
+          REQUIRE_OASDIFF: 1
         run: make contract-check
 
       - name: Summary

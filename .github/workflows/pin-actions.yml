@@ -41,10 +41,23 @@ jobs:
           sed -n '1,200p' pin.log >> $GITHUB_OUTPUT || true
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Prepare smoke fixtures
+        if: ${{ (github.event_name != 'workflow_dispatch' || (github.event.inputs.dry_run != 'true')) && github.actor != 'nektos/act' }}
+        env:
+          COSTSCOPE_FIXTURE_MAX_ROWS: "200"
+        run: |
+          set -euo pipefail
+          bash scripts/ci/prepare-act-fixtures.sh
+
       - name: Commit and push changes
         if: ${{ (github.event_name != 'workflow_dispatch' || (github.event.inputs.dry_run != 'true')) && github.actor != 'nektos/act' }}
         run: |
           set -euo pipefail
+          # Skip commit/push (and pre-commit hooks) when running under nektos/act/local
+          if [ "${NEKTOS_ACT:-}" = "true" ] || [ "${ACT:-}" = "true" ] || [ "${IS_ACT:-}" = "true" ]; then
+            echo "Running under ACT; skipping commit & push step"
+            exit 0
+          fi
           if git diff --quiet; then
             echo "No changes to commit"
             exit 0

@@ -66,5 +66,17 @@ ls -l e2e-artifacts || true
 
 # Build consolidated summary (requires jq)
 if command -v jq >/dev/null 2>&1; then
-  jq -n 'reduce inputs as $i ({}; . * $i)'
+  # Merge any provider reports present into a single JSON
+  inputs=()
+  [[ -f e2e-artifacts/e2e_report.json ]] && inputs+=(e2e-artifacts/e2e_report.json)
+  [[ -f e2e-artifacts/azure_report.json ]] && inputs+=(e2e-artifacts/azure_report.json)
+  [[ -f e2e-artifacts/gcp_report.json ]] && inputs+=(e2e-artifacts/gcp_report.json)
+  if ((${#inputs[@]})); then
+    jq -s 'reduce .[] as $i ({}; . * $i)' "${inputs[@]}" > e2e-artifacts/summary.json || true
+  else
+    echo '{}' > e2e-artifacts/summary.json
+  fi
+else
+  # No jq available; create an empty summary to avoid downstream failures
+  echo '{}' > e2e-artifacts/summary.json
 fi

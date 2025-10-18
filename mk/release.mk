@@ -7,7 +7,7 @@ release-dry-run: ## Local dry-run: build, preview notes, checksums, SBOM (no tag
 
 # mk/release.mk - release & promotion related targets
 
-.PHONY: checksums release release-notes release-promo sign-checksums supply-chain-all verify-checksums
+.PHONY: checksums release release-notes release-promo sign-checksums supply-chain-all verify-checksums sign-checksums-act verify-checksums-act
 
 .PHONY: gen-version-json
 gen-version-json: ## Generate version.json at repository root (for release pipelines)
@@ -109,3 +109,31 @@ supply-chain-all: sbom checksums sign-checksums verify-checksums ## Generate SBO
 release-notes: ## Generate release_notes.md from CHANGELOG diff (requires RELEASE_VERSION)
 	@if [ -z "$(RELEASE_VERSION)" ]; then echo " RELEASE_VERSION not set"; exit 1; fi
 	RELEASE_VERSION=$(RELEASE_VERSION) bash scripts/release/generate-release-notes.sh
+
+# Act-friendly offline signing: produce a deterministic pseudo-signature and verify it
+sign-checksums-act: ## Act mode: create a non-cryptographic pseudo-signature for checksums.txt (offline, no OIDC)
+	@set -eu; \
+	if [ ! -f checksums.txt ]; then echo "checksums.txt missing (run: make checksums)"; exit 1; fi; \
+	echo "️  [act] Generating pseudo-signature for checksums.txt"; \
+	if command -v sha256sum >/dev/null 2>&1; then \
+		sha256sum checksums.txt | awk '{print $$1}' > checksums.txt.sig; \
+	elif command -v shasum >/dev/null 2>&1; then \
+		shasum -a 256 checksums.txt | awk '{print $$1}' > checksums.txt.sig; \
+	else \
+		echo "No sha256 tool available (sha256sum/shasum)"; exit 1; \
+	fi; \
+	echo " [act] Wrote checksums.txt.sig (sha256 of checksums.txt)";
+
+verify-checksums-act: ## Act mode: verify pseudo-signature matches sha256 of checksums.txt
+	@set -eu; \
+	if [ ! -f checksums.txt ] || [ ! -f checksums.txt.sig ]; then echo "Missing checksums.txt or checksums.txt.sig"; exit 1; fi; \
+	if command -v sha256sum >/dev/null 2>&1; then \
+		expected=$$(sha256sum checksums.txt | awk '{print $$1}'); \
+	elif command -v shasum >/dev/null 2>&1; then \
+		expected=$$(shasum -a 256 checksums.txt | awk '{print $$1}'); \
+	else \
+		echo "No sha256 tool available (sha256sum/shasum)"; exit 1; \
+	fi; \
+	actual=$$(tr -d '\n\r' < checksums.txt.sig); \
+	if [ "$$expected" != "$$actual" ]; then echo "[act] Pseudo-signature mismatch"; echo " expected: $$expected"; echo "   actual: $$actual"; exit 2; fi; \
+	echo " [act] Pseudo-signature verification passed";

@@ -20,27 +20,30 @@ on:
       - "Makefile"
 
 jobs:
+  resolve-ci-image:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.out.outputs.image }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - id: out
+        env:
+          CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
+        run: bash ./scripts/ci/resolve-ci-image.sh
   cli-drift:
     runs-on: ubuntu-latest
+    # Run inside pre-built CI base image to avoid re-installing toolchain
+    needs: resolve-ci-image
+    container:
+      image: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - name: Setup Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: "1.24.x"
-      - name: Generate command builders & drift check
-        run: |
-          make gen-commands-drift || {
-            echo "CLI command drift detected" > cli-drift-summary.txt
-            exit 1
-          }
-      - name: Capture diff artifact on failure
-        if: failure()
-        run: |
-          git --no-pager diff > cli-diff.patch || true
+      - name: CLI drift check
+        shell: bash
+        run: scripts/ci/cli-drift-check.sh
       - name: Upload diff artifact
         if: ${{ always() && github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

@@ -15,6 +15,12 @@ aws_file="${DATA_DIR}/aws-cur.csv"
 printf 'bill/BillingAccountId,bill/BillingAccountName,bill/BillingCurrency,lineItem/UsageAccountId,lineItem/UnblendedCost,lineItem/UsageStartDate,lineItem/UsageEndDate,product/ProductName,lineItem/UsageAmount,lineItem/UsageType,lineItem/LineItemDescription,lineItem/LineItemType,pricing/PriceId,lineItem/ResourceId\n' > "${aws_file}"
 awk -v rows="${E2E_ROWS}" 'BEGIN{srand(); for(i=1;i<=rows;i++){cost=rand()*0.05;usage=rand()*10;printf("ba-123,MainAcct,USD,123456789012,%.4f,2025-08-01 00:00:00,2025-08-01 01:00:00,AmazonEC2,%.4f,Hours,RunInstances usage,Usage,pri-%d,i-%d\n",cost,usage,i,i)}}' >> "${aws_file}"
 
+# Additional AWS savings plan coverage sample for invariant / classification tests
+aws_sp_file="${DATA_DIR}/aws-cur-savingsplan-covered.csv"
+# Mark Savings Plan covered usage correctly and fix ARN header to match parser expectation (SavingsPlanArn)
+printf 'bill/BillingAccountId,bill/BillingAccountName,bill/BillingCurrency,lineItem/UsageAccountId,lineItem/UnblendedCost,lineItem/UsageStartDate,lineItem/UsageEndDate,product/ProductName,lineItem/UsageAmount,lineItem/UsageType,lineItem/LineItemDescription,lineItem/LineItemType,savingsPlan/SavingsPlanArn,pricing/PriceId,lineItem/ResourceId\n' > "${aws_sp_file}"
+awk 'BEGIN{srand(); for(i=1;i<=25;i++){cost=rand()*0.01;usage=rand()*5;printf("ba-123,MainAcct,USD,123456789012,%.4f,2025-08-01 00:00:00,2025-08-01 01:00:00,AmazonEC2,%.4f,Hours,RunInstances usage,SavingsPlanCoveredUsage,arn:aws:savingsplans:us-east-1:123456789012:savingsplan/sp-%d,pri-%d,i-%d\n",cost,usage,i,i,i)}}' >> "${aws_sp_file}"
+
 azure_file="${DATA_DIR}/azure-cost.csv"
 printf 'BillingAccountId,BillingAccountName,BillingCurrency,SubscriptionId,SubscriptionName,ServiceName,ServiceFamily,ResourceId,Quantity,UnitOfMeasure,AmortizedCost,RetailPrice,UsageStart,UsageEnd,Tags\n' > "${azure_file}"
 awk -v rows="${E2E_ROWS}" 'BEGIN{srand(); for(i=1;i<=rows;i++){qty=rand()*5;cost=rand()*0.03;printf("ba-az-1,AzureMain,USD,sub-abc,ProdSub,Virtual Machines,Compute,/subscriptions/sub-abc/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm%d,%.3f,Hours,%.4f,%.4f,2025-08-01T00:00:00Z,2025-08-01T01:00:00Z,env=prod;team=finops\n",i,qty,cost,cost)}}' >> "${azure_file}"
@@ -23,4 +29,4 @@ gcp_file="${DATA_DIR}/gcp-billing.csv"
 printf 'billing_account_id,billing_account_name,currency,project.id,project.name,service.description,service.id,sku.id,sku.description,usage_start_time,usage_end_time,usage.amount,usage.unit,cost,labels\n' > "${gcp_file}"
 awk -v rows="${E2E_ROWS}" 'BEGIN{srand(); for(i=1;i<=rows;i++){cost=rand()*0.04;usage=rand()*8;printf("ba-gcp-1,GCPMain,USD,proj-1,Project One,Compute Engine,svc-1,sku-%d,Standard VM,2025-08-01T00:00:00Z,2025-08-01T01:00:00Z,%.4f,hour,%.5f,env=prod|team=finops\n",i,usage,cost,i)}}' >> "${gcp_file}"
 
-ci::log "[fixtures] Generated: ${aws_file} ${azure_file} ${gcp_file}"
+ci::log "[fixtures] Generated: ${aws_file} ${aws_sp_file} ${azure_file} ${gcp_file}"

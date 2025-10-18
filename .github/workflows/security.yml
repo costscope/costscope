@@ -97,6 +97,7 @@ jobs:
     needs: require-ci-tools-image-pin
     outputs:
       go-version: ${{ steps.vars.outputs.goversion }}
+      is-act: ${{ steps.detect.outputs.is_act }}
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
@@ -112,7 +113,17 @@ jobs:
       - name: Capture Go version
         id: vars
         run: echo "goversion=${{ steps.go.outputs.go-version }}" >> $GITHUB_OUTPUT
+      - name: Detect act runtime
+        id: detect
+        run: |
+          if [[ "${IS_ACT:-}" == "true" || "${ACT:-}" == "true" || "${GITHUB_ACTOR:-}" == "nektos/act" ]]; then
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+            echo "Detected act runtime"
+          else
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Cache Go modules
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c - source: https://github.com/actions/cache/commits/main (2025-09-28)
         uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
         with:
@@ -123,7 +134,7 @@ jobs:
           restore-keys: ${{ runner.os }}-go-
 
   sbom:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     name: SBOM
     runs-on: ubuntu-latest
     needs: [setup, require-ci-tools-image-pin]
@@ -131,18 +142,10 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ needs.setup.outputs.go-version }}
-      - name: "Sanity: go version"
-        run: go version
       - name: Generate SBOM (syft via tools image)
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'make sbom'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh -- make sbom
       - if: env.RUN_UPLOADS == 'true'
         # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 - source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -151,7 +154,7 @@ jobs:
           path: sbom.json
 
   govulncheck:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     name: govulncheck
     runs-on: ubuntu-latest
     needs: [setup, require-ci-tools-image-pin]
@@ -159,18 +162,10 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ needs.setup.outputs.go-version }}
-      - name: "Sanity: go version"
-        run: go version
       - name: Run govulncheck (via tools image)
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'bash ./scripts/security/run-govulncheck.sh'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-govulncheck.sh
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -178,7 +173,7 @@ jobs:
           path: govulncheck.json
 
   gosec:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     name: gosec
     runs-on: ubuntu-latest
     needs: [setup, require-ci-tools-image-pin]
@@ -186,16 +181,10 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ needs.setup.outputs.go-version }}
       - name: Run gosec (via tools image)
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'bash ./scripts/security/run-gosec.sh'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-gosec.sh
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -203,7 +192,7 @@ jobs:
           path: gosec.json
 
   secrets:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     name: secrets (gitleaks)
     runs-on: ubuntu-latest
     needs: [setup, require-ci-tools-image-pin]
@@ -213,11 +202,8 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - name: Run gitleaks (via tools image)
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'bash ./scripts/security/run-gitleaks.sh'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-gitleaks.sh
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -226,7 +212,7 @@ jobs:
 
   trivy-fs:
     name: trivy fs
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     runs-on: ubuntu-latest
     needs: [setup, require-ci-tools-image-pin]
     env:
@@ -235,11 +221,8 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
       - name: Trivy FS (via tools image)
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'bash ./scripts/security/run-trivy-fs.sh'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-trivy-fs.sh
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -248,7 +231,7 @@ jobs:
 
   build-image:
     name: Build Image
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     runs-on: ubuntu-latest
     needs: setup
     steps:
@@ -271,9 +254,9 @@ jobs:
 
   trivy-image:
     name: trivy image
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     runs-on: ubuntu-latest
-    needs: [build-image, require-ci-tools-image-pin]
+    needs: [build-image, require-ci-tools-image-pin, setup]
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
@@ -297,12 +280,8 @@ jobs:
         env:
           TRIVY_IMAGE: costscope:ci
         run: |
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v ${{ github.workspace }}:/work \
-            -w /work \
-            ${{ env.CI_TOOLS_IMAGE }} \
-            bash -lc 'bash ./scripts/security/run-trivy-image.sh'
+          CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
+          bash ./scripts/ci/run-in-ci-image.sh --with-docker-sock -- bash ./scripts/security/run-trivy-image.sh
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -311,9 +290,9 @@ jobs:
 
   aggregate:
     name: Aggregate & Gate
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' && needs.setup.outputs.is-act != 'true' }}
     runs-on: ubuntu-latest
-    needs: [sbom, govulncheck, gosec, secrets, trivy-fs, trivy-image]
+    needs: [sbom, govulncheck, gosec, secrets, trivy-fs, trivy-image, setup]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Record run metadata (early)

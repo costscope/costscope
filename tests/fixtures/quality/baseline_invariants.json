@@ -1,19 +1,26 @@
 {
-  "row_count": 3,
-  "sum_effective_cost": 30.0,
-  "sum_list_cost": 30.0,
-  "sum_usage_quantity": 300.0,
+  "row_count": 20000,
+  "sum_effective_cost": 70699.99999999997,
+  "sum_list_cost": 70699.99999999997,
+  "sum_usage_quantity": 6513000,
   "charge_category_distribution": {
-    "Usage": 100.0
+    "Usage": 100
   },
   "pricing_category_distribution": {
-    "Standard": 100.0
+    "Standard": 100
   },
   "provider_distribution": {
-    "Amazon Web Services": 100.0
+    "Amazon Web Services": 100
   },
   "negative_usage_allowed_count": 0,
   "negative_usage_violation_count": 0,
-  "generated_at": "2025-01-01T00:00:00Z",
-  "violations": []
+  "generated_at": "2025-10-14T19:06:40.551131Z",
+  "violations": null,
+  "metadata": {
+    "baseline_placeholder": "false",
+    "baseline_source": "regenerated_cli",
+    "generated_at_rfc3339": "2025-10-14T19:06:40Z",
+    "generated_by": "costscope",
+    "recommended_tolerance": "0.01"
+  }
 }

@@ -6,8 +6,11 @@ env:
   GO_VERSION: "1.24.x"
   GOVULNCHECK_VERSION: latest
   TRIVY_VERSION: "0.56.2"
-  # Default tag for our CI container image; overridden under act via projects config
-  CI_IMAGE_TAG: latest
+  # CI_IMAGE_TAG is expected to be set via Actions variables (repo/organization) or act env
+  # Avoid floating tags in CI; fallback to 'latest' is handled by resolve step with warning.
+  # Act detection defaults (act runner can override via -e)
+  IS_ACT: "false" # quoted so expression parser treats as string
+  ACT_FULL: "false" # quoted so expression parser treats as string
 
 concurrency:
   group: ci-cd-${{ github.ref }}
@@ -20,13 +23,25 @@ on:
     branches: [main]
 
 jobs:
+  resolve-ci-image:
+    name: Resolve CI tools image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.out.outputs.image }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - id: out
+        env:
+          CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
+        run: bash ./scripts/ci/resolve-ci-image.sh
   build-test-scan-sign-push:
-    # Skip the matrix job entirely under act to avoid starting multiple heavy containers locally.
-    if: ${{ github.actor != 'nektos/act' }}
+    # Allow matrix job under act; internal guard step will skip non-slim variants early.
+    if: ${{ always() }}
     name: build-test-scan-sign-push (${{ matrix.variant }})
     runs-on: ubuntu-latest
+    needs: resolve-ci-image
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:${{ env.CI_IMAGE_TAG }}
+      image: ${{ needs.resolve-ci-image.outputs.image }}
     strategy:
       fail-fast: false
       matrix:
@@ -39,8 +54,18 @@ jobs:
       # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
+      # Move variant guard immediately after checkout to abort non-slim before setup-go allocates resources
+      - name: Skip non-slim variants under act (guard)
+        id: variant_guard
+        if: ${{ always() }}
+        run: bash ./scripts/ci/skip-non-slim-under-act.sh "${{ matrix.variant }}"
+
+      - name: Detect act runtime
+        if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
+        run: bash ./scripts/ci/detect-act.sh
+
       - name: Set up Go
-        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
+        if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
@@ -50,23 +75,19 @@ jobs:
             **/go.sum
 
       - name: "Sanity: go version"
-        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
+        if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
         run: go version
 
-      - name: Detect act runtime
-        run: bash ./scripts/ci/detect-act.sh
-
-      - name: Skip non-slim variants under act (guard)
-        if: ${{ always() }}
-        run: bash ./scripts/ci/skip-non-slim-under-act.sh "${{ matrix.variant }}"
-
       - name: Prepare smoke fixtures (for act)
-        if: ${{ env.IS_ACT == 'true' || github.actor == 'nektos/act' }}
+        if: ${{ env.IS_ACT == 'true' && steps.variant_guard.outputs.skipped != 'true' }}
         run: bash ./scripts/ci/prepare-act-fixtures.sh
 
       - name: Build and test (matrix)
-        if: ${{ github.actor != 'nektos/act' || matrix.variant == 'slim' }}
-        run: ./scripts/ci/build-test-matrix.sh "${{ matrix.variant }}"
+        if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
+        run: |
+          if [ "${VARIANT_SKIPPED:-false}" = "true" ]; then
+            echo "[guard] Variant skipped earlier; short-circuit build/test"; exit 0; fi
+          ./scripts/ci/build-test-matrix.sh "${{ matrix.variant }}"
 
       - name: Spec-driven CLI builders drift check
         if: ${{ matrix.variant == 'slim' }}
@@ -98,15 +119,15 @@ jobs:
         run: ./scripts/ci/e2e-summarize.sh
 
       - name: Build invariants CI tool (duckdb)
-        if: ${{ matrix.variant == 'duckdb' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'duckdb' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         run: bash ./scripts/ci/build-invariants-ci.sh
 
       - name: Run invariants check (JSON report)
-        if: ${{ matrix.variant == 'duckdb' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'duckdb' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         run: bash ./scripts/ci/run-invariants.sh
 
       - name: Upload invariants artifacts
-        if: ${{ always() && matrix.variant == 'duckdb' && github.actor != 'nektos/act' }}
+        if: ${{ always() && matrix.variant == 'duckdb' && env.IS_ACT != 'true' }}
         # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
@@ -114,7 +135,7 @@ jobs:
           path: invariants-artifacts
 
       - name: Upload E2E artifacts
-        if: ${{ always() && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ always() && matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: e2e-pipeline-artifacts
@@ -125,17 +146,17 @@ jobs:
         run: go vet ./...
 
       - name: govulncheck
-        if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
-        run: bash -c 'go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && govulncheck ./...'
+        if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
+        run: bash -c 'govulncheck ./...'
 
       - name: Security scan (gosec)
-        if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         uses: securego/gosec@15d5c61e866bc2e2e8389376a31f1e5e09bde7d8
         with:
           args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
 
       - name: Secrets scan (gitleaks)
-        if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
         env:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
@@ -143,7 +164,7 @@ jobs:
           args: detect --source . --no-banner --redact --config .gitleaks.toml
 
       - name: Docker image vulnerability scan (Trivy)
-        if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
           version: ${{ env.TRIVY_VERSION }}
@@ -154,12 +175,12 @@ jobs:
           severity: CRITICAL,HIGH
 
       - name: Set up Docker Buildx
-        if: ${{ matrix.variant == 'slim' && (github.actor != 'nektos/act' || env.ACT_FULL == 'true') }}
+        if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && env.IS_ACT != 'true' }}
         # pinned docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 - source: https://github.com/docker/setup-buildx-action/commits/main (2025-09-28)
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
 
       - name: Login to GHCR
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         # pinned docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef - source: https://github.com/docker/login-action/commits/main (2025-09-28)
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
         with:
@@ -168,7 +189,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels)
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         id: meta
         # pinned docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f - source: https://github.com/docker/metadata-action/commits/main (2025-09-28)
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f
@@ -176,7 +197,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/costscope
 
       - name: Build image with SBOM and provenance
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         # pinned docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 - source: https://github.com/docker/build-push-action/commits/v4 (2025-09-28)
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:
@@ -188,14 +209,15 @@ jobs:
           provenance: mode=max
 
       - name: Determine primary image ref
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         id: imgref
         run: |
-          first_tag=$(echo "${{ steps.meta.outputs.tags }}" | head -n1)
-          echo "image_ref=$first_tag" >> "$GITHUB_OUTPUT"
+          bash ./scripts/ci/detect-primary-image-ref.sh <<'EOF'
+          ${{ steps.meta.outputs.tags }}
+          EOF
 
       - name: Trivy scan built image
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
         with:
           version: ${{ env.TRIVY_VERSION }}
@@ -205,12 +227,12 @@ jobs:
           ignore-unfixed: true
 
       - name: Install cosign
-        if: ${{ matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         # pinned sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 - source: https://github.com/sigstore/cosign-installer/commits/main (2025-09-28)
         uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
 
       - name: Sign image with cosign
-        if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         env:
           COSIGN_EXPERIMENTAL: 1
         run: |
@@ -223,109 +245,11 @@ jobs:
         id: zap
         env:
           ZAP_TARGET_URL: ${{ secrets.ZAP_TARGET_URL }}
-        run: |
-          if [ -n "$ZAP_TARGET_URL" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "target=$ZAP_TARGET_URL" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
+        run: bash ./scripts/ci/detect-zap-target.sh
 
       - name: Optional DAST with OWASP ZAP Baseline
-        if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && github.actor != 'nektos/act' }}
+        if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && env.IS_ACT != 'true' }}
         # pinned zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed - source: https://github.com/zaproxy/action-baseline/commits/main (2025-09-28)
-        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed
-        with:
-          target: ${{ steps.zap.outputs.target }}
-          cmd_options: "-a -m 5"
-
-  build-test-scan-sign-push-slim:
-    # Run a single lightweight variant locally under act to reduce resource pressure.
-    if: ${{ github.actor == 'nektos/act' }}
-    name: build-test-scan-sign-push (slim)
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:${{ env.CI_IMAGE_TAG }}
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-
-      - name: Set up Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: |
-            **/go.sum
-
-      - name: "Sanity: go version"
-        run: go version
-
-      - name: Detect act runtime
-        run: bash ./scripts/ci/detect-act.sh
-
-      - name: Prepare smoke fixtures (for act)
-        run: bash ./scripts/ci/prepare-act-fixtures.sh
-
-      - name: Build and test (slim)
-        run: ./scripts/ci/build-test-matrix.sh "slim"
-
-      - name: Spec-driven CLI builders drift check
-        run: make gen-commands-drift
-
-      - name: Integration CLI drift check
-        run: |
-          if [ "${IS_ACT:-false}" = "true" ] && [ ! -f integration_commands.json ]; then
-            echo "[act] integration_commands.json baseline missing; generating via make gen-integration-cli-docs"
-            make gen-integration-cli-docs
-          fi
-          make gen-integration-cli-drift
-
-      - name: Duplication gate
-        run: make duplicates-gate
-
-      - name: End-to-end pipeline tests & collect reports
-        run: bash ./scripts/ci/run-e2e-and-collect.sh
-
-      - name: Summarize E2E results
-        if: ${{ always() }}
-        run: ./scripts/ci/e2e-summarize.sh
-
-      - name: Go vet
-        run: go vet ./...
-
-      - name: govulncheck
-        run: bash -c 'go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && govulncheck ./...'
-
-      - name: Security scan (gosec)
-        uses: securego/gosec@15d5c61e866bc2e2e8389376a31f1e5e09bde7d8
-        with:
-          args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
-
-      - name: Secrets scan (gitleaks)
-        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
-        env:
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        with:
-          args: detect --source . --no-banner --redact --config .gitleaks.toml
-
-      - name: Determine ZAP target
-        id: zap
-        env:
-          ZAP_TARGET_URL: ${{ secrets.ZAP_TARGET_URL }}
-        run: |
-          if [ -n "$ZAP_TARGET_URL" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "target=$ZAP_TARGET_URL" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Optional DAST with OWASP ZAP Baseline
-        if: ${{ steps.zap.outputs.enabled == 'true' }}
         uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed
         with:
           target: ${{ steps.zap.outputs.target }}
@@ -334,7 +258,6 @@ jobs:
   test-casbinpoc:
     name: test (casbinpoc)
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'nektos/act' }}
     permissions:
       contents: read
     steps:
@@ -350,6 +273,16 @@ jobs:
 
       - name: "Sanity: go version"
         run: go version
+
+      - name: Prepare smoke fixtures (ensure required CSV fixtures exist)
+        run: |
+          # Generate lightweight synthetic fixtures if they are missing.
+          if [ ! -f tests/fixtures/aws/cur_smoke.csv ] || [ ! -f tests/fixtures/azure/usage_smoke.csv ] || [ ! -f tests/fixtures/gcp/usage_smoke.csv ]; then
+            echo "[ci] Generating smoke fixtures for casbinpoc tests (missing one or more CSVs)";
+            bash ./scripts/ci/prepare-act-fixtures.sh;
+          else
+            echo "[ci] Smoke fixtures already present; skipping generation";
+          fi
 
       - name: Run tests with casbinpoc tag
         run: bash -c 'set -euo pipefail; go mod download; go test -tags casbinpoc ./...'

@@ -8,6 +8,12 @@ on:
 jobs:
   audit-workflows:
     runs-on: ubuntu-latest
+    # Use our prebuilt CI base image to avoid ad-hoc installs and ensure toolchain consistency.
+    container:
+      image: ghcr.io/costscope/ci-base:latest
+    defaults:
+      run:
+        shell: bash
     permissions:
       contents: read
     steps:
@@ -16,8 +22,8 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Audit workflows for risky patterns
-        run: bash ./scripts/ci/workflow-audit.sh
+        run: ./scripts/ci/workflow-audit.sh
 
       - name: Upload audit summary
         if: always()
-        run: bash -c 'echo "## Workflow Audit Summary" >> $GITHUB_STEP_SUMMARY && echo "Checked .github/workflows for master/main/latest pins and curl|sh installers." >> $GITHUB_STEP_SUMMARY'
+        run: bash ./scripts/ci/workflow-audit-summary.sh

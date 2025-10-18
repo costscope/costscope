@@ -157,7 +157,7 @@ func emitFlagBinding(buf *strings.Builder, cmdVar string, f FlagSpec) {
 
 func emitCommand(buf *strings.Builder, node CommandNode, varName string) {
 	fmt.Fprintf(buf, "\t%s := &cobra.Command{\n", varName)
-	fmt.Fprintf(buf, "\t\tUse:   %q,\n", node.Use)
+	fmt.Fprintf(buf, "\t\tUse: %q,\n", node.Use)
 	fmt.Fprintf(buf, "\t\tShort: %q,\n", node.Short)
 	if strings.TrimSpace(node.Long) != "" {
 		fmt.Fprintf(buf, "\t\tLong: %q,\n", node.Long)
@@ -234,7 +234,7 @@ func main() {
 	emitCommand(&b, s.Root, "root")
 	b.WriteString("\n\treturn root\n}\n")
 
-	// Use 0600 to satisfy gosec G306 (restrictive permissions for generated file)
+	// Use 0600 to satisfy gosec G306 (restrictive perms; content is non-sensitive)
 	if err := os.WriteFile(filepath.Clean(*out), []byte(b.String()), 0600); err != nil {
 		log.Fatalf("write output: %v", err)
 	}

@@ -79,7 +79,18 @@ coverage-guard: ## Fail if mapping coverage drops by >2pp from baseline (lightwe
 
 .PHONY: coverage-guard-production
 coverage-guard-production: ## Fail if production coverage drops by >2pp from baseline (lightweight drift gate)
-	@tmp=$$(mktemp); echo "[coverage-guard] running production tests"; \
-	go test -coverprofile=$$tmp ./internal/core/production >/dev/null 2>&1 || { echo "[coverage-guard] test run failed"; rm -f $$tmp; exit 1; }; \
-	cur=$$(go tool cover -func=$$tmp | awk '/total:/ {gsub("%","",$$3); print $$3}'); rm -f $$tmp; baseline=92; allowed=2.0; min=$$(awk -v b=$$baseline -v a=$$allowed 'BEGIN{printf "%.1f", b-a}'); \
-	echo "[coverage-guard] current=$$cur baseline=$$baseline min=$$min"; awk -v c=$$cur -v m=$$min 'BEGIN{ if (c+0 < m+0) exit 1 }' || { echo "[coverage-guard] FAIL: $$cur < $$min"; exit 2; }; echo "[coverage-guard] OK";
+	@set -euo pipefail; if [ -x scripts/ci/coverage_guard.sh ]; then \
+	  scripts/ci/coverage_guard.sh --mode production; \
+	else \
+	  echo "[coverage-guard] script missing, using inline fallback" >&2; \
+	  tmp=$$(mktemp); echo "[coverage-guard] running production tests"; \
+	  if ! go test -count=1 -coverprofile=$$tmp ./internal/core/production 2>&1 | sed 's/^/[coverage-guard] test: /'; then \
+	    echo "[coverage-guard] test run failed"; rm -f $$tmp; exit 1; \
+	  fi; \
+	  cur=$$(go tool cover -func=$$tmp | awk '/total:/ {gsub("%","",$$3); print $$3}'); rm -f $$tmp; baseline=92; allowed=2.0; min=$$(awk -v b=$$baseline -v a=$$allowed 'BEGIN{printf "%.1f", b-a}'); \
+	  echo "[coverage-guard] current=$$cur baseline=$$baseline min=$$min"; awk -v c=$$cur -v m=$$min 'BEGIN{ if (c+0 < m+0) exit 1 }' || { echo "[coverage-guard] FAIL: $$cur < $$min"; exit 2; }; echo "[coverage-guard] OK"; \
+	fi
+
+.PHONY: config-validate
+config-validate: ## Validate layered configuration files (YAML) via scripts/tools/config-validate
+	@bash ./scripts/ci/run-config-validate.sh

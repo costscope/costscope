@@ -77,7 +77,8 @@ coverage-runtime: ## Run coverage for runtime packages only (excludes scripts/de
 	 if [ -z "$$PKGS" ]; then echo "No runtime packages left after exclusions"; exit 1; fi; \
 	 echo " Effective runtime package count: $$(printf "%s" "$$PKGS" | tr ' ' '\n' | sed '/^$$/d' | wc -l)"; \
 	 env -u GOROOT GOTOOLCHAIN=auto go test -v -race -coverprofile=coverage.out $$PKGS
-	go tool cover -html=logs/coverage.out -o logs/coverage.html
+	@mkdir -p logs
+	go tool cover -html=coverage.out -o logs/coverage.html
 	@echo "Runtime coverage report generated: logs/coverage.html"
 
 COVERAGE_RUNTIME_MIN ?= 70.0

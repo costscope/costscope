@@ -26,7 +26,8 @@ func loadBaselineT(t *testing.T, name string) InvariantMetrics {
 
 // TestInvariantsGolden ensures aggregates & distributions stay within ±1% drift and usage_quantity rule holds.
 func TestInvariantsGolden(t *testing.T) {
-	baseline := loadBaselineT(t, "baseline_invariants.json")
+	// Use a unit-sized baseline that matches the synthetic records below
+	baseline := loadBaselineT(t, "baseline_unit_invariants.json")
 	// Construct synthetic current records matching baseline
 	records := []focustypes.FocusRecord{
 		{EffectiveCost: 10, ListCost: 10, UsageQuantity: 100, ChargeCategory: focustypes.ChargeCategories.Usage, PricingCategory: focustypes.PricingCategories.Standard, ProviderName: focustypes.ProviderNames.AWS, ResourceId: "r1"},

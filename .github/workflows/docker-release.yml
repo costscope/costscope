@@ -6,7 +6,9 @@ on:
   workflow_dispatch: {}
 
 env:
-  GO_VERSION: "1.24.x"
+  GO_VERSION: "1.24.6"
+  # Tag to apply alongside the version tag is resolved at runtime from CI_IMAGE_TAG env if present,
+  # otherwise defaults to 'latest'. For local ACT runs, CI_IMAGE_TAG is taken from .github/act.env.
 
 jobs:
   build-and-smoke:
@@ -28,23 +30,8 @@ jobs:
         id: vars
         shell: bash
         run: |
-          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo dev)
-          COMMIT=$(git rev-parse --short=12 HEAD)
-          BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          GOVERSION=$(go version | awk '{print $3}')
-          SOURCE_REPO=$(git config --get remote.origin.url || echo 'https://github.com/your/repo')
-          # Export to environment for subsequent run steps
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "COMMIT=$COMMIT" >> "$GITHUB_ENV"
-          echo "BUILD_DATE=$BUILD_DATE" >> "$GITHUB_ENV"
-          echo "GOVERSION=$GOVERSION" >> "$GITHUB_ENV"
-          echo "SOURCE_REPO=$SOURCE_REPO" >> "$GITHUB_ENV"
-          # Also expose as step outputs for expression usage
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
-          echo "build_date=$BUILD_DATE" >> "$GITHUB_OUTPUT"
-          echo "go_version=$GOVERSION" >> "$GITHUB_OUTPUT"
-          echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
+          chmod +x scripts/ci/compute-version-vars.sh || true
+          scripts/ci/compute-version-vars.sh
       - name: Echo computed env
         run: |
           echo "VERSION=${{ steps.vars.outputs.version }}"
@@ -53,16 +40,39 @@ jobs:
           echo "GOVERSION=${{ steps.vars.outputs.go_version }}"
           echo "SOURCE_REPO=${{ steps.vars.outputs.source_repo }}"
 
+      - name: Resolve CI_IMAGE_TAG
+        id: tag
+        shell: bash
+        run: |
+          # Prefer externally supplied CI_IMAGE_TAG (e.g., repo env/Secrets or ACT .github/act.env); fallback to 'latest'
+          RESOLVED_TAG="${CI_IMAGE_TAG:-latest}"
+          echo "Resolved CI_IMAGE_TAG=${RESOLVED_TAG}"
+          echo "CI_IMAGE_TAG=${RESOLVED_TAG}" >> "$GITHUB_ENV"
+          echo "ci_image_tag=${RESOLVED_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Detect ACT
+        id: detect
+        shell: bash
+        run: |
+          if [[ "${ACT:-}" == "true" || "${IS_ACT:-}" == "true" || "${NEKTOS_ACT:-}" == "true" ]]; then
+            echo "Detected ACT environment"
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not ACT"
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build release binary
-        if: ${{ github.actor != 'nektos/act' }}
+        # Skip under ACT local runs
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: make build-release
 
       - name: Note ACT environment (skipped release build)
-        if: ${{ github.actor == 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act == 'true' }}
         run: echo "Running under ACT; skipped make build-release"
 
       - name: Build Docker image (Dockerfile.release)
-        if: ${{ github.actor != 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         # pinned docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 — source: https://github.com/docker/build-push-action/commits/v4 (2025-09-28)
         uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 # v4
         with:
@@ -70,7 +80,7 @@ jobs:
           file: Dockerfile.release
           tags: |
             costscope:${{ steps.vars.outputs.version }}
-            costscope:latest
+            costscope:${{ steps.tag.outputs.ci_image_tag }}
           build-args: |
             VERSION=${{ steps.vars.outputs.version }}
             COMMIT=${{ steps.vars.outputs.commit }}
@@ -79,29 +89,25 @@ jobs:
             SOURCE_REPO=${{ steps.vars.outputs.source_repo }}
 
       - name: Inspect image labels
-        if: ${{ github.actor != 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: docker image inspect --format '{{json .Config.Labels}}' costscope:${{ steps.vars.outputs.version }}
 
       - name: Run version inside image
-        if: ${{ github.actor != 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: docker run --rm --entrypoint ./costscope costscope:${{ steps.vars.outputs.version }} version
 
       - name: Start container and wait for ready
-        if: ${{ github.actor != 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: |
           docker run -d --name costscope-test -p 8080:8080 costscope:${{ steps.vars.outputs.version }}
-          for i in $(seq 1 20); do
-            if curl -sS http://127.0.0.1:8080/health/ready >/dev/null 2>&1; then
-              echo "service ready"; break
-            fi
-            echo "waiting for service..."; sleep 3
-          done
+          chmod +x scripts/ci/docker-wait-ready.sh || true
+          scripts/ci/docker-wait-ready.sh http://127.0.0.1:8080/health/ready 20 3
 
       - name: Stop container (always)
-        if: ${{ always() && github.actor != 'nektos/act' }}
+        if: ${{ always() && steps.detect.outputs.is_act != 'true' }}
         run: |
           docker rm -f costscope-test || true
 
       - name: Note ACT environment (skipped docker build/run)
-        if: ${{ github.actor == 'nektos/act' }}
+        if: ${{ steps.detect.outputs.is_act == 'true' }}
         run: echo "Running under ACT; skipped Docker image build and runtime checks"

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7-labs
 # Multi-stage Dockerfile for CostScope
 
 # Multi-stage Dockerfile for CostScope
@@ -20,19 +21,23 @@ WORKDIR /app
 # Copy go mod files
 COPY go.mod go.sum ./
 
-# Download dependencies
-RUN go mod download
+# Download dependencies with BuildKit cache mounts
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  go mod download
 
 # Copy source code
 COPY . .
 
 # Build the application (stamped via build args)
 # Use ldflags to stamp version metadata when provided
-RUN CGO_ENABLED=0 GOOS=linux \
-  go build -a -installsuffix cgo \
-  -ldflags "-w -s -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.BuildDate=${BUILD_DATE} -X main.GoVersion=${GOVERSION} -extldflags '-Wl,-dead_strip -Wl,-x'" \
-  -trimpath \
-  -o costscope .
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux \
+    go build -a -installsuffix cgo \
+    -ldflags "-w -s -X main.Version=${VERSION} -X main.Commit=${COMMIT} -X main.BuildDate=${BUILD_DATE} -X main.GoVersion=${GOVERSION} -extldflags '-Wl,-dead_strip -Wl,-x'" \
+    -trimpath \
+    -o costscope .
 
 # Stage 2: Final stage
 FROM alpine:3.22

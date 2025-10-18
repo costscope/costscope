@@ -7,6 +7,19 @@ on:
     branches: [main, master]
 
 jobs:
+  _env_init:
+    runs-on: ubuntu-latest
+    outputs:
+      is_act: ${{ steps.detect.outputs.is_act }}
+    steps:
+      - id: detect
+        shell: bash
+        run: |
+          if [ "${IS_ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
   resolve-ci-image:
     name: Resolve CI tools image
     runs-on: ubuntu-latest
@@ -15,45 +28,56 @@ jobs:
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
     steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: out
-        shell: bash
-        run: |
-          set -euo pipefail
-          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
-          TAG="${CI_IMAGE_TAG:-}"
-          if [ -z "$TAG" ]; then
-            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
-            # As a safe fallback, still emit latest but warn
-            TAG="latest"
-            echo "[warn] Falling back to latest (not recommended)" >&2
-          fi
-          IMG="$CI_IMAGE_REPO:$TAG"
-          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+        run: bash ./scripts/ci/resolve-ci-image.sh
 
   coverage-guard-production:
     name: Run production coverage guard
     runs-on: ubuntu-latest
-    needs: resolve-ci-image
+    needs: [resolve-ci-image, _env_init]
+    timeout-minutes: 5
     container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     steps:
+      - name: Early guard (skip under act unless full)
+        id: guard
+        env:
+          IS_ACT_DETECTED: ${{ needs._env_init.outputs.is_act }}
+        run: |
+          if [ "${IS_ACT_DETECTED}" = "true" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+            echo "[act] Skipping coverage guard under act (enable full mode to run)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout
+        if: ${{ steps.guard.outputs.skip != 'true' }}
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
 
       - name: "Sanity: go version"
+        if: ${{ steps.guard.outputs.skip != 'true' }}
         run: go version
 
-      - name: Cache Go modules
-        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
-        with:
-          path: |
-            ~/.cache/go-build
-            ${{ github.workspace }}/pkg
-            ${{ github.workspace }}/.cache
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Run production coverage guard
-        run: make coverage-guard-production
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        shell: bash
+        run: make SHELL=/bin/bash coverage-guard-production
+
+      - name: Summary header
+        if: always()
+        run: echo '### Production Coverage Guard' >> $GITHUB_STEP_SUMMARY
+
+      - name: Summary (skipped)
+        if: always() && steps.guard.outputs.skip == 'true'
+        run: echo ' Coverage guard skipped under act (enable full mode to run)' >> $GITHUB_STEP_SUMMARY
+
+      - name: Summary (success)
+        if: always() && steps.guard.outputs.skip != 'true' && success()
+        run: echo ' Coverage within expected bounds' >> $GITHUB_STEP_SUMMARY
+
+      - name: Summary (failure)
+        if: always() && steps.guard.outputs.skip != 'true' && !success()
+        run: echo ' Coverage check failed' >> $GITHUB_STEP_SUMMARY

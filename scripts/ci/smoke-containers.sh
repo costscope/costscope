@@ -35,6 +35,9 @@ mkdir -p "${LOG_DIR}" || true
 
 HTTP_TIMEOUT=40   # seconds total for health retry
 SLEEP_INTERVAL=2  # seconds between retries
+# Allow overriding host ports to avoid collisions in parallel jobs
+SMOKE_HTTP_PORT=${SMOKE_HTTP_PORT:-8080}
+SMOKE_TLS_PORT=${SMOKE_TLS_PORT:-8443}
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
@@ -71,7 +74,7 @@ check_metrics() {
 run_container() {
   local image=$1; local name=$2; shift 2
   log "Starting container $name from $image ($*)"
-  docker run -d --rm -p 8080:8080 -p 8443:8443 --name "$name" "$image" "$@" >/dev/null
+  docker run -d --rm -p "${SMOKE_HTTP_PORT}:8080" -p "${SMOKE_TLS_PORT}:8443" --name "$name" "$image" "$@" >/dev/null
 }
 
 collect_logs() {
@@ -85,8 +88,8 @@ smoke_http() {
   # Start the HTTP server using the costscope binary (matches Dockerfile CMD)
   run_container "$image" "$name" ./costscope enterprise --host 0.0.0.0 --port 8080
   trap 'docker rm -f "$name" >/dev/null 2>&1 || true' RETURN
-  if ! wait_health "127.0.0.1:8080" http; then collect_logs "$name"; fail "Health check failed (HTTP) for $image"; fi
-  if ! check_metrics "127.0.0.1:8080" http; then collect_logs "$name"; fail "Metrics check failed (HTTP) for $image"; fi
+  if ! wait_health "127.0.0.1:${SMOKE_HTTP_PORT}" http; then collect_logs "$name"; fail "Health check failed (HTTP) for $image on port ${SMOKE_HTTP_PORT}"; fi
+  if ! check_metrics "127.0.0.1:${SMOKE_HTTP_PORT}" http; then collect_logs "$name"; fail "Metrics check failed (HTTP) for $image on port ${SMOKE_HTTP_PORT}"; fi
   collect_logs "$name"
   docker rm -f "$name" >/dev/null 2>&1 || true
   trap - RETURN
@@ -101,11 +104,11 @@ smoke_tls() {
   openssl req -x509 -nodes -newkey rsa:2048 -subj "/CN=localhost" -days 1 -keyout "$tmpd/key.pem" -out "$tmpd/cert.pem" >/dev/null 2>&1
   local name="smoke-${variant}-tls"
   log "Starting TLS container $name from $image"
-  docker run -d --rm -p 8443:8443 --name "$name" -v "$tmpd:/certs:ro" \
+  docker run -d --rm -p "${SMOKE_TLS_PORT}:8443" --name "$name" -v "$tmpd:/certs:ro" \
     "$image" ./costscope enterprise --host 0.0.0.0 --port 8443 --tls-enabled --tls-cert /certs/cert.pem --tls-key /certs/key.pem >/dev/null
   trap 'docker rm -f "$name" >/dev/null 2>&1 || true; rm -rf "$tmpd"' RETURN
-  if ! wait_health "127.0.0.1:8443" https; then collect_logs "$name"; fail "Health check failed (TLS) for $image"; fi
-  if ! check_metrics "127.0.0.1:8443" https; then collect_logs "$name"; fail "Metrics check failed (TLS) for $image"; fi
+  if ! wait_health "127.0.0.1:${SMOKE_TLS_PORT}" https; then collect_logs "$name"; fail "Health check failed (TLS) for $image on port ${SMOKE_TLS_PORT}"; fi
+  if ! check_metrics "127.0.0.1:${SMOKE_TLS_PORT}" https; then collect_logs "$name"; fail "Metrics check failed (TLS) for $image on port ${SMOKE_TLS_PORT}"; fi
   collect_logs "$name"
   docker rm -f "$name" >/dev/null 2>&1 || true
   rm -rf "$tmpd" || true

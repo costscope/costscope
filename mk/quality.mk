@@ -1,6 +1,10 @@
 # mk/quality.mk - lint, duplicates, complexity, analysis, etc.
 
 .PHONY: allowlist-lint allowlist-rationale-lint analyze build-flags-guard complexity contract-check deadcode deadcode-baseline-guard deadcode-full deadcode-guard duplicates duplicates-func duplicates-func-gate duplicates-gate hotpath-deps-guard lint lint-api-resp-guard lint-fix lint-nolint-guard notice notice-drift print-% quality quality-full quality-nocache security
+ .PHONY: golangci-config-validate
+golangci-config-validate: ## Validate .golangci.yml syntax (yq)
+	@bash scripts/ci/validate-golangci-config.sh
+
 
 lint: ## Run linting
 	@echo " Running golangci-lint..."

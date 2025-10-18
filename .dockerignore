@@ -28,6 +28,36 @@ coverage.html
 tmp/**
 .cache/**
 
+# CI/artifacts and large generated files (not needed for build)
+bench_results.json
+cli-drift-summary.txt
+checksums.txt
+checksums.txt.sig
+perf_metrics.prom
+artifacts/**
+reports/**
+coverage/**
+**/*.sarif
+**/*.sbom
+
+# Generated API/specs and scans (not needed in image)
+api/**
+security/**
+.scans/**
+
+# Dev/CI tooling (not needed by Docker build)
+mk/**
+scripts/**
+tools/**
+hack/**
+
+# Media/assets
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.gif
+**/*.svg
+
 # Local runtime data (not needed in image)
 logs/**
 data/**
@@ -44,6 +74,7 @@ docs/**
 examples/**
 demo/**
 tests/**
+**/*.md
 
 # Monitoring configs (only used by docker-compose)
 monitoring/**

@@ -14,8 +14,20 @@ GOBIN_DIR="${GOBIN:-${GOLANGCI_HOME}/${RUN_OS}-${RUN_ARCH}/${WANT_VERSION}}"
 ci::require_cmd go
 mkdir -p "$GOBIN_DIR"
 
+# 1) Prefer a system-provided golangci-lint (e.g., baked into CI image) if version matches
+if command -v golangci-lint >/dev/null 2>&1; then
+  if golangci-lint version 2>/dev/null | grep -q "${WANT_VERSION}\b"; then
+    ci::log "golangci-lint ${WANT_VERSION} found on PATH; reusing preinstalled binary"
+    # Ensure it's available to subsequent steps even if scripts expect it in GOBIN_DIR
+    ln -sf "$(command -v golangci-lint)" "$GOBIN_DIR/golangci-lint"
+  else
+    ci::log "golangci-lint on PATH does not match ${WANT_VERSION}; will install requested version"
+  fi
+fi
+
+# 2) Use cached tool location if already built for this WANT_VERSION
 if [[ -x "$GOBIN_DIR/golangci-lint" ]] && "$GOBIN_DIR/golangci-lint" version 2>/dev/null | grep -q "${WANT_VERSION}\b"; then
-  ci::log "golangci-lint ${WANT_VERSION} already present; skipping install"
+  ci::log "golangci-lint ${WANT_VERSION} already present in cache; skipping install"
 else
   ci::log "Installing golangci-lint ${WANT_VERSION} via go install"
   GO111MODULE=on GOBIN="$GOBIN_DIR" go install github.com/golangci/golangci-lint/cmd/golangci-lint@"${WANT_VERSION}"

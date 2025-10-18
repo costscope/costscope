@@ -11,13 +11,30 @@ on:
 jobs:
   noop-act:
     if: ${{ github.actor == 'nektos/act' }}
-    name: noop (act)
+    name: act fallback
     runs-on: ubuntu-latest
     steps:
       - name: Explain act path
         run: |
-          echo "This full govulncheck job targets a self-hosted runner; under act we no-op."
-          echo "Run 'make security-tools-install' and scripts/security/run-govulncheck.sh locally instead."
+          echo "This full govulncheck job targets a self-hosted runner; under act we run a lightweight fallback."
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Run govulncheck via script (act)
+        run: |
+          mkdir -p govuln_reports
+          export GOVULNCHECK_OUT=govuln_reports/ci_full_scan.json
+          export GOVULNCHECK_PKGS=./...
+          export GOVULNCHECK_TIMEOUT=1200
+          bash scripts/security/run-govulncheck.sh || true
+          ls -lh govuln_reports/ci_full_scan.json || true
+      - name: Summarize report (act)
+        env:
+          INPUT: govuln_reports/ci_full_scan.json
+        run: |
+          bash scripts/security/summarize-govulncheck.sh
+      - name: Store artifact locally (act)
+        run: |
+          echo "ACT detected; skipping upload-artifact (requires ACTIONS_RUNTIME_TOKEN)."
 
   resolve-ci-image:
     if: ${{ github.actor != 'nektos/act' }}
@@ -28,19 +45,9 @@ jobs:
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
     steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: out
-        shell: bash
-        run: |
-          set -euo pipefail
-          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
-          TAG="${CI_IMAGE_TAG:-}"
-          if [ -z "$TAG" ]; then
-            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
-            TAG="latest"
-            echo "[warn] Falling back to latest (not recommended)" >&2
-          fi
-          IMG="$CI_IMAGE_REPO:$TAG"
-          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+        run: bash ./scripts/ci/resolve-ci-image.sh
   govulncheck:
     name: Full govulncheck and upload report (self-hosted large-memory)
     # Skip this heavy job when running under nektos/act locally
@@ -59,6 +66,16 @@ jobs:
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
+      - name: Detect act environment
+        id: detect
+        shell: bash
+        run: |
+          if [[ "${ACT:-}" == "true" || "${IS_ACT:-}" == "true" ]]; then
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: "Sanity: go version"
         run: go version
 
@@ -73,11 +90,20 @@ jobs:
           GOGC: 100
         run: |
           mkdir -p govuln_reports
-          echo "Running govulncheck ./... (this may take a while)"
-          govulncheck -json ./... > govuln_reports/ci_full_scan.json || true
+          export GOVULNCHECK_OUT=govuln_reports/ci_full_scan.json
+          export GOVULNCHECK_PKGS=./...
+          bash scripts/security/run-govulncheck.sh || true
           ls -lh govuln_reports/ci_full_scan.json || true
 
+      - name: Summarize govulncheck report
+        env:
+          INPUT: govuln_reports/ci_full_scan.json
+          # FAIL_ON_VULNS: "true" # enable to gate CI on findings
+        run: |
+          bash scripts/security/summarize-govulncheck.sh
+
       - name: Upload govulncheck JSON report
+        if: ${{ steps.detect.outputs.is_act == 'false' }}
         # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:

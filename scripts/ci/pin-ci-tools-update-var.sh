@@ -22,6 +22,12 @@ token="${GH_TOKEN:-}"
 image="${IMAGE:-}"
 api_base="${GH_API:-https://api.github.com}"
 
+# If running under act, skip making API calls to GitHub but succeed for local validation
+if ci::is_act; then
+  ci::log "Act detected; skipping GitHub API call. Would pin CI_TOOLS_IMAGE to ${image}"
+  exit 0
+fi
+
 if [[ -z "$owner" || -z "$repo" || -z "$token" || -z "$image" ]]; then
   ci::die "OWNER, REPO, GH_TOKEN, and IMAGE are required"
 fi
@@ -38,13 +44,16 @@ update_body=$(printf '{"value":"%s"}' "${image}")
 create_body=$(printf '{"name":"%s","value":"%s"}' "${name}" "${image}")
 
 # Try update (PATCH). If 404, try create (POST).
-status=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X PATCH \
+resp_file=$(mktemp)
+trap 'rm -f "$resp_file" 2>/dev/null || true' EXIT INT TERM
+
+status=$(curl -sS -o "$resp_file" -w "%{http_code}" -X PATCH \
   "${api_base}/repos/${owner}/${repo}/actions/variables/${name}" \
   "${headers[@]}" \
   -d "$update_body") || true
 
 if [[ "$status" == "404" ]]; then
-  status=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X POST \
+  status=$(curl -sS -o "$resp_file" -w "%{http_code}" -X POST \
     "${api_base}/repos/${owner}/${repo}/actions/variables" \
     "${headers[@]}" \
     -d "$create_body") || true
@@ -53,5 +62,5 @@ fi
 if [[ "$status" =~ ^2[0-9]{2}$ ]]; then
   ci::log "Pinned CI_TOOLS_IMAGE to ${image}"
 else
-  ci::die "API call failed with status ${status}: $(cat /tmp/resp.json 2>/dev/null || echo '<no body>')"
+  ci::die "API call failed with status ${status}: $(cat "$resp_file" 2>/dev/null || echo '<no body>')"
 fi

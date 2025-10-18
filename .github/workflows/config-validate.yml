@@ -17,18 +17,19 @@ on:
 jobs:
   config-validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 1
 
       - name: Set up Go
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
           go-version-file: go.mod
 
       - name: Run config validation
-        run: |
-          go run ./scripts/tools/config-validate --format text || exit_code=$?; \
-          if [ "${exit_code}" = "2" ]; then echo "Validation failures detected"; exit 2; fi; \
-          if [ -n "${exit_code}" ]; then exit ${exit_code}; fi
+        run: make config-validate

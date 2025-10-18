@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# parity_guard.sh - Generate fast & unified parquet outputs and compare aggregate parity.
+# Exit codes:
+#  0 success
+#  2 parity mismatch
+#  Other: unexpected failure
+
+PARITY_TOLERANCE=${PARITY_TOLERANCE:-1e-9}
+PARQUET_ROTATE_SIZE=${PARQUET_ROTATE_SIZE:-10000000000}
+INPUT=${INPUT:-tests/perf/aws-cur-synth.csv.gz}
+BIN=${BIN:-bin/costscope}
+
+if [[ ! -x "$BIN" ]]; then
+  echo "[parity-guard] binary '$BIN' not found or not executable" >&2
+  exit 1
+fi
+if [[ ! -f "$INPUT" ]]; then
+  echo "[parity-guard] input dataset '$INPUT' missing" >&2
+  exit 1
+fi
+
+echo "[parity-guard] Converting (fast path) → focus_fast.parquet"
+$BIN convert --provider aws --input "$INPUT" --output focus_fast.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }
+
+echo "[parity-guard] Converting (unified mapper) → focus_unified.parquet"
+COSTSCOPE_USE_UNIFIED_MAPPER=1 $BIN convert --provider aws --input "$INPUT" --output focus_unified.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " unified convert failed"; exit 1; }
+
+echo "[parity-guard] Running parity-check (lite hash enabled)"
+if ! go run ./scripts/tools/parity-check --legacy focus_fast.parquet -unified focus_unified.parquet -tolerance "${PARITY_TOLERANCE}" -out parity.json >/dev/null 2>&1; then
+  echo " Parity mismatch" >&2
+  exit 2
+fi
+
+# Print compact summary (nested fields)
+jq '{
+  legacy: {
+    effective_cost_sum: .legacy.effective_cost_sum,
+    usage_quantity_sum: .legacy.usage_quantity_sum,
+    record_count: .legacy.record_count
+  },
+  unified: {
+    effective_cost_sum: .unified.effective_cost_sum,
+    usage_quantity_sum: .unified.usage_quantity_sum,
+    record_count: .unified.record_count
+  },
+  equal_cost, equal_usage, equal_records, equal_lite_hash, duration_ms
+}' parity.json 2>/dev/null || true
+
+echo "[parity-guard] Passed"

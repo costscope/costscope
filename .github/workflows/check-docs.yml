@@ -6,20 +6,47 @@ on:
     branches: [main, master]
 
 jobs:
-  check-docs:
+  resolve-ci-image:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.resolve.outputs.image }}
+    steps:
+      - name: Checkout
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Resolve CI image
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/resolve-ci-image.sh
+
+  check-docs:
+    needs: [resolve-ci-image]
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Run docs checks (skip link check under act)
+        shell: bash
         run: |
           set -euo pipefail
           make check-docs
           make docs-placeholder-guard
-          if [ "${{ github.actor }}" = "nektos/act" ]; then
+          # Use shared helper to detect act reliably (IS_ACT/ACT/GITHUB_ACTOR)
+          source scripts/ci/lib/common.sh
+          if ci::is_act; then
             echo "[act] Skipping make docs-link-check due to external network variability"
           else
             make docs-link-check
           fi
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          echo '### Docs checks' >> "$GITHUB_STEP_SUMMARY"
+          echo "Status: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"

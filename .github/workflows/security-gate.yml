@@ -11,48 +11,63 @@ permissions:
   security-events: write
 
 jobs:
+  _env_init:
+    runs-on: ubuntu-latest
+    outputs:
+      is_act: ${{ steps.detect.outputs.is_act }}
+      act_full: ${{ steps.detect.outputs.act_full }}
+    steps:
+      - id: detect
+        shell: bash
+        run: |
+          if [ "${IS_ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ "${ACT_FULL:-false}" = "true" ]; then
+            echo "act_full=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "act_full=false" >> "$GITHUB_OUTPUT"
+          fi
+
   resolve-ci-image:
-    if: ${{ github.actor != 'nektos/act' }}
     name: Resolve CI tools image
     runs-on: ubuntu-latest
+    needs: [_env_init]
+    if: ${{ needs._env_init.outputs.is_act != 'true' || needs._env_init.outputs.act_full == 'true' }}
     outputs:
       ci_tools_image: ${{ steps.out.outputs.image }}
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
     steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: out
-        shell: bash
-        run: |
-          set -euo pipefail
-          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
-          TAG="${CI_IMAGE_TAG:-}"
-          if [ -z "$TAG" ]; then
-            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
-            TAG="latest"
-            echo "[warn] Falling back to latest (not recommended)" >&2
-          fi
-          IMG="$CI_IMAGE_REPO:$TAG"
-          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+        run: bash ./scripts/ci/resolve-ci-image.sh
+
   noop-act:
-    if: ${{ github.actor == 'nektos/act' }}
     runs-on: ubuntu-latest
+    needs: [_env_init]
+    if: ${{ needs._env_init.outputs.is_act == 'true' && needs._env_init.outputs.act_full != 'true' }}
     steps:
       - name: noop (act)
         run: |
           echo "security-gate guarded to skip under act; providing a successful placeholder."
           echo "Tip: locally run 'make security-tools-install && bash scripts/security-gate.sh' for parity."
+
   security-gate:
-    if: ${{ github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
-    needs: resolve-ci-image
+    needs: [resolve-ci-image, _env_init]
+    if: ${{ needs._env_init.outputs.is_act != 'true' || needs._env_init.outputs.act_full == 'true' }}
     container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     timeout-minutes: 30
     env:
       RUN_UPLOADS: "false"
-      GITLEAKS_VERSION: 8.18.1
-      GOSEC_VERSION: v2.21.0
-      GOVULNCHECK_VERSION: v1.1.1
-      TRIVY_VERSION: v0.51.1
+      # Versions aligned with ci-base image to avoid drift
+      GITLEAKS_VERSION: 8.18.4
+      GOSEC_VERSION: v2.21.4
+      GOVULNCHECK_VERSION: v1.1.3
+      TRIVY_VERSION: v0.56.2
       TRIVY_CACHE_DIR: ${{ github.workspace }}/.trivy-cache
       GOSEC_FAIL_LEVEL: HIGH
       TRIVY_SEVERITIES: CRITICAL,HIGH
@@ -84,7 +99,8 @@ jobs:
             .trivy-cache
           key: sec-${{ runner.os }}-${{ hashFiles('go.sum') }}-${{ env.TRIVY_VERSION }}
 
-      - name: Verify security toolchain
+      - name: Verify security toolchain (no installs)
+        shell: bash
         run: |
           set -euxo pipefail
           trivy --version
@@ -93,6 +109,8 @@ jobs:
           govulncheck -version
 
       - name: Pre-download Trivy DB
+        if: ${{ github.actor != 'nektos/act' }}
+        shell: bash
         run: trivy --cache-dir "$TRIVY_CACHE_DIR" image --download-db-only alpine:3.19 || true
 
       - name: Run security gate

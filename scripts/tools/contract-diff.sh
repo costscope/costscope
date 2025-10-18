@@ -13,6 +13,7 @@ source "$SCRIPTS_DIR/ci/lib/common.sh"
 #  - Changed type of existing field = breaking (fail)
 #
 # Tool preference: uses oasdiff (if installed) else falls back to a minimal grep heuristic.
+# Optional strictness: set REQUIRE_OASDIFF=1 to fail fast if oasdiff is not available
 # Install oasdiff (align with CI pinned commit):
 #   go install github.com/oasdiff/oasdiff@fc23f9bb1b54519f4f847e1724dbd0ab894e8ec8
 # See .github/workflows/api-contract-guard.yml for the current pinned revision.
@@ -22,6 +23,12 @@ REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 BASE_DIR="$REPO_ROOT/api"
 GEN_PUBLIC="$REPO_ROOT/internal/api/docs/openapi.yaml"
 GEN_ENT="$REPO_ROOT/internal/api/docs/enterprise-openapi.yaml"
+
+# Enforce oasdiff presence if requested (e.g., in CI)
+if [[ "${REQUIRE_OASDIFF:-}" = "1" ]] && ! command -v oasdiff >/dev/null 2>&1; then
+  echo -e "${RED}[contract] REQUIRE_OASDIFF=1 set but 'oasdiff' not found in PATH — aborting to avoid weak checks${RESET}" >&2
+  exit 2
+fi
 
 # Resolve baseline path preferring api/baseline/*, falling back to api/*
 resolve_baseline() {

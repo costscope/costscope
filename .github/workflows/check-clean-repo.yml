@@ -7,10 +7,12 @@ jobs:
   check-clean:
     name: Ensure repository cleanliness
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Early guard (skip under act unless full)
         run: |
-          if [ "${{ github.actor }}" = "nektos/act" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+          if [ "${IS_ACT:-}" = "true" ] && [ "${ACT_FULL:-false}" != "true" ]; then
             echo "[act] Skipping check-clean-repo under act (enable --full to run)"
             exit 0
           fi
@@ -21,7 +23,6 @@ jobs:
           fetch-depth: 0
 
       - name: Run clean-repo check
-        if: ${{ github.actor != 'nektos/act' }}
         run: |
           set -euo pipefail
           # Fail if any bypass env is present in the environment
@@ -29,4 +30,9 @@ jobs:
             echo "Disallowed env SMOKE_ALLOW_DIRTY present in CI" >&2
             exit 1
           fi
-          scripts/check-clean-repo.sh || { echo 'Repository is dirty; commit or stash changes before opening PR' >&2; exit 1; }
+          # When running under act and not in full mode, skip to avoid failing local sim
+          if [ "${IS_ACT:-}" = "true" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+            echo "[act] Skipping clean-repo check"
+            exit 0
+          fi
+          scripts/check-clean-repo.sh || { echo 'Repository is dirty; commit or stash changes before opening PR or release' >&2; exit 1; }

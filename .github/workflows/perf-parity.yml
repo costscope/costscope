@@ -24,15 +24,26 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  # Make act detection available to job-level if conditions
+  _env_init:
+    runs-on: ubuntu-latest
+    outputs:
+      is_act: ${{ steps.set.outputs.is_act }}
+    steps:
+      - id: set
+        run: echo "is_act=${{ github.actor == 'nektos/act' }}" >> "$GITHUB_OUTPUT"
   noop-act:
-    if: ${{ github.actor == 'nektos/act' }}
+    # Skip heavy jobs under local act runs; show a noop message instead
+    needs: _env_init
+    if: ${{ needs._env_init.outputs.is_act == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: noop (act)
         run: echo "Perf + Parity guard skipped under act; use 'make perf-parity' locally if needed."
   perf-parity:
     # Allow skipping under act to avoid long compute and flaky environment
-    if: ${{ github.actor != 'nektos/act' }}
+    needs: _env_init
+    if: ${{ needs._env_init.outputs.is_act != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,6 +55,9 @@ jobs:
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version-file: go.mod
+          # Speed up dependency restores
+          cache: true
+          cache-dependency-path: go.sum
 
       - name: Download deps
         run: go mod download
@@ -51,11 +65,8 @@ jobs:
       - name: Build slim binary
         run: make build-slim
 
-      - name: Generate synthetic dataset (if missing)
-        run: |
-          if [ ! -f tests/perf/aws-cur-synth.csv.gz ]; then
-            make perf-gen-synth
-          fi
+      # perf-parity target will auto-generate synthetic dataset if missing via perf-short
+      # (kept lean to avoid duplicated work)
 
       - name: Run perf+parity
         run: make perf-parity
@@ -69,5 +80,5 @@ jobs:
           path: |
             bench_results.json
             perf_metrics.prom
-            /tmp/aws_legacy-*.parquet
-            /tmp/aws_unified-*.parquet
+            .cache/parquet/aws_legacy*.parquet
+            .cache/parquet/aws_unified*.parquet
