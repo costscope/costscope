@@ -2,12 +2,17 @@
 set -euo pipefail
 
 # resolve-ci-image.sh
-# Emits a single output key 'image' with the fully qualified image reference
-# built from CI_IMAGE_REPO (defaults to ghcr.io/<owner>/ci-base) and CI_IMAGE_TAG.
+# Emits a single output key 'image' with the fully qualified image reference.
+# Resolution priority:
+#  1) CI_TOOLS_IMAGE (full ref, e.g., ghcr.io/org/ci-base:tag)
+#  2) CI_IMAGE_REPO + CI_IMAGE_TAG (repo + tag)
+#  3) CI_IMAGE_REPO + 'latest' when explicitly allowed via RESOLVE_CI_IMAGE_ALLOW_LATEST=true
 # Usage (in GitHub Actions step):
 #   - id: out
 #     env:
 #       CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
+#       CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
+#       CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
 #     run: bash ./scripts/ci/resolve-ci-image.sh
 # Then use: ${{ steps.out.outputs.image }} as a container image.
 
@@ -20,18 +25,23 @@ fi
 default_repo="ghcr.io/${gh_owner:-costscope}/ci-base"
 repo="${CI_IMAGE_REPO:-$default_repo}"
 
-tag="${CI_IMAGE_TAG:-}"
-if [[ -z "$tag" ]]; then
-  if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
-    echo "[resolve-ci-image] CI_IMAGE_TAG is not set; using 'latest' due to explicit allowance (RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act)" >&2
-    tag="latest"
-  else
-    echo "[resolve-ci-image] CI_IMAGE_TAG is not set and latest is not allowed; please set CI_IMAGE_TAG or RESOLVE_CI_IMAGE_ALLOW_LATEST=true" >&2
-    exit 2
+# 1) Full image override takes precedence
+if [[ -n "${CI_TOOLS_IMAGE:-}" ]]; then
+  img="${CI_TOOLS_IMAGE}"
+else
+  # 2) Combine repo + tag (or 3) 'latest' if allowed)
+  tag="${CI_IMAGE_TAG:-}"
+  if [[ -z "$tag" ]]; then
+    if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
+      echo "[resolve-ci-image] CI_IMAGE_TAG is not set; using 'latest' due to explicit allowance (RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act)" >&2
+      tag="latest"
+    else
+      echo "[resolve-ci-image] CI_IMAGE_TAG is not set and latest is not allowed; please set CI_IMAGE_TAG, CI_TOOLS_IMAGE, or RESOLVE_CI_IMAGE_ALLOW_LATEST=true" >&2
+      exit 2
+    fi
   fi
+  img="${repo}:${tag}"
 fi
-
-img="${repo}:${tag}"
 
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "image=${img}" >>"$GITHUB_OUTPUT"

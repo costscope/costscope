@@ -17,6 +17,9 @@ jobs:
       - name: Resolve CI image
         id: resolve
         shell: bash
+        env:
+          CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
+          CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
         run: |
           set -euo pipefail
           bash scripts/ci/resolve-ci-image.sh

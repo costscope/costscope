@@ -30,6 +30,8 @@ jobs:
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
+          CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
+          CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
         run: bash ./scripts/ci/resolve-ci-image.sh
   cli-drift:
     runs-on: ubuntu-latest
