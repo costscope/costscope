@@ -141,7 +141,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Generate SBOM (syft via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -161,7 +161,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run govulncheck (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -180,7 +180,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run gosec (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -199,7 +199,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Run gitleaks (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -218,7 +218,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - name: Trivy FS (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -235,7 +235,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -261,8 +261,8 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - name: Checkout (for fallback build)
-        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
