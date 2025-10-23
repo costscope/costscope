@@ -40,6 +40,16 @@ if [[ -z "$image" ]]; then
   ci::die "CI_TOOLS_IMAGE env var is required"
 fi
 
+# Ensure image reference includes an explicit tag or digest to avoid implicit ':latest'
+if [[ ! "$image" =~ [:@] ]]; then
+  if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
+    ci::warn "CI_TOOLS_IMAGE provided without tag/digest; appending ':latest' due to explicit allowance (RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act)"
+    image+=":latest"
+  else
+    ci::die "CI_TOOLS_IMAGE='$image' is missing a tag or digest. Please pin to an immutable reference (e.g., ghcr.io/org/image:2025-10-10-<sha> or ghcr.io/org/image@sha256:<digest>) or set RESOLVE_CI_IMAGE_ALLOW_LATEST=true to permit ':latest'."
+  fi
+fi
+
 # Default host path for workspace is current repository root
 host_root="$(ci::repo_root "${GITHUB_WORKSPACE:-}")"
 if [[ ! -d "$host_root" ]]; then

@@ -28,6 +28,16 @@ repo="${CI_IMAGE_REPO:-$default_repo}"
 # 1) Full image override takes precedence
 if [[ -n "${CI_TOOLS_IMAGE:-}" ]]; then
   img="${CI_TOOLS_IMAGE}"
+  # Ensure override includes an immutable tag or digest; avoid implicit ':latest'
+  if [[ ! "$img" =~ [:@] ]]; then
+    if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
+      echo "[resolve-ci-image] CI_TOOLS_IMAGE provided without tag/digest; appending ':latest' due to explicit allowance (RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act)" >&2
+      img+=":latest"
+    else
+      echo "[resolve-ci-image] CI_TOOLS_IMAGE='$img' is missing a tag or digest. Please pin to an immutable reference (e.g., ghcr.io/org/image:2025-10-10-<sha> or ghcr.io/org/image@sha256:<digest>), or set RESOLVE_CI_IMAGE_ALLOW_LATEST=true to permit ':latest'." >&2
+      exit 2
+    fi
+  fi
 else
   # 2) Combine repo + tag (or 3) 'latest' if allowed)
   tag="${CI_IMAGE_TAG:-}"
