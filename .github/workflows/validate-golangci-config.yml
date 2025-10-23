@@ -41,8 +41,8 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        # pinned actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
       - name: Validate .golangci.yml
         run: bash scripts/ci/validate-golangci-config.sh
