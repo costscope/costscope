@@ -124,8 +124,8 @@ jobs:
           fi
       - name: Cache Go modules
         if: ${{ steps.detect.outputs.is_act != 'true' }}
-        # pinned actions/cache@6f8efc29b200d32929f49075959781ed54ec270c - source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c # v3
+        # pinned actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 - source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v3
         with:
           path: |
             ~/go/pkg/mod
