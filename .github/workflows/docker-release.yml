@@ -84,8 +84,8 @@ jobs:
 
       - name: Build Docker image (Dockerfile.release)
         if: ${{ steps.detect.outputs.is_act != 'true' }}
-        # pinned docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 — source: https://github.com/docker/build-push-action/commits/v4 (2025-09-28)
-        uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 # v4
+        # pinned docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 — source: https://github.com/docker/build-push-action/commits/v4 (2025-09-28)
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v4
         with:
           context: .
           file: Dockerfile.release
