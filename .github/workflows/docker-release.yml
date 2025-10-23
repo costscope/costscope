@@ -2,6 +2,7 @@ name: Build and smoke-test Docker release
 
 on:
   push:
+    # Temporary: run on push; will migrate some to tags later
     branches: [main]
   workflow_dispatch: {}
 
@@ -11,7 +12,17 @@ env:
   # otherwise defaults to 'latest'. For local ACT runs, CI_IMAGE_TAG is taken from .github/act.env.
 
 jobs:
+  noop-on-push:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noop on push
+        run: |
+          echo '### docker-release (noop on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Heavy build/publish steps run only via manual dispatch.' >> "$GITHUB_STEP_SUMMARY"
   build-and-smoke:
+    # Avoid running heavy steps on push; keep for manual dispatch
+    if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

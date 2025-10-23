@@ -2,6 +2,19 @@
 
 All notable changes to this project are captured here. This file documents the initial public release. The project follows Semantic Versioning.
 
+## Unreleased
+
+### Breaking
+
+- OpenAPI: explicitly declared required path parameter `id` for existing by-id endpoints, which is detected as a breaking change by oasdiff:
+  - Public: `GET /api/v1/focus/conversions/{id}`
+  - Enterprise: `GET /focus/conversions/{id}`, `DELETE /focus/conversions/{id}`
+    This aligns the specification with actual behavior. Clients calling these by-id routes must ensure the `id` segment is provided in the path template. No change is required for list endpoints.
+
+### Migration
+
+- This change updates the contract to be explicit about required path parameters. If you are gating CI with API contract checks, set `ALLOW_API_DIFF=1` for the acknowledging PR, and reference this CHANGELOG entry in the PR description.
+
 ## 0.1.0 - 2025-09-07
 
 ### Added

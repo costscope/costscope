@@ -155,7 +155,9 @@ fi
 ############################################
 if has_cmd trivy; then
   echo '[4/4] Running trivy filesystem scan...'
-  TRIVY_CMD=(trivy fs --security-checks vuln --severity "${TRIVY_SEVERITIES}" --format json -o "$TRIVY_JSON" .)
+  TRIVY_FLAGS=${TRIVY_FLAGS:-}
+  # shellcheck disable=SC2206
+  TRIVY_CMD=(trivy fs ${TRIVY_FLAGS} --security-checks vuln --severity "${TRIVY_SEVERITIES}" --format json -o "$TRIVY_JSON" .)
   # We want exit code semantics (exit 1 on findings) but still parse JSON even if it fails.
   if ! "${TRIVY_CMD[@]}" >/dev/null 2>&1; then
     echo '[trivy] Scan completed (potential findings).'

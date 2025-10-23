@@ -9,7 +9,8 @@ on:
       - "scripts/tools/contract-diff.sh"
       - "Makefile"
   push:
-    branches: [main, master]
+    # Temporary: run on push; will migrate some to tags later
+    branches: [main]
     paths:
       - "internal/api/**"
       - "api/**"

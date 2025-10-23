@@ -2,6 +2,7 @@ name: CodeQL
 
 on:
     push:
+        # Temporary: run on push; will migrate some to tags later
         branches: [main]
     pull_request:
         branches: [main]

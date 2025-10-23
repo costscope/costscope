@@ -10,7 +10,8 @@ on:
       - "cmd/modules/multicloud/commands/zz_generated_command_builder.go"
       - "Makefile"
   push:
-    branches: [main, master]
+    # Temporary: run on push; will migrate some to tags later
+    branches: [main]
     paths:
       - "cmd/modules/analytics/commands/command_spec.yaml"
       - "cmd/modules/multicloud/commands/command_spec.yaml"

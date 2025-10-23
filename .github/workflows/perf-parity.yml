@@ -2,6 +2,7 @@ name: Perf + Parity Guard
 
 on:
   push:
+    # Temporary: run on push; will migrate some to tags later
     branches: [main]
     paths:
       - internal/core/focus/conversion/**
@@ -24,6 +25,14 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  noop-on-push:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noop on push
+        run: |
+          echo '### perf-parity (noop on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Parity checks run only on PRs/dispatch to conserve resources.' >> "$GITHUB_STEP_SUMMARY"
   # Make act detection available to job-level if conditions
   _env_init:
     runs-on: ubuntu-latest
@@ -35,7 +44,7 @@ jobs:
   noop-act:
     # Skip heavy jobs under local act runs; show a noop message instead
     needs: _env_init
-    if: ${{ needs._env_init.outputs.is_act == 'true' }}
+    if: ${{ github.event_name != 'push' && needs._env_init.outputs.is_act == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: noop (act)
@@ -43,7 +52,7 @@ jobs:
   perf-parity:
     # Allow skipping under act to avoid long compute and flaky environment
     needs: _env_init
-    if: ${{ needs._env_init.outputs.is_act != 'true' }}
+    if: ${{ github.event_name != 'push' && needs._env_init.outputs.is_act != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

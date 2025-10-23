@@ -7,10 +7,22 @@ env:
 on:
   pull_request:
   workflow_dispatch:
+  push:
+    # Temporary: run on push; will migrate some to tags later
+    branches: [main]
 
 jobs:
+  noop-on-push:
+    if: ${{ github.event_name == 'push' }}
+    name: noop on push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noop summary
+        run: |
+          echo '### govulncheck CI (noop on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Full scan runs on PRs, schedule, or manual dispatch only.' >> "$GITHUB_STEP_SUMMARY"
   noop-act:
-    if: ${{ github.actor == 'nektos/act' }}
+    if: ${{ github.event_name != 'push' && github.actor == 'nektos/act' }}
     name: act fallback
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +49,7 @@ jobs:
           echo "ACT detected; skipping upload-artifact (requires ACTIONS_RUNTIME_TOKEN)."
 
   resolve-ci-image:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.event_name != 'push' && github.actor != 'nektos/act' }}
     name: Resolve CI tools image
     runs-on: ubuntu-latest
     outputs:
@@ -52,8 +64,8 @@ jobs:
         run: bash ./scripts/ci/resolve-ci-image.sh
   govulncheck:
     name: Full govulncheck and upload report (self-hosted large-memory)
-    # Skip this heavy job when running under nektos/act locally
-    if: ${{ github.actor != 'nektos/act' }}
+    # Skip on push and under nektos/act locally
+    if: ${{ github.event_name != 'push' && github.actor != 'nektos/act' }}
     # This job is intended to run on a runner with >=16 GiB RAM.
     # Configure a self-hosted runner with label `large-memory` and the job
     # will run there. If you prefer GitHub-hosted runners, change `runs-on`

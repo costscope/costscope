@@ -2,9 +2,10 @@ name: Production coverage guard
 
 on:
   push:
-    branches: [main, master]
+    # Temporary: run on push; will migrate some to tags later
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 jobs:
   _env_init:

@@ -5,23 +5,23 @@ info:
   title: CostScope FOCUS API
   description: |
     Enterprise REST API for FOCUS (FinOps Open Cost and Usage Specification) operations.
-    
+
     This API provides comprehensive cost management functionality including:
     - FOCUS data conversion from cloud billing data
     - Cost analysis with ML-powered insights
     - Dataset comparison and anomaly detection
     - FOCUS compliance validation
     - Real-time job progress monitoring via WebSocket
-    
+
     ## Authentication
     All endpoints require JWT Bearer token authentication:
     ```
     Authorization: Bearer <your-jwt-token>
     ```
-    
+
     ## Rate Limiting
     API requests are rate limited to 100 requests per minute per API key.
-    
+
     ## WebSocket Updates
     Connect to WebSocket endpoints for real-time job progress updates:
     ```
@@ -50,12 +50,12 @@ paths:
       description: Check API server health status
       tags: [Health]
       responses:
-        '200':
+        "200":
           description: Server is healthy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EnvelopeHealth'
+                $ref: "#/components/schemas/EnvelopeHealth"
   /api/v1/analytics/summary:
     get:
       summary: Get cost summary
@@ -63,10 +63,12 @@ paths:
       parameters:
         - in: query
           name: input
-          required: true
-          schema: { type: string }
+          required: false
+          description: Optional path/URL to FOCUS parquet file; if omitted, the server uses its configured default dataset.
+          schema:
+            type: string
       responses:
-        '200':
+        "200":
           description: Summary returned
   /api/v1/analytics/top-services:
     get:
@@ -75,14 +77,16 @@ paths:
       parameters:
         - in: query
           name: input
-          required: true
-          schema: { type: string }
+          required: false
+          description: Optional path/URL to FOCUS parquet file; if omitted, the server uses its configured default dataset.
+          schema:
+            type: string
         - in: query
           name: limit
           required: false
           schema: { type: integer, minimum: 1, default: 5 }
       responses:
-        '200':
+        "200":
           description: Top services returned
   /api/v1/analytics/trends:
     get:
@@ -91,8 +95,10 @@ paths:
       parameters:
         - in: query
           name: input
-          required: true
-          schema: { type: string }
+          required: false
+          description: Optional path/URL to FOCUS parquet file; if omitted, the server uses its configured default dataset.
+          schema:
+            type: string
         - in: query
           name: granularity
           required: false
@@ -101,7 +107,7 @@ paths:
             enum: [hour, day, week, month, year]
             default: day
       responses:
-        '200':
+        "200":
           description: Trend series
   /api/v1/focus/schemas:
     get:
@@ -109,7 +115,7 @@ paths:
       description: Returns supported FOCUS schema identifiers (descending semantic version) with latest alias.
       tags: [FOCUS]
       responses:
-        '200':
+        "200":
           description: Schemas listed
           content:
             application/json:
@@ -133,24 +139,23 @@ paths:
       summary: Submit a FOCUS conversion job
       tags: [FOCUS]
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
               type: object
-              required: [provider, input_path, output_path]
               properties:
                 provider: { type: string, enum: [aws, azure, gcp] }
                 input_path: { type: string }
                 output_path: { type: string }
                 streaming: { type: boolean }
       responses:
-        '202':
+        "202":
           description: Job accepted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Envelope'
+                $ref: "#/components/schemas/Envelope"
               example:
                 success: true
                 data:
@@ -163,12 +168,12 @@ paths:
       summary: List active conversion jobs
       tags: [FOCUS]
       responses:
-        '200':
+        "200":
           description: Active jobs listed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Envelope'
+                $ref: "#/components/schemas/Envelope"
               example:
                 success: true
                 data:
@@ -197,12 +202,12 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Job status
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Envelope'
+                $ref: "#/components/schemas/Envelope"
               example:
                 success: true
                 data:
@@ -215,7 +220,7 @@ paths:
                 error: null
                 meta:
                   timestamp: 2025-08-24T10:20:19Z
-        '404': { description: Not found }
+        "404": { description: Not found }
     delete:
       summary: Cancel a running conversion job
       tags: [FOCUS]
@@ -225,12 +230,12 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Cancellation acknowledged
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Envelope'
+                $ref: "#/components/schemas/Envelope"
               example:
                 success: true
                 data:
@@ -239,7 +244,7 @@ paths:
                 error: null
                 meta:
                   timestamp: 2025-08-24T10:20:20Z
-        '404': { description: Not found }
+        "404": { description: Not found }
   /api/v1/focus/conversions/history:
     get:
       summary: List completed conversion jobs
@@ -250,12 +255,12 @@ paths:
           required: false
           schema: { type: integer, minimum: 1 }
       responses:
-        '200':
+        "200":
           description: History listed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Envelope'
+                $ref: "#/components/schemas/Envelope"
               example:
                 success: true
                 data:
@@ -285,145 +290,145 @@ paths:
         summary: Integration action webhook.create
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/list:
       post:
         summary: Integration action webhook.list
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/test:
       post:
         summary: Integration action webhook.test
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/delete:
       post:
         summary: Integration action webhook.delete
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/delivery/list:
       post:
         summary: Integration action webhook.delivery.list
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/delivery/retry:
       post:
         summary: Integration action webhook.delivery.retry
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/delivery/stats:
       post:
         summary: Integration action webhook.delivery.stats
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/event/list:
       post:
         summary: Integration action webhook.event.list
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/webhook/event/trigger:
       post:
         summary: Integration action webhook.event.trigger
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/start:
       post:
         summary: Integration action dashboard.start
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/status:
       post:
         summary: Integration action dashboard.status
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/stop:
       post:
         summary: Integration action dashboard.stop
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/config/show:
       post:
         summary: Integration action dashboard.config.show
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/config/set:
       post:
         summary: Integration action dashboard.config.set
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/config/reset:
       post:
         summary: Integration action dashboard.config.reset
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/widget/add:
       post:
         summary: Integration action dashboard.widget.add
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/widget/list:
       post:
         summary: Integration action dashboard.widget.list
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/widget/remove:
       post:
         summary: Integration action dashboard.widget.remove
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/widget/configure:
       post:
         summary: Integration action dashboard.widget.configure
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/plugin/install:
       post:
         summary: Integration action dashboard.plugin.install
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/plugin/list:
       post:
         summary: Integration action dashboard.plugin.list
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/plugin/enable:
       post:
         summary: Integration action dashboard.plugin.enable
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/dashboard/plugin/disable:
       post:
         summary: Integration action dashboard.plugin.disable
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
     /api/v1/integration/connections/connect:
       post:
         summary: Integration action connections.connect
         tags: [Integration]
         responses:
-          '501': { description: Not Implemented }
+          "501": { description: Not Implemented }
 components:
   schemas:
     Envelope:
@@ -437,9 +442,9 @@ components:
           description: Domain payload (type varies per endpoint).
           nullable: true
         error:
-          $ref: '#/components/schemas/EnvelopeError'
+          $ref: "#/components/schemas/EnvelopeError"
         meta:
-          $ref: '#/components/schemas/EnvelopeMeta'
+          $ref: "#/components/schemas/EnvelopeMeta"
       required: [success]
     EnvelopeMeta:
       type: object
@@ -464,7 +469,7 @@ components:
       required: [message]
     EnvelopeHealth:
       allOf:
-        - $ref: '#/components/schemas/Envelope'
+        - $ref: "#/components/schemas/Envelope"
         - type: object
           properties:
             data:

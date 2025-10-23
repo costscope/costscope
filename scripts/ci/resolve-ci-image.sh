@@ -43,6 +43,16 @@ else
   img="${repo}:${tag}"
 fi
 
+# Under local act runs, prefer a broadly available base for specialized images that might not exist yet.
+# This avoids manifest errors like: 'manifest unknown' when pulling ghcr.io/<owner>/ci-shellcheck:latest
+if [[ "${IS_ACT:-false}" == "true" ]]; then
+  repo_basename="${repo##*/}"
+  if [[ "$repo_basename" == "ci-shellcheck" ]]; then
+    echo "[resolve-ci-image] act detected and repo is ci-shellcheck; using fallback image 'catthehacker/ubuntu:full-latest'" >&2
+    img="catthehacker/ubuntu:full-latest"
+  fi
+fi
+
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "image=${img}" >>"$GITHUB_OUTPUT"
 else

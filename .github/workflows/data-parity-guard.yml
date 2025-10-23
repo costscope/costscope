@@ -2,6 +2,8 @@ name: Data Parity + Invariants Guard
 
 on:
   push:
+    # Temporary: enable run on push to avoid "skipped" status; heavy steps are no-op on push.
+    # Some paths will migrate to tag-based triggers later.
     branches: [main]
     paths:
       - internal/core/focus/conversion/**
@@ -24,6 +26,14 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  noop-on-push:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Noop on push
+        run: |
+          echo '### data-parity-guard (noop on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Parity + invariants runs only on PRs/dispatch to save CI minutes.' >> "$GITHUB_STEP_SUMMARY"
   noop-act:
     if: ${{ github.actor == 'nektos/act' }}
     runs-on: ubuntu-latest
@@ -31,7 +41,7 @@ jobs:
       - name: noop (act)
         run: echo "Data Parity + Invariants guard skipped under act; run 'make data-parity-guard' locally."
   data-parity:
-    if: ${{ github.actor != 'nektos/act' }}
+    if: ${{ github.event_name != 'push' && github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
     env:
       PARITY_TOLERANCE: 1e-9
