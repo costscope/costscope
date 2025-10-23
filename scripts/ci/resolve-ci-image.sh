@@ -30,7 +30,11 @@ if [[ -n "${CI_TOOLS_IMAGE:-}" ]]; then
   img="${CI_TOOLS_IMAGE}"
   # Ensure override includes an immutable tag or digest; avoid implicit ':latest'
   if [[ ! "$img" =~ [:@] ]]; then
-    if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
+    # If a CI_IMAGE_TAG has been provided, prefer the repo+tag over failing hard.
+    if [[ -n "${CI_IMAGE_TAG:-}" ]]; then
+      echo "[resolve-ci-image] CI_TOOLS_IMAGE ('$img') missing tag/digest; falling back to repo+tag: '${repo}:${CI_IMAGE_TAG}'. Please update CI_TOOLS_IMAGE to a fully qualified reference." >&2
+      img="${repo}:${CI_IMAGE_TAG}"
+    elif [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
       echo "[resolve-ci-image] CI_TOOLS_IMAGE provided without tag/digest; appending ':latest' due to explicit allowance (RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act)" >&2
       img+=":latest"
     else

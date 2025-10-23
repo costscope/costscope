@@ -71,5 +71,26 @@ if [[ "$mount_docker_sock" == "true" ]]; then
 fi
 
 ci::log "Running in CI image: ${image} :: $*"
+# Forward selected environment variables into the container so inner scripts see them
+forward_vars=(
+  CI_TOOLS_IMAGE
+  TRIVY_IMAGE
+  TRIVY_VERSION
+  SYFT_VERSION
+  GOSEC_VERSION
+  GOVULNCHECK_VERSION
+  GITLEAKS_VERSION
+  COSIGN_VERSION
+  RUN_UPLOADS
+  GH_TOKEN
+  GITHUB_TOKEN
+  GH_API
+)
+for v in "${forward_vars[@]}"; do
+  if [[ -n "${!v-}" ]]; then
+    docker_args+=( -e "$v" )
+  fi
+done
+
 # Forward the command string as-is to bash -lc; use printf %q for logging if needed
 exec docker "${docker_args[@]}" "$image" bash -lc "$*"
