@@ -41,12 +41,80 @@ jobs:
         run: |
           echo "Release workflow performs signing, artifact uploads, and GH release creation."
           echo "Under nektos/act we skip all jobs; use 'make build' locally to validate."
+  require-ci-tools-image-pin:
+    if: ${{ github.actor != 'nektos/act' }}
+    name: Require CI tools image pin (no drift)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      ci_tools_image: ${{ steps.check.outputs.ci_tools_image }}
+    steps:
+      - name: Load CI_TOOLS_IMAGE from repository variables (if set)
+        env:
+          GH_API: https://api.github.com
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%/*}"
+          repo="${GITHUB_REPOSITORY#*/}"
+          name="CI_TOOLS_IMAGE"
+          url="${GH_API}/repos/${owner}/${repo}/actions/variables/${name}"
+          hdrs=(
+            -H "Accept: application/vnd.github+json"
+            -H "Authorization: Bearer ${GH_TOKEN}"
+            -H "X-GitHub-Api-Version: 2022-11-28"
+          )
+          status=$(curl -sS -o /tmp/var.json -w "%{http_code}" "${hdrs[@]}" "$url") || true
+          if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
+            val=$(sed -n 's/.*"value"\s*:\s*"\{0,1\([^"}]*\)\{0,1\}".*/\1/p' /tmp/var.json | head -n1)
+            if [ -n "$val" ]; then
+              echo "CI_TOOLS_IMAGE=$val" >> "$GITHUB_ENV"
+              echo "Loaded CI_TOOLS_IMAGE from repository variable: $val"
+            fi
+          else
+            echo "No repository variable CI_TOOLS_IMAGE found (status $status); using workflow vars/defaults."
+          fi
+      - name: Enforce non-floating CI_TOOLS_IMAGE
+        id: check
+        run: |
+          set -euo pipefail
+          IMAGE="${CI_TOOLS_IMAGE:-}"
+          if [ -z "$IMAGE" ]; then
+            echo "[warn] CI_TOOLS_IMAGE not set in env; resolver may use CI_IMAGE_TAG."
+            # Default to a clearly floating ref to trigger failure unless overridden
+            IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER:-costscope}/ci-base:latest"
+          fi
+          if echo "$IMAGE" | grep -qE ':(latest|main|dev)$'; then
+            echo "[error] CI_TOOLS_IMAGE uses a floating tag ($IMAGE)." >&2
+            echo "        Please set repository variable CI_TOOLS_IMAGE to an immutable reference (tag with date/sha or @sha256 digest)." >&2
+            exit 1
+          fi
+          echo "Using CI_TOOLS_IMAGE: $IMAGE"
+          echo "ci_tools_image=$IMAGE" >> "$GITHUB_OUTPUT"
+  resolve-ci-image:
+    if: ${{ github.actor != 'nektos/act' }}
+    needs: [require-ci-tools-image-pin]
+    name: Resolve CI tools image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.out.outputs.image }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - id: out
+        env:
+          CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
+          CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
+          CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
+        run: bash ./scripts/ci/resolve-ci-image.sh
   sbom:
     if: ${{ github.actor != 'nektos/act' }}
     name: sbom-verify (source tree)
     runs-on: ubuntu-latest
+    needs: [resolve-ci-image]
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      image: ${{ needs.resolve-ci-image.outputs.image }}
       options: --user 0:0 --privileged
     steps:
       - name: Checkout
@@ -83,8 +151,9 @@ jobs:
     # Only run prepare when triggered by a tag ref or when manually dispatched
     if: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')) && github.actor != 'nektos/act' }}
     runs-on: ubuntu-latest
+    needs: [resolve-ci-image]
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      image: ${{ needs.resolve-ci-image.outputs.image }}
       options: --user 0:0 --privileged
     outputs:
       version: ${{ steps.meta.outputs.version }}
@@ -156,10 +225,10 @@ jobs:
 
   aggregate:
     if: ${{ github.actor != 'nektos/act' }}
-    needs: [prepare, build, sbom]
+    needs: [prepare, build, sbom, resolve-ci-image]
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository_owner }}/ci-base:latest
+      image: ${{ needs.resolve-ci-image.outputs.image }}
       options: --user 0:0 --privileged
     permissions:
       contents: write

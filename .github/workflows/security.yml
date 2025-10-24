@@ -77,7 +77,10 @@ jobs:
             IMAGE="ghcr.io/costscope/ci-base:latest"
           fi
           if echo "$IMAGE" | grep -qE ':(latest|main|dev)$'; then
-            echo "[warn] CI_TOOLS_IMAGE uses a floating tag ($IMAGE). Prefer an immutable tag or digest." >&2
+            echo "[error] CI_TOOLS_IMAGE uses a floating tag ($IMAGE)." >&2
+            echo "        Please set repository variable CI_TOOLS_IMAGE to an immutable reference (tag with date/sha or @sha256 digest)." >&2
+            echo "        Example: ghcr.io/costscope/ci-base@sha256:<digest>" >&2
+            exit 1
           fi
           echo "Using CI_TOOLS_IMAGE: $IMAGE"
           echo "ci_tools_image=$IMAGE" >> "$GITHUB_OUTPUT"
