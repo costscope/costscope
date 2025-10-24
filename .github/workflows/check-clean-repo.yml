@@ -2,6 +2,7 @@ name: check-clean-repo
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check-clean:

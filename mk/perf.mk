@@ -54,11 +54,22 @@ perf-bench-update-baseline: perf-gen-synth ## Regenerate baseline guard JSON for
 	go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations 5 -output tests/perf/baseline_bench_results.json || (echo " Baseline regeneration failed" && exit 1)
 	@echo " Baseline updated: tests/perf/baseline_bench_results.json"
 
-perf-short: ## Run short perf bench (3 iterations) on synthetic dataset (if present)
-	@echo " Running short perf bench (3 iterations)..."
-	@if [ ! -f tests/perf/aws-cur-synth.csv.gz ]; then $(MAKE) perf-gen-synth; fi
-	go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations 3 -output bench_results.json $(EXTRA_ARGS) || (echo " Short perf bench failed" && exit 1)
-	@echo " Short perf bench complete"
+perf-short: ## Run short perf bench (stable) on synthetic dataset (if present)
+		@echo " Running short perf bench (stable iterations)..."
+		@if [ ! -f tests/perf/aws-cur-synth.csv.gz ]; then $(MAKE) perf-gen-synth; fi
+		# Configure warm-up and measured iterations with sensible defaults to reduce jitter
+		@WARM=$${PERF_SHORT_WARMUP:-3}; MEAS=$${PERF_SHORT_ITERS:-7}; \
+		DUR=$${PERF_SHORT_DURATION_MAX:-$${PERF_BENCH_DURATION_MAX:-1.15}}; \
+		ALLOC=$${PERF_SHORT_ALLOC_MAX:-$${PERF_BENCH_ALLOC_MAX:-1.20}}; \
+		echo "  Using warmup=$$WARM measured=$$MEAS thresholds: duration_max=$$DUR alloc_max=$$ALLOC"; \
+		if [ "$$WARM" -gt 0 ]; then \
+			for i in $$(seq 1 $$WARM); do \
+				go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations 1 -output /tmp/costscope_perfwarm.json >/dev/null 2>&1 || true; \
+			done; \
+		fi; \
+		PERF_BENCH_DURATION_MAX=$$DUR PERF_BENCH_ALLOC_MAX=$$ALLOC \
+			go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations $$MEAS -output bench_results.json $(EXTRA_ARGS) || (echo " Short perf bench failed" && exit 1)
+		@echo " Short perf bench complete"
 
 parity-check: build-slim ## Generate legacy & unified parquet outputs and compare aggregate parity
 	@echo " Using slim binary for parquet conversion (no CGO)"
