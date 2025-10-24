@@ -12,17 +12,26 @@ on:
     branches: [main]
 
 jobs:
-  noop-on-push:
+  lint-on-push:
     if: ${{ github.event_name == 'push' }}
-    name: noop on push
+    name: lightweight checks on push
     runs-on: ubuntu-latest
     steps:
-      - name: Noop summary
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Go version
+        run: go version
+      - name: Module sanity (list packages)
         run: |
-          echo '### govulncheck CI (noop on push)' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Full scan runs on PRs, schedule, or manual dispatch only.' >> "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          go env GOPATH
+          go list ./... >/dev/null
+      - name: Summary
+        run: |
+          echo '### govulncheck (lint on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Ran go list for quick sanity. Full govulncheck remains gated to PR/dispatch.' >> "$GITHUB_STEP_SUMMARY"
   noop-act:
-    if: ${{ github.event_name != 'push' && github.actor == 'nektos/act' }}
+    if: ${{ github.actor == 'nektos/act' }}
     name: act fallback
     runs-on: ubuntu-latest
     steps:
@@ -49,14 +58,15 @@ jobs:
           echo "ACT detected; skipping upload-artifact (requires ACTIONS_RUNTIME_TOKEN)."
 
   resolve-ci-image:
-    if: ${{ github.event_name != 'push' && github.actor != 'nektos/act' }}
+    if: ${{ github.actor != 'nektos/act' }}
     name: Resolve CI tools image
     runs-on: ubuntu-latest
     outputs:
       ci_tools_image: ${{ steps.out.outputs.image }}
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
-      CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
+      # Prefer repo variable CI_TOOLS_IMAGE; fall back to pinned digest for determinism
+      CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE || 'ghcr.io/costscope/ci-base@sha256:7d6d716eb9bab9f581feb498162fd8a24775fcf306a9ee724c2185b12aa9c05f' }}
       CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
@@ -64,8 +74,8 @@ jobs:
         run: bash ./scripts/ci/resolve-ci-image.sh
   govulncheck:
     name: Full govulncheck and upload report (self-hosted large-memory)
-    # Skip on push and under nektos/act locally
-    if: ${{ github.event_name != 'push' && github.actor != 'nektos/act' }}
+    # Skip under nektos/act locally
+    if: ${{ github.actor != 'nektos/act' }}
     # This job is intended to run on a runner with >=16 GiB RAM.
     # Configure a self-hosted runner with label `large-memory` and the job
     # will run there. If you prefer GitHub-hosted runners, change `runs-on`

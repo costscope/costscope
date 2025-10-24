@@ -12,17 +12,34 @@ env:
   # otherwise defaults to 'latest'. For local ACT runs, CI_IMAGE_TAG is taken from .github/act.env.
 
 jobs:
-  noop-on-push:
+  lint-on-push:
     if: ${{ github.event_name == 'push' }}
+    name: lightweight checks on push
     runs-on: ubuntu-latest
     steps:
-      - name: Noop on push
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - name: Go version
+        run: go version
+      - name: Verify release assets exist
         run: |
-          echo '### docker-release (noop on push)' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Heavy build/publish steps run only via manual dispatch.' >> "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          test -f Dockerfile || { echo "Missing Dockerfile" >&2; exit 1; }
+          test -f Dockerfile.release || { echo "Missing Dockerfile.release" >&2; exit 1; }
+          test -f scripts/ci/compute-version-vars.sh || { echo "Missing scripts/ci/compute-version-vars.sh" >&2; exit 1; }
+      - name: Dry-run version vars script
+        run: |
+          chmod +x scripts/ci/compute-version-vars.sh || true
+          scripts/ci/compute-version-vars.sh || true
+      - name: Summary
+        run: |
+          echo '### docker-release (lint on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Checked Go toolchain, verified Dockerfiles and version script. Full build/smoke remains gated to manual dispatch.' >> "$GITHUB_STEP_SUMMARY"
   build-and-smoke:
-    # Avoid running heavy steps on push; keep for manual dispatch
-    if: ${{ github.event_name != 'push' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

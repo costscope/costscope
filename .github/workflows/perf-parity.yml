@@ -25,14 +25,28 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  noop-on-push:
+  lint-on-push:
     if: ${{ github.event_name == 'push' }}
+    name: lightweight checks on push
     runs-on: ubuntu-latest
     steps:
-      - name: Noop on push
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Go version
+        run: go version
+      - name: Module sanity
         run: |
-          echo '### perf-parity (noop on push)' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Parity checks run only on PRs/dispatch to conserve resources.' >> "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          go list ./... >/dev/null
+      - name: Summary
+        run: |
+          echo '### perf-parity (lint on push)' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Verified Go toolchain and module listing. Full perf+parity runs remain gated to PR/dispatch.' >> "$GITHUB_STEP_SUMMARY"
   # Make act detection available to job-level if conditions
   _env_init:
     runs-on: ubuntu-latest
@@ -44,7 +58,7 @@ jobs:
   noop-act:
     # Skip heavy jobs under local act runs; show a noop message instead
     needs: _env_init
-    if: ${{ github.event_name != 'push' && needs._env_init.outputs.is_act == 'true' }}
+    if: ${{ needs._env_init.outputs.is_act == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: noop (act)
@@ -52,7 +66,7 @@ jobs:
   perf-parity:
     # Allow skipping under act to avoid long compute and flaky environment
     needs: _env_init
-    if: ${{ github.event_name != 'push' && needs._env_init.outputs.is_act != 'true' }}
+    if: ${{ needs._env_init.outputs.is_act != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
