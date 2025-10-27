@@ -240,8 +240,8 @@ jobs:
         with:
           fetch-depth: 0
       - name: Download build artifacts
-        # pinned actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 — source: https://github.com/actions/download-artifact/commits/main (2025-09-28)
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        # pinned actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 — source: https://github.com/actions/download-artifact/commits/main (2025-09-28)
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           path: dist
       - name: List artifacts
@@ -267,7 +267,7 @@ jobs:
             sbom.json
 
       - name: Download release notes
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
           name: release-notes
           path: .
