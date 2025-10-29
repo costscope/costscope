@@ -60,6 +60,18 @@ ci-audit: ## Audit workflow files for unknown 'make <target>' invocations
 guardrails: ## Lightweight guard target for CI pre-flight (no-op placeholder for local runner compatibility)
 	@echo "Running guardrails (no-op)"
 
+.PHONY: policy-test-threshold
+policy-test-threshold: ## (noop) Placeholder for Stage1 parity; real policy thresholds not used in this repo
+	@echo "policy-test-threshold (noop)"
+
+.PHONY: validate
+validate: ## Alias: run repository validations (maps to config-validate in this repo)
+	@$(MAKE) --no-print-directory config-validate
+
+.PHONY: validate-maps
+validate-maps: ## (noop) Placeholder for Stage1 parity; no mapping validator in this repo
+	@echo "validate-maps (noop)"
+
 .PHONY: all
 all: build ## Default build
 

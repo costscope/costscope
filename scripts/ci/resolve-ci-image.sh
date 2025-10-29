@@ -28,7 +28,7 @@ repo="${CI_IMAGE_REPO:-$default_repo}"
 # 1) Full image override takes precedence
 if [[ -n "${CI_TOOLS_IMAGE:-}" ]]; then
   img="${CI_TOOLS_IMAGE}"
-  # Ensure override includes an immutable tag or digest; avoid implicit ':latest'
+  # Ensure override includes an immutable tag or digest; avoid implicit or explicit ':latest'
   if [[ ! "$img" =~ [:@] ]]; then
     # If a CI_IMAGE_TAG has been provided, prefer the repo+tag over failing hard.
     if [[ -n "${CI_IMAGE_TAG:-}" ]]; then
@@ -40,6 +40,20 @@ if [[ -n "${CI_TOOLS_IMAGE:-}" ]]; then
     else
       echo "[resolve-ci-image] CI_TOOLS_IMAGE='$img' is missing a tag or digest. Please pin to an immutable reference (e.g., ghcr.io/org/image:2025-10-10-<sha> or ghcr.io/org/image@sha256:<digest>), or set RESOLVE_CI_IMAGE_ALLOW_LATEST=true to permit ':latest'." >&2
       exit 2
+    fi
+  fi
+  # If an explicit ':latest' tag is provided, forbid it unless explicitly allowed or running under act
+  if [[ "$img" =~ :latest($|[@/]) ]]; then
+    if [[ "${RESOLVE_CI_IMAGE_ALLOW_LATEST:-false}" == "true" || "${IS_ACT:-false}" == "true" ]]; then
+      echo "[resolve-ci-image] CI_TOOLS_IMAGE uses ':latest'; allowed due to RESOLVE_CI_IMAGE_ALLOW_LATEST=true or act" >&2
+    else
+      if [[ -n "${CI_IMAGE_TAG:-}" ]]; then
+        echo "[resolve-ci-image] CI_TOOLS_IMAGE uses floating tag ':latest'; falling back to repo+tag '${repo}:${CI_IMAGE_TAG}'. Please pin CI_TOOLS_IMAGE to an immutable reference." >&2
+        img="${repo}:${CI_IMAGE_TAG}"
+      else
+        echo "[resolve-ci-image] CI_TOOLS_IMAGE references ':latest' which is disallowed. Provide CI_IMAGE_TAG or pin CI_TOOLS_IMAGE to an immutable reference (tag or digest)." >&2
+        exit 2
+      fi
     fi
   fi
 else

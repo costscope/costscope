@@ -45,20 +45,14 @@ jobs:
       ci_tools_image: ${{ steps.out.outputs.image }}
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
+      # Prefer repo variable; strict immutable fallback to digest if not available
+      CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE || 'ghcr.io/costscope/ci-base@sha256:7d6d716eb9bab9f581feb498162fd8a24775fcf306a9ee724c2185b12aa9c05f' }}
+      CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: out
         shell: bash
-        run: |
-          set -euo pipefail
-          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
-          TAG="${CI_IMAGE_TAG:-}"
-          if [ -z "$TAG" ]; then
-            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
-            TAG="latest"
-            echo "[warn] Falling back to latest (not recommended)" >&2
-          fi
-          IMG="$CI_IMAGE_REPO:$TAG"
-          echo "image=$IMG" >> "$GITHUB_OUTPUT"
+        run: bash ./scripts/ci/resolve-ci-image.sh
 
   build-and-verify:
     if: ${{ !(github.actor == 'nektos/act' || github.actor == 'github-actions[bot]') }}
