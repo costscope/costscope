@@ -31,11 +31,24 @@ type RouteSpec struct {
 func BuildRouteSpecs(logger *logging.Logger) []RouteSpec { // logger kept for future dynamic handlers
 	return []RouteSpec{
 		// System
+		{Method: http.MethodGet, Path: "/healthz", Handler: healthHandler(logger), Tags: []string{"system"}},
 		{Method: http.MethodGet, Path: "/health", Handler: healthHandler(logger), Tags: []string{"system"}},
 		{Method: http.MethodGet, Path: "/metrics", Handler: promhttp.Handler(), Tags: []string{"system", "metrics"}},
 		{Method: http.MethodGet, Path: "/api/v1/info", Handler: infoHandler(logger), Tags: []string{"system"}},
 		{Method: http.MethodGet, Path: "/api/v1/routes", Handler: routesSummaryHandler(logger), Tags: []string{"system", "docs"}},
 		{Method: http.MethodGet, Path: "/docs", Handler: docsHandler(logger), Tags: []string{"system", "docs"}},
+		// Legacy analytics aliases (unversioned) for client compatibility
+		{Method: http.MethodGet, Path: "/costs/summary", Handler: analyticsSummaryHandler(logger), Tags: []string{"compat", "analytics"}},
+		{Method: http.MethodGet, Path: "/breakdown", Handler: analyticsBreakdownHandler(logger), Tags: []string{"compat", "analytics"}},
+		{Method: http.MethodGet, Path: "/costs/daily", Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Default granularity to 'day' if not provided, then delegate to trends handler
+			q := r.URL.Query()
+			if strings.TrimSpace(q.Get("granularity")) == "" {
+				q.Set("granularity", "day")
+				r.URL.RawQuery = q.Encode()
+			}
+			analyticsTrendsHandler(logger).ServeHTTP(w, r)
+		})},
 		// WebSocket (prefix match)
 		{Method: http.MethodGet, Path: "/ws/jobs/", Handler: wsJobsHandler(logger), Tags: []string{"ws", "realtime"}},
 

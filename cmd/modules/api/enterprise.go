@@ -241,17 +241,9 @@ func runEnterpriseAPIServer(_ *cobra.Command, _ []string) error {
 
 	// Optional: initialize a repository for readiness DB checks (stubbed when built without 'sqlite').
 	// Using a local file path aligns with default persistence expectations; stub builds ignore the file.
-	var repo persistence.Repository
-	{
-		cfg := persistence.DefaultDatabaseConfig()
-		// Prefer a dedicated data dir; if it doesn't exist and build uses stub, it's harmless.
-		cfg.FilePath = "costscope-data/costscope.db"
-		if r, err := persistence.NewSQLiteRepository(cfg); err != nil {
-			logger.WarnWithFields("Repository init failed; DB readiness check disabled", map[string]interface{}{"error": err.Error()})
-		} else {
-			repo = r
-			defer func() { _ = repo.Close() }()
-		}
+	repo := initPersistenceRepository(logger)
+	if repo != nil {
+		defer func() { _ = repo.Close() }()
 	}
 
 	// Handlers registry
@@ -263,61 +255,8 @@ func runEnterpriseAPIServer(_ *cobra.Command, _ []string) error {
 		}
 	}()
 
-	// Optional report metadata persistence wiring (precedence: YAML reports.metadata_store_path > ENV COSTSCOPE_REPORTS_METADATA_PATH).
-	var metadataStorePath string
-	if loadedCfg != nil && strings.TrimSpace(loadedCfg.Reports.MetadataStorePath) != "" {
-		metadataStorePath = strings.TrimSpace(loadedCfg.Reports.MetadataStorePath)
-	} else if v := os.Getenv("COSTSCOPE_REPORTS_METADATA_PATH"); strings.TrimSpace(v) != "" {
-		metadataStorePath = strings.TrimSpace(v)
-	}
-	// Emit unified precedence audit log (explicit flag currently unsupported; YAML > ENV > default)
-	source := "default"
-	if loadedCfg != nil && strings.TrimSpace(loadedCfg.Reports.MetadataStorePath) != "" {
-		source = "yaml"
-	} else if strings.TrimSpace(os.Getenv("COSTSCOPE_REPORTS_METADATA_PATH")) != "" {
-		source = "env"
-	}
-	logger.InfoWithFields("config_precedence_resolved", map[string]interface{}{
-		"field":  "reports.metadata_store_path",
-		"value":  metadataStorePath,
-		"source": source,
-	})
-
-	if metadataStorePath != "" {
-		backend := "file"
-		// Retention config (optional)
-		maxRec := 0
-		maxAge := time.Duration(0)
-		if loadedCfg != nil {
-			maxRec = loadedCfg.Reports.MetadataRetentionMaxRecords
-			maxAge = loadedCfg.Reports.MetadataRetentionMaxAge
-		}
-		// Heuristic: if path has sqlite:// prefix strip and use sqlite backend (when tag enabled). Also allow .db extension.
-		pathVal := metadataStorePath
-		useSQLite := false
-		if strings.HasPrefix(pathVal, "sqlite://") {
-			pathVal = strings.TrimPrefix(pathVal, "sqlite://")
-			useSQLite = true
-		} else if strings.HasSuffix(strings.ToLower(pathVal), ".db") || strings.HasSuffix(strings.ToLower(pathVal), ".sqlite") || strings.HasSuffix(strings.ToLower(pathVal), ".sqlite3") {
-			useSQLite = true
-		}
-		if useSQLite {
-			if ms, err := reports.NewSQLiteMetadataStore(pathVal, logger, maxRec, maxAge); err != nil {
-				logger.WarnWithFields("Failed to initialize sqlite metadata store; falling back to file store", map[string]interface{}{"error": err.Error()})
-				msFile := reports.NewFileMetadataStore(metadataStorePath, logger, maxRec, maxAge)
-				handlersRegistry.WithReportMetadataStore(msFile)
-			} else {
-				backend = "sqlite"
-				handlersRegistry.WithReportMetadataStore(ms)
-			}
-		} else {
-			ms := reports.NewFileMetadataStore(metadataStorePath, logger, maxRec, maxAge)
-			handlersRegistry.WithReportMetadataStore(ms)
-		}
-		logger.InfoWithFields("Report metadata persistence enabled", map[string]interface{}{"path": metadataStorePath, "backend": backend, "retention_max_records": maxRec, "retention_max_age": maxAge.String()})
-	} else {
-		logger.Info("Report metadata persistence disabled (in-memory only)")
-	}
+	// Optional report metadata persistence wiring and health repo registration
+	configureReportMetadata(loadedCfg, logger, handlersRegistry)
 	if repo != nil {
 		handlersRegistry.HealthHandler.WithRepository(repo)
 	}
@@ -349,6 +288,9 @@ func runEnterpriseAPIServer(_ *cobra.Command, _ []string) error {
 	v1 := router.Group("/api/v1")
 	v1.Use(combinedAuth, tenantMiddleware)
 	RegisterGinRouteGroups(v1, buildModuleRouteGroups(handlersRegistry, logger, rbacService))
+
+	// Compatibility aliases for legacy, unversioned client paths
+	registerLegacyAliases(router, combinedAuth, tenantMiddleware, handlersRegistry)
 
 	// Enterprise-only structured AuthMiddleware route (no-op on slim builds)
 	registerEnterpriseStructuredAuthRoutes(router, logger)
@@ -454,6 +396,8 @@ func newEnterpriseGinRouter() *gin.Engine {
 
 func registerHealthAndDocs(router *gin.Engine, reg *handlers.EnterpriseRegistry) {
 	router.GET(healthPath, reg.HealthHandler.HealthCheck)
+	// Compatibility alias for clients expecting Kubernetes-style /healthz
+	router.GET("/healthz", reg.HealthHandler.HealthCheck)
 	router.GET("/health/ready", reg.HealthHandler.ReadinessCheck)
 	router.GET("/health/live", reg.HealthHandler.LivenessCheck)
 
@@ -571,6 +515,101 @@ var tlsCipherNameToID = map[string]uint16{
 	"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384":   tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 	"TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305":  tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
 	"TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305":    tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+}
+
+// initPersistenceRepository initializes a repository for health/readiness checks.
+// It is safe to use with stub builds (no-op) and returns nil on failure.
+func initPersistenceRepository(logger *logging.Logger) persistence.Repository {
+	cfg := persistence.DefaultDatabaseConfig()
+	cfg.FilePath = "costscope-data/costscope.db"
+	r, err := persistence.NewSQLiteRepository(cfg)
+	if err != nil {
+		logger.WarnWithFields("Repository init failed; DB readiness check disabled", map[string]interface{}{"error": err.Error()})
+		return nil
+	}
+	return r
+}
+
+// configureReportMetadata wires report metadata persistence based on YAML/ENV precedence
+// and attaches the chosen store to the handlers registry. Logs effective config.
+func configureReportMetadata(loadedCfg *config.ConsolidatedConfig, logger *logging.Logger, handlersRegistry *handlers.EnterpriseRegistry) {
+	// Precedence: YAML reports.metadata_store_path > ENV COSTSCOPE_REPORTS_METADATA_PATH > default(empty)
+	var metadataStorePath string
+	if loadedCfg != nil && strings.TrimSpace(loadedCfg.Reports.MetadataStorePath) != "" {
+		metadataStorePath = strings.TrimSpace(loadedCfg.Reports.MetadataStorePath)
+	} else if v := os.Getenv("COSTSCOPE_REPORTS_METADATA_PATH"); strings.TrimSpace(v) != "" {
+		metadataStorePath = strings.TrimSpace(v)
+	}
+
+	source := "default"
+	if loadedCfg != nil && strings.TrimSpace(loadedCfg.Reports.MetadataStorePath) != "" {
+		source = "yaml"
+	} else if strings.TrimSpace(os.Getenv("COSTSCOPE_REPORTS_METADATA_PATH")) != "" {
+		source = "env"
+	}
+	logger.InfoWithFields("config_precedence_resolved", map[string]interface{}{
+		"field":  "reports.metadata_store_path",
+		"value":  metadataStorePath,
+		"source": source,
+	})
+
+	if metadataStorePath == "" {
+		logger.Info("Report metadata persistence disabled (in-memory only)")
+		return
+	}
+
+	backend := "file"
+	maxRec := 0
+	maxAge := time.Duration(0)
+	if loadedCfg != nil {
+		maxRec = loadedCfg.Reports.MetadataRetentionMaxRecords
+		maxAge = loadedCfg.Reports.MetadataRetentionMaxAge
+	}
+
+	pathVal := metadataStorePath
+	useSQLite := false
+	if strings.HasPrefix(pathVal, "sqlite://") {
+		pathVal = strings.TrimPrefix(pathVal, "sqlite://")
+		useSQLite = true
+	} else if strings.HasSuffix(strings.ToLower(pathVal), ".db") || strings.HasSuffix(strings.ToLower(pathVal), ".sqlite") || strings.HasSuffix(strings.ToLower(pathVal), ".sqlite3") {
+		useSQLite = true
+	}
+
+	if useSQLite {
+		if ms, err := reports.NewSQLiteMetadataStore(pathVal, logger, maxRec, maxAge); err != nil {
+			logger.WarnWithFields("Failed to initialize sqlite metadata store; falling back to file store", map[string]interface{}{"error": err.Error()})
+			msFile := reports.NewFileMetadataStore(metadataStorePath, logger, maxRec, maxAge)
+			handlersRegistry.WithReportMetadataStore(msFile)
+		} else {
+			backend = "sqlite"
+			handlersRegistry.WithReportMetadataStore(ms)
+		}
+	} else {
+		ms := reports.NewFileMetadataStore(metadataStorePath, logger, maxRec, maxAge)
+		handlersRegistry.WithReportMetadataStore(ms)
+	}
+	logger.InfoWithFields("Report metadata persistence enabled", map[string]interface{}{"path": metadataStorePath, "backend": backend, "retention_max_records": maxRec, "retention_max_age": maxAge.String()})
+}
+
+// registerLegacyAliases attaches compatibility routes for legacy, unversioned client paths.
+func registerLegacyAliases(router *gin.Engine, auth gin.HandlerFunc, tenant gin.HandlerFunc, reg *handlers.EnterpriseRegistry) {
+	alias := router.Group("")
+	alias.Use(auth, tenant)
+	// Legacy analytics
+	alias.GET("/costs/summary", reg.AnalyticsReadHandler.Summary)
+	alias.GET("/breakdown", reg.AnalyticsReadHandler.TopServices)
+	alias.GET("/costs/daily", func(c *gin.Context) {
+		q := c.Request.URL.Query()
+		if strings.TrimSpace(q.Get("granularity")) == "" {
+			q.Set("granularity", "day")
+			c.Request.URL.RawQuery = q.Encode()
+		}
+		reg.AnalyticsReadHandler.Trends(c)
+	})
+	// Legacy alerts listing
+	alias.GET("/alerts", reg.MonitoringHandler.ListAlerts)
+	// Providers listing (unversioned)
+	alias.GET("/providers", reg.ProvidersHandler.ListProviders)
 }
 
 // buildModuleRouteGroups describes all module routes in a table-driven form
