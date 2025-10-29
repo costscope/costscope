@@ -102,7 +102,7 @@ func (o *OptimizationEngine) parseComplexityReport(reportPath string) ([]Complex
 	// in RunOptimization(). It is not user supplied externally (internal dev utility),
 	// and we do not follow symlinks outside repo boundaries in typical usage.
 	//nolint:gosec // G304: controlled internal path, not user-influenced
-	file, err := os.Open(reportPath)
+	file, err := os.Open(reportPath) // #nosec G304
 	if err != nil {
 		return nil, err
 	}
@@ -288,7 +288,7 @@ func (o *OptimizationEngine) removeDeadCode(projectPath string) error {
 
 // checkUnusedCode identifies potentially unused code
 func (o *OptimizationEngine) checkUnusedCode(filePath string) error {
-	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files
+	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files // #nosec G304
 	if err != nil {
 		return err
 	}
@@ -356,7 +356,7 @@ func (o *OptimizationEngine) optimizeImports(projectPath string) error {
 
 // processImports analyzes and optimizes imports in a file
 func (o *OptimizationEngine) processImports(filePath string) error {
-	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files
+	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files // #nosec G304
 	if err != nil {
 		return err
 	}
@@ -423,7 +423,7 @@ func (o *OptimizationEngine) findDuplicates(projectPath string) error {
 
 // checkDuplicatePatterns looks for duplicate code patterns
 func (o *OptimizationEngine) checkDuplicatePatterns(filePath string, duplicates map[string][]string) error {
-	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files
+	content, err := os.ReadFile(filePath) //nolint:gosec // Tool processes Go source files // #nosec G304
 	if err != nil {
 		return err
 	}

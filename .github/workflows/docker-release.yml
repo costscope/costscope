@@ -19,7 +19,43 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - name: Detect ACT
+        id: detect_lint
+        shell: bash
+        run: |
+          if [[ "${ACT:-}" == "true" || "${IS_ACT:-}" == "true" || "${NEKTOS_ACT:-}" == "true" ]]; then
+            echo "Detected ACT environment"
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not ACT"
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Diagnose vendored actions (ACT)
+        if: ${{ steps.detect_lint.outputs.is_act == 'true' }}
+        run: |
+          echo "Listing .github/_actions (if present)"
+          ls -la .github/_actions || true
+          echo "Probe for Node action entrypoints:"
+          find .github/_actions -maxdepth 3 -type f -name 'index.js' -print 2>/dev/null || true
+      - name: Set up Go (ACT)
+        if: ${{ steps.detect_lint.outputs.is_act == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64|amd64) platform=linux-amd64;;
+            aarch64|arm64) platform=linux-arm64;;
+            *) echo "Unsupported arch: $arch" >&2; exit 1;;
+          esac
+          url="https://go.dev/dl/go${GO_VERSION}.${platform}.tar.gz"
+          echo "Downloading $url"
+          curl -fsSLo /tmp/go.tgz "$url"
+          rm -rf /usr/local/go || true
+          tar -C /usr/local -xzf /tmp/go.tgz
+          echo "/usr/local/go/bin" >> "$GITHUB_PATH"
       - name: Set up Go
+        if: ${{ steps.detect_lint.outputs.is_act != 'true' }}
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
         with:
           go-version: ${{ env.GO_VERSION }}
@@ -46,7 +82,45 @@ jobs:
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
+      - name: Detect ACT (early)
+        id: detect_early
+        shell: bash
+        run: |
+          if [[ "${ACT:-}" == "true" || "${IS_ACT:-}" == "true" || "${NEKTOS_ACT:-}" == "true" ]]; then
+            echo "Detected ACT environment"
+            echo "is_act=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not ACT"
+            echo "is_act=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Diagnose vendored actions (ACT)
+        if: ${{ steps.detect_early.outputs.is_act == 'true' }}
+        run: |
+          echo "Listing .github/_actions (if present)"
+          ls -la .github/_actions || true
+          echo "Probe for Node action entrypoints:"
+          find .github/_actions -maxdepth 3 -type f -name 'index.js' -print 2>/dev/null || true
+
+      - name: Set up Go (ACT)
+        if: ${{ steps.detect_early.outputs.is_act == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          arch=$(uname -m)
+          case "$arch" in
+            x86_64|amd64) platform=linux-amd64;;
+            aarch64|arm64) platform=linux-arm64;;
+            *) echo "Unsupported arch: $arch" >&2; exit 1;;
+          esac
+          url="https://go.dev/dl/go${GO_VERSION}.${platform}.tar.gz"
+          echo "Downloading $url"
+          curl -fsSLo /tmp/go.tgz "$url"
+          rm -rf /usr/local/go || true
+          tar -C /usr/local -xzf /tmp/go.tgz
+          echo "/usr/local/go/bin" >> "$GITHUB_PATH"
       - name: Set up Go
+        if: ${{ steps.detect_early.outputs.is_act != 'true' }}
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:

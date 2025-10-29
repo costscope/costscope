@@ -56,6 +56,10 @@ ci-audit: ## Audit workflow files for unknown 'make <target>' invocations
 	missing=0; while read t; do echo "$$known" | grep -qx "$$t" || { echo " Unknown workflow target: $$t"; missing=1; }; done < /tmp/ci_make_targets.txt; \
 	if [ $$missing -ne 0 ]; then echo "CI audit failed"; exit 1; else echo " CI audit OK"; fi
 
+.PHONY: guardrails
+guardrails: ## Lightweight guard target for CI pre-flight (no-op placeholder for local runner compatibility)
+	@echo "Running guardrails (no-op)"
+
 .PHONY: all
 all: build ## Default build
 

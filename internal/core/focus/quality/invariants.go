@@ -146,7 +146,7 @@ func LoadBaseline(path string) (InvariantMetrics, error) { //nolint:gosec // G30
 	// Security: baseline path is passed from CLI / config, documented as local file.
 	// Not fetched over network; used only for JSON unmarshal & validation.
 	//nolint:gosec // G304: intentional file read from user-specified baseline
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return m, err
 	}

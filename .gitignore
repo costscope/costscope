@@ -6,6 +6,9 @@
 .github/act.secrets
 .github/act.env
 
+# Locally vendored GitHub Actions for act runs (do not commit)
+.github/_actions/
+
 # Generated security summaries (root + docs)
 security-summary.md
 security-summary.json

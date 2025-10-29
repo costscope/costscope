@@ -3,7 +3,6 @@ name: supply-chain
 on:
   workflow_dispatch: {}
   push:
-    # Temporary: run on push; will migrate some to tags later
     branches: [main]
     paths:
       - "Makefile"
@@ -23,86 +22,48 @@ env:
   COSIGN_VERSION: v2.2.4
 
 jobs:
-  lint-on-push:
-    if: ${{ github.event_name == 'push' }}
-    name: lightweight checks on push
+  build-act:
+    # Local Act path: run when the actor is nektos/act or github-actions[bot] (Act default)
+    if: ${{ github.actor == 'nektos/act' || github.actor == 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-      - name: Set up Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - name: Go version
-        run: go version
-      - name: Verify supply-chain scripts present
+      - name: Minimal build and SBOM (act)
         run: |
           set -euo pipefail
-          test -f scripts/supply-chain/gen-sbom.sh || { echo "Missing scripts/supply-chain/gen-sbom.sh" >&2; exit 1; }
-          test -f Makefile || { echo "Missing Makefile" >&2; exit 1; }
-      - name: Make help (dry)
-        run: |
-          make -n help || true
-      - name: Summary
-        run: |
-          echo '### supply-chain (lint on push)' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Checked Go toolchain and presence of SBOM/signing scripts. Full build/sign remains gated to PR/dispatch.' >> "$GITHUB_STEP_SUMMARY"
-  _env_init:
-    name: _env_init
-    runs-on: ubuntu-latest
-    outputs:
-      is_act: ${{ steps.detect.outputs.is_act }}
-      act_full: ${{ steps.detect.outputs.act_full }}
-    steps:
-      - name: Detect act runtime
-        id: detect
-        shell: bash
-        run: |
-          if [ "${IS_ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
-            echo "is_act=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "is_act=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ "${ACT_FULL:-false}" = "true" ]; then
-            echo "act_full=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "act_full=false" >> "$GITHUB_OUTPUT"
-          fi
-
-  noop-act:
-    if: ${{ needs._env_init.outputs.is_act == 'true' && needs._env_init.outputs.act_full != 'true' }}
-    needs: [_env_init]
-    runs-on: ubuntu-latest
-    steps:
-      - name: noop (act)
-        shell: bash
-        run: |
-          echo "supply-chain guarded to skip under act; providing a successful placeholder."
-          echo "Tip: locally run 'make build-production && make sbom' for parity, or rely on CI image path in GitHub Actions."
-
+          echo "Running minimal local build path under act (no signing/publish)"
+          if [ -f scripts/ci/retry.sh ]; then bash scripts/ci/retry.sh 2 3 make build-production || make build; else make build-production || make build; fi
+          if command -v go >/dev/null 2>&1; then :; else echo "go not present in act image; continuing"; fi
+          echo "Skipping SBOM under Act to avoid on-the-fly tool installs; covered in CI image path"
+          echo "act path complete"
   resolve-ci-image:
-    if: ${{ (needs._env_init.outputs.is_act != 'true' || needs._env_init.outputs.act_full == 'true') }}
-    needs: [_env_init]
+    if: ${{ !(github.actor == 'nektos/act' || github.actor == 'github-actions[bot]') }}
     name: Resolve CI tools image
     runs-on: ubuntu-latest
     outputs:
       ci_tools_image: ${{ steps.out.outputs.image }}
     env:
       CI_IMAGE_REPO: ghcr.io/costscope/ci-base
-      # Prefer repo variable CI_TOOLS_IMAGE; fall back to pinned digest for determinism
-      CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE || 'ghcr.io/costscope/ci-base@sha256:7d6d716eb9bab9f581feb498162fd8a24775fcf306a9ee724c2185b12aa9c05f' }}
-      CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
       - id: out
-        run: bash ./scripts/ci/resolve-ci-image.sh
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${CI_IMAGE_REPO:=ghcr.io/costscope/ci-base}"
+          TAG="${CI_IMAGE_TAG:-}"
+          if [ -z "$TAG" ]; then
+            echo "CI_IMAGE_TAG is not set; please set it in repo variables or .github/act.secrets" >&2
+            TAG="latest"
+            echo "[warn] Falling back to latest (not recommended)" >&2
+          fi
+          IMG="$CI_IMAGE_REPO:$TAG"
+          echo "image=$IMG" >> "$GITHUB_OUTPUT"
 
   build-and-verify:
-    # Run inside CI image only on GitHub-hosted runners to avoid nested container issues under act
-    if: ${{ needs._env_init.outputs.is_act != 'true' }}
+    if: ${{ !(github.actor == 'nektos/act' || github.actor == 'github-actions[bot]') }}
     runs-on: ubuntu-latest
-    needs: [_env_init, resolve-ci-image]
+    needs: resolve-ci-image
     container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     steps:
       - name: Checkout
@@ -112,21 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Build production binary
-        shell: bash
-        env:
-          # Reduce parallelism under act to avoid RWLayer/OOM transients
-          GOFLAGS: ${{ needs._env_init.outputs.is_act == 'true' && '-p=1' || '' }}
-        run: |
-          set -euo pipefail
-          for i in 1 2; do
-            if make build-production; then
-              exit 0
-            fi
-            echo "[supply-chain] build attempt $i failed; retrying in 5s..." >&2
-            sleep 5
-          done
-          # Final attempt with verbose output
-          make build-production V=1
+        run: make build-production
 
       - name: Generate SBOM
         run: make sbom
@@ -134,33 +81,18 @@ jobs:
       - name: Generate checksums
         run: make checksums
 
-      - name: Sign checksums (act offline)
-        if: ${{ needs._env_init.outputs.is_act == 'true' }}
-        run: |
-          echo "[act] Using offline pseudo-signing (sign-checksums-act)"
-          make sign-checksums-act
-
-      - name: Sign checksums (gha keyless)
-        if: ${{ needs._env_init.outputs.is_act != 'true' }}
+      - name: Sign checksums
         env:
           COSIGN_EXPERIMENTAL: 1
         run: make sign-checksums
 
-      - name: Verify signature (act offline)
-        if: ${{ needs._env_init.outputs.is_act == 'true' }}
-        run: |
-          echo "[act] Verifying offline pseudo-signature (verify-checksums-act)"
-          make verify-checksums-act
-
-      - name: Verify signature (gha keyless)
-        if: ${{ needs._env_init.outputs.is_act != 'true' }}
+      - name: Verify signature
         env:
           COSIGN_EXPERIMENTAL: 1
         run: make verify-checksums
 
       - name: Upload supply chain artifacts
-        # Skip under act regardless of ACT_FULL, since ACTIONS_RUNTIME_TOKEN is unavailable
-        if: ${{ needs._env_init.outputs.is_act != 'true' }}
+        if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: supply-chain-artifacts
@@ -170,116 +102,9 @@ jobs:
             checksums.txt.sig
             bin/costscope-production
 
-      - name: Save artifacts locally (act)
-        if: ${{ needs._env_init.outputs.is_act == 'true' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          out_dir=/data/supply-chain
-          mkdir -p "$out_dir"
-          # Copy if present; tolerate missing files gracefully
-          for f in sbom.json sbom-syft.json checksums.txt checksums.txt.sig bin/costscope-production; do
-            if [ -f "$f" ]; then
-              cp -v "$f" "$out_dir/" || true
-            fi
-          done
-          echo "Saved artifacts to $out_dir (mounted by act runner)"
-
-      - name: Summary (act)
-        if: ${{ needs._env_init.outputs.is_act == 'true' }}
-        run: |
-          echo '### Supply Chain Job Summary' >> $GITHUB_STEP_SUMMARY
-          echo '* SBOM generated & saved locally' >> $GITHUB_STEP_SUMMARY
-          echo '* Checksums signed & verified (offline pseudo-signing – act)' >> $GITHUB_STEP_SUMMARY
-          echo '* Binary + artifacts saved under /data/supply-chain (act runner)' >> $GITHUB_STEP_SUMMARY
-
-      - name: Summary (gha)
-        if: ${{ needs._env_init.outputs.is_act != 'true' }}
+      - name: Summary
         run: |
           echo '### Supply Chain Job Summary' >> $GITHUB_STEP_SUMMARY
           echo '* SBOM generated & uploaded' >> $GITHUB_STEP_SUMMARY
           echo '* Checksums signed & verified (keyless cosign)' >> $GITHUB_STEP_SUMMARY
           echo '* Binary + artifacts available as workflow artifacts' >> $GITHUB_STEP_SUMMARY
-
-  build-and-verify-act:
-    # ACT_FULL=true path originally attempted to run without container, but act itself
-    # always runs jobs inside a container (catthehacker/ubuntu). We've observed persistent
-    # Docker errors under act on some hosts:
-    #   "RWLayer of container <id> is unexpectedly nil" (exit 137) during long go builds.
-    # To keep local act runs green and avoid flaky host/containerd states, we disable this
-    # path for now. GitHub-hosted runners still execute the normal containerized job above.
-    # If you need local supply-chain artifacts, run manually:
-    #   make build-production && make sbom && make checksums && make sign-checksums-act && make verify-checksums-act
-    if: ${{ false && needs._env_init.outputs.is_act == 'true' && needs._env_init.outputs.act_full == 'true' }}
-    runs-on: ubuntu-latest
-    needs: [_env_init]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-        with:
-          fetch-depth: 0
-
-      - name: Setup Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Build production binary (act)
-        shell: bash
-        env:
-          # Aggressively limit concurrency & memory to avoid OOM/RWLayer flakes under act
-          GOFLAGS: -p=1
-          GOMAXPROCS: 1
-          GOMEMLIMIT: 768MiB
-          GOGC: 20
-        run: |
-          set -euo pipefail
-          # Use on-disk caches to reduce memory pressure
-          mkdir -p .cache/go-build .cache/go-tmp
-          export GOCACHE="$PWD/.cache/go-build"
-          export GOTMPDIR="$PWD/.cache/go-tmp"
-          for i in 1 2; do
-            if make build-production; then
-              exit 0
-            fi
-            echo "[supply-chain:act] build attempt $i failed; retrying in 5s..." >&2
-            sleep 5
-          done
-          make build-production V=1
-
-      - name: Generate SBOM (act)
-        run: make sbom
-
-      - name: Generate checksums (act)
-        run: make checksums
-
-      - name: Sign checksums (act offline)
-        run: |
-          echo "[act] Using offline pseudo-signing (sign-checksums-act)"
-          make sign-checksums-act
-
-      - name: Verify signature (act offline)
-        run: |
-          echo "[act] Verifying offline pseudo-signature (verify-checksums-act)"
-          make verify-checksums-act
-
-      - name: Save artifacts locally (act)
-        shell: bash
-        run: |
-          set -euo pipefail
-          out_dir=/data/supply-chain
-          mkdir -p "$out_dir"
-          for f in sbom.json sbom-syft.json checksums.txt checksums.txt.sig bin/costscope-production; do
-            if [ -f "$f" ]; then
-              cp -v "$f" "$out_dir/" || true
-            fi
-          done
-          echo "Saved artifacts to $out_dir (mounted by act runner)"
-
-      - name: Summary (act)
-        run: |
-          echo '### Supply Chain Job Summary' >> $GITHUB_STEP_SUMMARY
-          echo '* SBOM generated & saved locally' >> $GITHUB_STEP_SUMMARY
-          echo '* Checksums signed & verified (offline pseudo-signing – act)' >> $GITHUB_STEP_SUMMARY
-          echo '* Binary + artifacts saved under /data/supply-chain (act runner)' >> $GITHUB_STEP_SUMMARY

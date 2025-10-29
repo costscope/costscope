@@ -162,7 +162,7 @@ func scanFuncs(filePath string, groups map[string][]funcRef) error {
 	if !strings.HasSuffix(filePath, ".go") {
 		return nil
 	}
-	src, err := os.ReadFile(filePath) // safe: tracked file inside repository
+	src, err := os.ReadFile(filePath) // safe: tracked file inside repository // #nosec G304
 	if err != nil {
 		return err
 	}

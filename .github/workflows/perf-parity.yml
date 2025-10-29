@@ -40,9 +40,7 @@ jobs:
       - name: Go version
         run: go version
       - name: Module sanity
-        run: |
-          set -euo pipefail
-          go list ./... >/dev/null
+        run: bash scripts/ci/module-sanity.sh
       - name: Summary
         run: |
           echo '### perf-parity (lint on push)' >> "$GITHUB_STEP_SUMMARY"
@@ -52,13 +50,27 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_act: ${{ steps.set.outputs.is_act }}
+      act_full: ${{ steps.set.outputs.act_full }}
     steps:
       - id: set
-        run: echo "is_act=${{ github.actor == 'nektos/act' }}" >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_ACT_VAL=false
+          if [ "${IS_ACT:-}" = "true" ] || [ "${ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
+            IS_ACT_VAL=true
+          fi
+          if [ "${ACT_FULL:-false}" = "true" ]; then
+            ACT_FULL_VAL=true
+          else
+            ACT_FULL_VAL=false
+          fi
+          echo "is_act=${IS_ACT_VAL}" >> "$GITHUB_OUTPUT"
+          echo "act_full=${ACT_FULL_VAL}" >> "$GITHUB_OUTPUT"
   noop-act:
     # Skip heavy jobs under local act runs; show a noop message instead
     needs: _env_init
-    if: ${{ needs._env_init.outputs.is_act == 'true' }}
+    if: ${{ needs._env_init.outputs.is_act == 'true' && needs._env_init.outputs.act_full != 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: noop (act)
@@ -66,7 +78,7 @@ jobs:
   perf-parity:
     # Allow skipping under act to avoid long compute and flaky environment
     needs: _env_init
-    if: ${{ needs._env_init.outputs.is_act != 'true' }}
+    if: ${{ needs._env_init.outputs.is_act != 'true' || needs._env_init.outputs.act_full == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -92,7 +104,7 @@ jobs:
       # (kept lean to avoid duplicated work)
 
       - name: Run perf+parity
-        run: make perf-parity
+        run: bash scripts/ci/perf-parity-run.sh
 
       - name: Upload artifacts
         if: ${{ always() && github.actor != 'nektos/act' }}

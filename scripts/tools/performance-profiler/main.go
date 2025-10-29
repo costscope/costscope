@@ -165,7 +165,7 @@ func (p *PerformanceProfiler) PrintResults() {
 func (p *PerformanceProfiler) writeProfile(filename, profName string) error {
 	// Security: filename is selected from fixed set (cpu.prof, mem.prof, block.prof, mutex.prof).
 	//nolint:gosec // G304: controlled internal filenames
-	f, err := os.Create(filename)
+	f, err := os.Create(filename) // #nosec G304
 	if err != nil {
 		return err
 	}

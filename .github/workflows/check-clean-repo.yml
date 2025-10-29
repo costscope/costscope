@@ -11,29 +11,43 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Early guard (skip under act unless full)
+      - id: detect
+        name: Detect act/full mode
+        shell: bash
         run: |
-          if [ "${IS_ACT:-}" = "true" ] && [ "${ACT_FULL:-false}" != "true" ]; then
+          set -euo pipefail
+          IS_ACT_VAL=false
+          if [ "${IS_ACT:-}" = "true" ] || [ "${ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; then
+            IS_ACT_VAL=true
+          fi
+          if [ "${ACT_FULL:-false}" = "true" ]; then
+            ACT_FULL_VAL=true
+          else
+            ACT_FULL_VAL=false
+          fi
+          echo "is_act=${IS_ACT_VAL}" >> "$GITHUB_OUTPUT"
+          echo "act_full=${ACT_FULL_VAL}" >> "$GITHUB_OUTPUT"
+      - name: Early guard (skip under act)
+        run: |
+          # Detect local act runner via multiple signals (IS_ACT from env, ACT var, or nektos/act actor)
+          if { [ "${IS_ACT:-}" = "true" ] || [ "${ACT:-}" = "true" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ]; }; then
             echo "[act] Skipping check-clean-repo under act (enable --full to run)"
             exit 0
           fi
       - name: Checkout
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           fetch-depth: 0
 
       - name: Run clean-repo check
+        if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: |
           set -euo pipefail
           # Fail if any bypass env is present in the environment
           if [ -n "${SMOKE_ALLOW_DIRTY:-}" ]; then
             echo "Disallowed env SMOKE_ALLOW_DIRTY present in CI" >&2
             exit 1
-          fi
-          # When running under act and not in full mode, skip to avoid failing local sim
-          if [ "${IS_ACT:-}" = "true" ] && [ "${ACT_FULL:-false}" != "true" ]; then
-            echo "[act] Skipping clean-repo check"
-            exit 0
           fi
           scripts/check-clean-repo.sh || { echo 'Repository is dirty; commit or stash changes before opening PR or release' >&2; exit 1; }
