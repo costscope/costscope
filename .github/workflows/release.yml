@@ -140,8 +140,8 @@ jobs:
           make sbom-syft
           make sbom-verify
       - name: Upload SBOM artifact (pre-build)
-        # pinned actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        # pinned actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 — source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
           name: sbom-source
           path: |
@@ -181,7 +181,7 @@ jobs:
         run: bash ./scripts/release/generate-changelog.sh "${{ steps.meta.outputs.version }}"
 
       - name: Upload release notes artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
           name: release-notes
           path: RELEASE_NOTES.md
@@ -216,7 +216,7 @@ jobs:
             go build -ldflags "-s -w -X main.version=$VERSION -extldflags '-Wl,-dead_strip -Wl,-x'" -trimpath -o "$out" .
           tar czf "$out.tar.gz" "$out"
       - name: Upload artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
           name: ${{ matrix.goos }}-${{ matrix.goarch }}
           path: |
@@ -257,7 +257,7 @@ jobs:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: bash ./scripts/release/checksums-and-sign.sh
       - name: Upload aggregated artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
           name: release-bundle
           path: |
