@@ -35,22 +35,26 @@ else
     } >> "$ENV_FILE"
     ci::log "Detected local act runtime (actor match); enabling IS_ACT=true"
   else
-    # Fallback heuristics: allow forcing act mode when running locally using dev-local tag or explicit FORCE_ACT
-    if [[ "${FORCE_ACT:-}" == "true" || "${CI_IMAGE_TAG:-}" == "dev-local" ]]; then
-      DETECTED_IS_ACT="true"
-      echo "IS_ACT=true" >> "$ENV_FILE"
-      echo "ACT=true" >> "$ENV_FILE"
-      ci::log "[act-detect] FORCE_ACT or dev-local CI_IMAGE_TAG detected; setting IS_ACT=true"
-    elif [[ -z "${ACTIONS_RUNTIME_TOKEN:-}" ]]; then
-      # On real GitHub-hosted runners, ACTIONS_RUNTIME_TOKEN is always present.
-      # Under act emulation this env var is typically absent; use that as an additional robust signal.
-      DETECTED_IS_ACT="true"
-      echo "IS_ACT=true" >> "$ENV_FILE"
-      echo "ACT=true" >> "$ENV_FILE"
-      ci::log "[act-detect] ACTIONS_RUNTIME_TOKEN is missing; assuming act and setting IS_ACT=true"
-    else
-      echo "IS_ACT=false" >> "$ENV_FILE"
-    fi
+        # Prefer strong signals first; only treat dev-local tag as act when runtime token is missing.
+        if [[ "${FORCE_ACT:-}" == "true" ]]; then
+          DETECTED_IS_ACT="true"
+          echo "IS_ACT=true" >> "$ENV_FILE"
+          echo "ACT=true" >> "$ENV_FILE"
+          ci::log "[act-detect] FORCE_ACT=true; enabling IS_ACT regardless of other signals"
+        elif [[ -z "${ACTIONS_RUNTIME_TOKEN:-}" ]]; then
+          # On real GitHub-hosted runners, ACTIONS_RUNTIME_TOKEN is always present.
+          # Under act emulation this env var is typically absent; use that as an additional robust signal.
+          DETECTED_IS_ACT="true"
+          echo "IS_ACT=true" >> "$ENV_FILE"
+          echo "ACT=true" >> "$ENV_FILE"
+          ci::log "[act-detect] ACTIONS_RUNTIME_TOKEN is missing; assuming act and setting IS_ACT=true"
+        elif [[ "${CI_IMAGE_TAG:-}" == "dev-local" ]]; then
+          # Do NOT auto-mark as act on GitHub when runtime token is present; just warn.
+          ci::log "[act-detect] CI_IMAGE_TAG=dev-local on GitHub runner; treating as GitHub (IS_ACT=false)"
+          echo "IS_ACT=false" >> "$ENV_FILE"
+        else
+          echo "IS_ACT=false" >> "$ENV_FILE"
+        fi
   fi
 fi
 

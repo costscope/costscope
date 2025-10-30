@@ -10,6 +10,10 @@ cd "$ROOT_DIR"
 ARTIFACT_SUMMARY="cli-drift-summary.txt"
 ARTIFACT_DIFF="cli-diff.patch"
 
+# Ensure VCS stamping does not fail inside ephemeral CI containers without full git metadata
+# This flag is respected by all subsequent `go` commands (go run/build/test)
+export GOFLAGS="${GOFLAGS:-} -buildvcs=false"
+
 # Regenerate builders via make (preferred); fallback only if target genuinely missing
 if make -q gen-commands >/dev/null 2>&1 || grep -q '^gen-commands:' mk/gen.mk; then
   make -s gen-commands

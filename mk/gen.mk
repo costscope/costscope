@@ -1,5 +1,10 @@
 # mk/gen.mk - code generation & spec related targets
 
+# Ensure Go invocations during generation/drift checks don't fail due to missing VCS metadata
+# in ephemeral CI containers. Respect existing GOFLAGS and append -buildvcs=false.
+GOFLAGS := $(GOFLAGS) -buildvcs=false
+export GOFLAGS
+
 .PHONY: gen-actions gen-actions-generate gen-commands gen-commands-drift gen-enterprise-stub gen-integration-cli-drift gen-integration-cli-docs gen-provider loc-guard
 
 gen-enterprise-stub: ## Generate enterprise stub scaffolds
