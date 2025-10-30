@@ -69,8 +69,7 @@ jobs:
           test -f scripts/ci/compute-version-vars.sh || { echo "Missing scripts/ci/compute-version-vars.sh" >&2; exit 1; }
       - name: Dry-run version vars script
         run: |
-          chmod +x scripts/ci/compute-version-vars.sh || true
-          scripts/ci/compute-version-vars.sh || true
+          bash scripts/ci/compute-version-vars.sh || true
       - name: Summary
         run: |
           echo '### docker-release (lint on push)' >> "$GITHUB_STEP_SUMMARY"
@@ -132,8 +131,7 @@ jobs:
         id: vars
         shell: bash
         run: |
-          chmod +x scripts/ci/compute-version-vars.sh || true
-          scripts/ci/compute-version-vars.sh
+          bash scripts/ci/compute-version-vars.sh
       - name: Echo computed env
         run: |
           echo "VERSION=${{ steps.vars.outputs.version }}"
@@ -202,8 +200,7 @@ jobs:
         if: ${{ steps.detect.outputs.is_act != 'true' }}
         run: |
           docker run -d --name costscope-test -p 8080:8080 costscope:${{ steps.vars.outputs.version }}
-          chmod +x scripts/ci/docker-wait-ready.sh || true
-          scripts/ci/docker-wait-ready.sh http://127.0.0.1:8080/health/ready 20 3
+          bash scripts/ci/docker-wait-ready.sh http://127.0.0.1:8080/health/ready 20 3
 
       - name: Stop container (always)
         if: ${{ always() && steps.detect.outputs.is_act != 'true' }}
