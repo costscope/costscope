@@ -50,7 +50,14 @@ case "$MODE" in
   *) echo "[coverage-guard] unsupported mode: $MODE" >&2; exit 3;;
 esac
 
-BASELINE_FILE="configs/coverage/${MODE}.baseline"
+# Resolve repo root robustly: prefer git, else derive from this script path (../../..)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if root_from_git=$(git rev-parse --show-toplevel 2>/dev/null); then
+  REPO_ROOT="$root_from_git"
+else
+  REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+BASELINE_FILE="$REPO_ROOT/configs/coverage/${MODE}.baseline"
 if [[ ! -f "$BASELINE_FILE" ]]; then
   echo "[coverage-guard] baseline file missing: $BASELINE_FILE" >&2
   exit 3

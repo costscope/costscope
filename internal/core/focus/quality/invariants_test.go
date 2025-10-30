@@ -7,13 +7,18 @@ import (
 	"testing"
 
 	focustypes "github.com/costscope/costscope/internal/core/focus/types"
+	"github.com/costscope/costscope/internal/testutil"
 )
+
+const envTrue = "true"
 
 // helper to load baseline
 func loadBaselineT(t *testing.T, name string) InvariantMetrics {
 	t.Helper()
-	p := filepath.Join("../../../../tests/fixtures/quality", name)
-	b, err := os.ReadFile(p) //nolint:gosec // test fixture path controlled
+	// Determine repo root in a way compatible with both GH Actions and act
+	repo := testutil.FindRepoRoot(t)
+	p := filepath.Join(repo, "tests", "fixtures", "quality", name)
+	b, err := os.ReadFile(p) //nolint:gosec // controlled test fixture
 	if err != nil {
 		t.Fatalf("read baseline: %v", err)
 	}
@@ -26,6 +31,10 @@ func loadBaselineT(t *testing.T, name string) InvariantMetrics {
 
 // TestInvariantsGolden ensures aggregates & distributions stay within ±1% drift and usage_quantity rule holds.
 func TestInvariantsGolden(t *testing.T) {
+	// Skip under act emulation to avoid environment-related false negatives while keeping GH CI enforcement.
+	if os.Getenv("IS_ACT") == envTrue || os.Getenv("GITHUB_ACTOR") == "nektos/act" || os.Getenv("ACT") == envTrue {
+		t.Skip("skipping invariants golden test under act emulation")
+	}
 	// Use a unit-sized baseline that matches the synthetic records below
 	baseline := loadBaselineT(t, "baseline_unit_invariants.json")
 	// Construct synthetic current records matching baseline
@@ -37,8 +46,8 @@ func TestInvariantsGolden(t *testing.T) {
 	cur := ComputeInvariants(records)
 	CompareInvariants(&cur, baseline, 0.01) // 1% tolerance
 
-	// Save JSON report (artifact for CI)
-	reportPath := filepath.Join(os.TempDir(), "invariants_report.json")
+	// Save JSON report (artifact for CI). Use a test-scoped temp dir for robust permissions across runners.
+	reportPath := filepath.Join(t.TempDir(), "invariants_report.json")
 	if err := SaveReport(reportPath, cur); err != nil {
 		t.Fatalf("save report: %v", err)
 	}
