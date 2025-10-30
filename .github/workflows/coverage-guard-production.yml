@@ -60,6 +60,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Ensure baseline file exists
+        if: ${{ steps.guard.outputs.skip != 'true' }}
+        run: |
+          # Seed a default baseline if missing to prevent false negatives on older branches
+          if [ ! -f configs/coverage/production.baseline ]; then
+            echo "[coverage-guard] baseline missing; seeding default 92.0" >&2
+            mkdir -p configs/coverage
+            echo "92" > configs/coverage/production.baseline
+          fi
+
       - name: "Sanity: go version"
         if: ${{ steps.guard.outputs.skip != 'true' }}
         run: go version

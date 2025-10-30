@@ -180,6 +180,11 @@ jobs:
       - name: Run golangci-lint (with duckdb build tag, perf scope)
         run: bash scripts/ci/run_golangci_perf.sh
 
+      - name: Build release binary (for e2e)
+        run: |
+          # scripts/e2e/run.sh expects a repo-root ./costscope binary
+          make build-release
+
       - name: Prepare e2e test fixtures
         run: |
           if [ -x ./scripts/e2e/run.sh ]; then ./scripts/e2e/run.sh; else echo "scripts/e2e/run.sh not found or not executable"; fi
