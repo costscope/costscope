@@ -76,7 +76,14 @@ fi
 
 tmp=$(mktemp)
 echo "[coverage-guard] mode=$MODE pkg=$PKG baseline=$baseline allowed=$allowed min=$min" >&2
-if ! go test -count=1 -coverprofile="$tmp" "$PKG" 2>&1 | sed 's/^/[coverage-guard] test: /' >&2; then
+## Silence noisy Go VCS stamping warnings in CI logs without affecting build outputs
+goflags_init="${GOFLAGS:-}"
+if [[ -z "$goflags_init" ]]; then
+  goflags_effective="-buildvcs=false"
+else
+  goflags_effective="$goflags_init -buildvcs=false"
+fi
+if ! GOFLAGS="$goflags_effective" go test -count=1 -coverprofile="$tmp" "$PKG" 2>&1 | sed 's/^/[coverage-guard] test: /' >&2; then
   echo "[coverage-guard] test run failed" >&2
   rm -f "$tmp"
   exit 1

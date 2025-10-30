@@ -69,6 +69,8 @@ case "${VARIANT}" in
     if ci::is_act; then
       make test-sqlite || env -u GOROOT GOTOOLCHAIN=auto go test -v -cover -tags sqlite ./...
     else
+      # Enable cgo for race detector and sqlite bindings in CI containers
+      export CGO_ENABLED=1
       make test-sqlite || go test -race -tags sqlite ./...
     fi
     ;;
@@ -76,6 +78,8 @@ case "${VARIANT}" in
     if ci::is_act; then
       make test-duckdb || env -u GOROOT GOTOOLCHAIN=auto go test -v -cover -tags duckdb ./...
     else
+      # Enable cgo for race detector and duckdb bindings in CI containers
+      export CGO_ENABLED=1
       make test-duckdb || go test -race -tags duckdb ./...
     fi
     ;;

@@ -66,8 +66,9 @@ jobs:
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-shellcheck
-          CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
-          CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
+          # Use a fully-qualified, pinned image reference from repo variables.
+          # Prefer image-specific variable to avoid confusion with other CI images.
+          CI_TOOLS_IMAGE: ${{ vars.CI_SHELLCHECK_IMAGE }}
         run: bash ./scripts/ci/resolve-ci-image.sh
       - name: Echo image
         run: echo "Resolved image=${{ steps.out.outputs.image }}"
