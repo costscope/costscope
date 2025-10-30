@@ -31,6 +31,7 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             image: ${{ steps.out.outputs.image }}
+            generic: ${{ steps.out.outputs.generic }}
         steps:
             - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
             - id: out
@@ -49,6 +50,7 @@ jobs:
                   # Try normal resolution first; if it fails (e.g., env not set), set a safe fallback.
                   if bash ./scripts/ci/resolve-ci-image.sh; then
                     echo "[resolve-ci-image] Resolution script succeeded"
+                    echo "generic=false" >> "$GITHUB_OUTPUT"
                   else
                     echo "[resolve-ci-image] Resolution script failed; applying fallback image" >&2
                     if [ "${GITHUB_ACTOR:-}" = "nektos/act" ] || [ "${IS_ACT:-}" = "true" ]; then
@@ -58,6 +60,7 @@ jobs:
                       echo "image=ubuntu:22.04" >> "$GITHUB_OUTPUT"
                       echo "[resolve-ci-image] Using generic fallback image: ubuntu:22.04" >&2
                     fi
+                    echo "generic=true" >> "$GITHUB_OUTPUT"
                   fi
     build-test-scan-sign-push:
         # Allow matrix job under act; internal guard step will skip non-slim variants early.
@@ -176,17 +179,17 @@ jobs:
               run: go vet ./...
 
             - name: govulncheck
-              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               run: bash -c 'govulncheck ./...'
 
             - name: Security scan (gosec)
-              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: securego/gosec@6be2b51fd78feca86af91f5186b7964d76cb1256
               with:
                   args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
 
             - name: Secrets scan (gitleaks)
-              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
               env:
                   GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
@@ -194,7 +197,7 @@ jobs:
                   args: detect --source . --no-banner --redact --config .gitleaks.toml
 
             - name: Docker image vulnerability scan (Trivy)
-              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
               with:
                   version: ${{ env.TRIVY_VERSION }}
@@ -205,11 +208,11 @@ jobs:
                   severity: CRITICAL,HIGH
 
             - name: Set up Docker Buildx
-              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
 
             - name: Login to GHCR
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
               with:
                   registry: ghcr.io
@@ -217,14 +220,14 @@ jobs:
                   password: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Extract metadata (tags, labels)
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               id: meta
               uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f
               with:
                   images: ghcr.io/${{ github.repository_owner }}/costscope
 
             - name: Build image with SBOM and provenance
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
               with:
                   context: .
@@ -235,7 +238,7 @@ jobs:
                   provenance: mode=max
 
             - name: Determine primary image ref
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               id: imgref
               run: |
                   bash ./scripts/ci/detect-primary-image-ref.sh <<'EOF'
@@ -243,7 +246,7 @@ jobs:
                   EOF
 
             - name: Trivy scan built image
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
               with:
                   version: ${{ env.TRIVY_VERSION }}
@@ -253,11 +256,11 @@ jobs:
                   ignore-unfixed: true
 
             - name: Install cosign
-              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
 
             - name: Sign image with cosign
-              if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               env:
                   COSIGN_EXPERIMENTAL: 1
               run: |
@@ -273,7 +276,7 @@ jobs:
               run: bash ./scripts/ci/detect-zap-target.sh
 
             - name: Optional DAST with OWASP ZAP Baseline
-              if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' }}
+              if: ${{ steps.zap.outputs.enabled == 'true' && matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
               uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25
               with:
                   target: ${{ steps.zap.outputs.target }}
