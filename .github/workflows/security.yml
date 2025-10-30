@@ -11,7 +11,8 @@ env:
   # Pinned to align with CI; used by scripts/security/run-trivy-*.sh
   TRIVY_VERSION: "0.56.2"
   # Tools container image default (will be overridden by guard job output)
-  CI_TOOLS_IMAGE: ghcr.io/costscope/ci-base:latest
+  # Default to an immutable digest to avoid accidental ':latest' drift when repo variable is absent
+  CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE || 'ghcr.io/costscope/ci-base@sha256:7d6d716eb9bab9f581feb498162fd8a24775fcf306a9ee724c2185b12aa9c05f' }}
 
 on:
   pull_request:
@@ -37,32 +38,6 @@ jobs:
     outputs:
       ci_tools_image: ${{ steps.check.outputs.ci_tools_image }}
     steps:
-      - name: Load CI_TOOLS_IMAGE from repository variables (if set)
-        env:
-          GH_API: https://api.github.com
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          owner="${GITHUB_REPOSITORY%/*}"
-          repo="${GITHUB_REPOSITORY#*/}"
-          name="CI_TOOLS_IMAGE"
-          url="${GH_API}/repos/${owner}/${repo}/actions/variables/${name}"
-          hdrs=(
-            -H "Accept: application/vnd.github+json"
-            -H "Authorization: Bearer ${GH_TOKEN}"
-            -H "X-GitHub-Api-Version: 2022-11-28"
-          )
-          status=$(curl -sS -o /tmp/var.json -w "%{http_code}" "${hdrs[@]}" "$url") || true
-          if [ "$status" -ge 200 ] && [ "$status" -lt 300 ]; then
-            # naive JSON extraction for 'value' field without jq
-            val=$(sed -n 's/.*"value"\s*:\s*"\{0,1\([^"}]*\)\{0,1\}".*/\1/p' /tmp/var.json | head -n1)
-            if [ -n "$val" ]; then
-              echo "CI_TOOLS_IMAGE=$val" >> "$GITHUB_ENV"
-              echo "Loaded CI_TOOLS_IMAGE from repository variable: $val"
-            fi
-          else
-            echo "No repository variable CI_TOOLS_IMAGE found (status $status); using workflow env default."
-          fi
       - name: Enforce non-floating CI_TOOLS_IMAGE
         id: check
         run: |
