@@ -289,3 +289,7 @@ costscope-backstage-plugin/packages/plugin/temp/
 
 # Temporary root scripts created by assistants
 /tmp-*.sh
+
+# Release checksum artifacts (uploaded in releases, not tracked in repo)
+/checksums.txt
+/checksums.txt.sig
