@@ -1,0 +1,12 @@
+{
+  "row_count": 3,
+  "sum_effective_cost": 30,
+  "sum_list_cost": 30,
+  "sum_usage_quantity": 300,
+  "charge_category_distribution": {"Usage": 100},
+  "pricing_category_distribution": {"Standard": 100},
+  "provider_distribution": {"Amazon Web Services": 100},
+  "negative_usage_allowed_count": 0,
+  "negative_usage_violation_count": 0,
+  "metadata": {"description": "Unit baseline for TestInvariantsGolden"}
+}

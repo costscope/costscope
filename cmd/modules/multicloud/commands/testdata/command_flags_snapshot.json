@@ -1,0 +1,85 @@
+{
+  "compare": [
+    "aggregation",
+    "currency",
+    "include-provider-breakdown"
+  ],
+  "discover": [
+    "include-costs",
+    "include-metadata",
+    "regions",
+    "resource-types"
+  ],
+  "feasibility": [
+    "source",
+    "target"
+  ],
+  "inventory": null,
+  "migrate": [
+    "resources",
+    "source",
+    "target"
+  ],
+  "migrate-advanced": [
+    "include-all",
+    "resources",
+    "risk-tolerance",
+    "source",
+    "target"
+  ],
+  "migration-plan": [
+    "source",
+    "target"
+  ],
+  "multicloud": [
+    "config",
+    "end-date",
+    "format",
+    "output",
+    "providers",
+    "start-date"
+  ],
+  "optimize": [
+    "auto-approval-threshold",
+    "risk-tolerance",
+    "savings-threshold",
+    "types"
+  ],
+  "optimize-enhanced": [
+    "auto-approval",
+    "include-ml",
+    "providers",
+    "risk-tolerance",
+    "savings-threshold",
+    "simulation-mode",
+    "types"
+  ],
+  "recommendations": [
+    "max",
+    "providers",
+    "risk-tolerance",
+    "savings-threshold"
+  ],
+  "report-enhanced": [
+    "aggregation",
+    "charts",
+    "currency",
+    "end-date",
+    "forecasting",
+    "optimizations",
+    "provider-breakdown",
+    "providers",
+    "start-date",
+    "type"
+  ],
+  "validate": null,
+  "validate-enhanced": [
+    "all-checks",
+    "compliance",
+    "config",
+    "detailed",
+    "fix-issues",
+    "providers",
+    "security"
+  ]
+}

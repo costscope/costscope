@@ -148,6 +148,7 @@ coverage/
 !tests/fixtures/quality/baseline_azure_invariants.json
 !tests/fixtures/quality/baseline_gcp_invariants.json
 !tests/fixtures/quality/baseline_invariants.json
+!tests/fixtures/quality/baseline_unit_invariants.json
 # Allow specific E2E CSV fixtures required for local/act runs
 !tests/fixtures/aws/cur_baseline_sample.csv
 !tests/fixtures/azure/usage.csv
@@ -157,6 +158,9 @@ coverage/
 !tests/fixtures/gcp/credit_cud.csv
 !tests/fixtures/gcp/credit_spot.csv
 !tests/fixtures/gcp/credit_sustained_promo.csv
+
+# Track CLI flag snapshot used by tests
+!cmd/modules/multicloud/commands/testdata/command_flags_snapshot.json
 
 # Environment files (keep only examples)
 .env
