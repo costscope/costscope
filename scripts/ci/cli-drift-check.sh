@@ -31,6 +31,10 @@ chmod 0644 cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/mo
 if ! git diff --quiet -- cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go; then
   echo "CLI command drift detected" | tee "$ARTIFACT_SUMMARY"
   git --no-pager diff -- cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go > "$ARTIFACT_DIFF" || true
+  # Print a short excerpt to CI logs to aid debugging
+  echo "--- Begin CLI drift (first 200 lines) ---"
+  sed -n '1,200p' "$ARTIFACT_DIFF" || true
+  echo "--- End CLI drift excerpt ---"
   exit 1
 else
   echo "No CLI command drift" > "$ARTIFACT_SUMMARY"

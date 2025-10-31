@@ -266,8 +266,9 @@ func main() {
 	emitCommand(&b, s.Root, "root")
 	b.WriteString("\n\treturn root\n}\n")
 
-	// Use 0600 to satisfy gosec G306 (restrictive perms; content is non-sensitive)
-	if err := os.WriteFile(filepath.Clean(*out), []byte(b.String()), 0600); err != nil {
+	// Write with 0644 to align with drift script normalization and avoid mode-only diffs in CI.
+	// #nosec G306 - generated source code file; no sensitive content
+	if err := os.WriteFile(filepath.Clean(*out), []byte(b.String()), 0644); err != nil {
 		log.Fatalf("write output: %v", err)
 	}
 }
