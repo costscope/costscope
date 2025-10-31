@@ -12,8 +12,12 @@ source "$SCRIPTS_DIR/ci/lib/common.sh"
 INPUT=${1:-tests/perf/aws-cur-synth.csv.gz}
 shift || true
 
-# Compute output args (prefer GITHUB_WORKSPACE when available)
-if [ -n "${GITHUB_WORKSPACE:-}" ]; then
+# Compute output args
+# Priority: OUT_DIR if set -> GITHUB_WORKSPACE if set -> current directory
+if [ -n "${OUT_DIR:-}" ]; then
+  mkdir -p "${OUT_DIR}"
+  OUT_ARGS=( -output "${OUT_DIR}/bench_results.json" -prom-output "${OUT_DIR}/perf_metrics.prom" )
+elif [ -n "${GITHUB_WORKSPACE:-}" ]; then
   OUT_ARGS=( -output "${GITHUB_WORKSPACE}/bench_results.json" -prom-output "${GITHUB_WORKSPACE}/perf_metrics.prom" )
 else
   OUT_ARGS=( -output bench_results.json -prom-output perf_metrics.prom )

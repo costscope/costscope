@@ -16,15 +16,11 @@ perf-guard: ## Run targeted legacy vs unified benchmark guard (M11)
 
 perf-bench: ## Run legacy vs unified performance regression guard (TASK-PERF-BENCH)
 	@echo " Running performance regression guard (legacy vs unified)..."
-	# Compute GO_OUT_ARGS at runtime to avoid make conditional directives being interpreted
-	# as shell commands in some execution environments (act / sh wrappers).
-	@if [ -n "$(GITHUB_WORKSPACE)" ]; then \
-		OUT="-output \"$(GITHUB_WORKSPACE)/bench_results.json\""; \
-	else \
-		OUT="-output bench_results.json"; \
-	fi; \
-	go run ./scripts/tools/perf-bench -input demo/focus-conversion/demo-cur-data.csv $$OUT $(EXTRA_ARGS) || (echo " Performance regression detected" && exit 1)
-	@echo " Performance benchmark complete (see bench_results.json)"
+	# Write outputs under OUT_DIR (default costscope-data/) to avoid repo root clutter
+	@OUT_DIR=$$(pwd)/costscope-data; \
+	 mkdir -p $$OUT_DIR; \
+	 go run ./scripts/tools/perf-bench -input demo/focus-conversion/demo-cur-data.csv -output $$OUT_DIR/bench_results.json $(EXTRA_ARGS) || (echo " Performance regression detected" && exit 1)
+	@echo " Performance benchmark complete (see costscope-data/bench_results.json)"
 
 perf-gen-synth: ## Generate synthetic AWS CUR-like dataset for perf tests
 	@echo " Generating synthetic dataset (20k rows)..."
@@ -39,12 +35,14 @@ perf-gen-smoke: ## Generate small synthetic dataset for smoke guard (fast)
 perf-bench-synth: perf-gen-synth ## Run perf bench against synthetic dataset
 	@echo " Running perf bench on synthetic dataset..."
 			# Call the stable wrapper script (avoids complex heredoc quoting issues under various shells)
-			@bash scripts/tools/run_perf_wrapper.sh tests/perf/aws-cur-synth.csv.gz -iterations 3 $(EXTRA_ARGS)
+			@OUT_DIR=$$(pwd)/costscope-data bash scripts/tools/run_perf_wrapper.sh tests/perf/aws-cur-synth.csv.gz -iterations 3 $(EXTRA_ARGS)
 	@echo " Perf bench complete (see bench_results.json, perf_metrics.prom)"
 
 perf-bench-full: ## Run expanded perf bench (demo or synthetic) with unified regression guard script
 	@echo " Running expanded performance benchmark (legacy vs unified mapper)..."
-	bash scripts/perf/run_bench.sh -i ${INPUT:-demo/focus-conversion/demo-cur-data.csv} -o bench_results.json -p perf_metrics.prom || (echo " Performance regression detected" && exit 1)
+	OUT_DIR=$$(pwd)/costscope-data; \
+	 mkdir -p $$OUT_DIR; \
+	 bash scripts/perf/run_bench.sh -i ${INPUT:-demo/focus-conversion/demo-cur-data.csv} -o $$OUT_DIR/bench_results.json -p $$OUT_DIR/perf_metrics.prom || (echo " Performance regression detected" && exit 1)
 	@echo " Expanded performance benchmark passed"
 
 perf-bench-update-baseline: perf-gen-synth ## Regenerate baseline guard JSON for perf bench
@@ -61,6 +59,8 @@ perf-short: ## Run short perf bench (stable) on synthetic dataset (if present)
 		@WARM=$${PERF_SHORT_WARMUP:-3}; MEAS=$${PERF_SHORT_ITERS:-7}; \
 		DUR=$${PERF_SHORT_DURATION_MAX:-$${PERF_BENCH_DURATION_MAX:-1.15}}; \
 		ALLOC=$${PERF_SHORT_ALLOC_MAX:-$${PERF_BENCH_ALLOC_MAX:-1.20}}; \
+		OUT_DIR=$$(pwd)/costscope-data; \
+		mkdir -p $$OUT_DIR; \
 		echo "  Using warmup=$$WARM measured=$$MEAS thresholds: duration_max=$$DUR alloc_max=$$ALLOC"; \
 		if [ "$$WARM" -gt 0 ]; then \
 			for i in $$(seq 1 $$WARM); do \
@@ -68,7 +68,7 @@ perf-short: ## Run short perf bench (stable) on synthetic dataset (if present)
 			done; \
 		fi; \
 		PERF_BENCH_DURATION_MAX=$$DUR PERF_BENCH_ALLOC_MAX=$$ALLOC \
-			go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations $$MEAS -output bench_results.json $(EXTRA_ARGS) || (echo " Short perf bench failed" && exit 1)
+			go run ./scripts/tools/perf-bench -input tests/perf/aws-cur-synth.csv.gz -iterations $$MEAS -output $$OUT_DIR/bench_results.json $(EXTRA_ARGS) || (echo " Short perf bench failed" && exit 1)
 		@echo " Short perf bench complete"
 
 parity-check: build-slim ## Generate legacy & unified parquet outputs and compare aggregate parity

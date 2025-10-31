@@ -25,6 +25,7 @@ if [[ ! -f "$INPUT" ]]; then
 fi
 
 mkdir -p "$OUT_DIR"
+PARITY_JSON="$OUT_DIR/parity.json"
 
 echo "[parity-guard] Converting (fast path) → $OUT_DIR/focus_fast.parquet"
 $BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_fast.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }
@@ -33,7 +34,7 @@ echo "[parity-guard] Converting (unified mapper) → $OUT_DIR/focus_unified.parq
 COSTSCOPE_USE_UNIFIED_MAPPER=1 $BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_unified.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " unified convert failed"; exit 1; }
 
 echo "[parity-guard] Running parity-check (lite hash enabled)"
-if ! go run ./scripts/tools/parity-check --legacy "$OUT_DIR/focus_fast.parquet" -unified "$OUT_DIR/focus_unified.parquet" -tolerance "${PARITY_TOLERANCE}" -out parity.json >/dev/null 2>&1; then
+if ! go run ./scripts/tools/parity-check --legacy "$OUT_DIR/focus_fast.parquet" -unified "$OUT_DIR/focus_unified.parquet" -tolerance "${PARITY_TOLERANCE}" -out "$PARITY_JSON" >/dev/null 2>&1; then
   echo " Parity mismatch" >&2
   exit 2
 fi
@@ -51,6 +52,6 @@ jq '{
     record_count: .unified.record_count
   },
   equal_cost, equal_usage, equal_records, equal_lite_hash, duration_ms
-}' parity.json 2>/dev/null || true
+}' "$PARITY_JSON" 2>/dev/null || true
 
 echo "[parity-guard] Passed"

@@ -17,6 +17,9 @@ OPT=bin/costscope-optimized-duckdb
 BIN=$DBG
 PARQUET_ROTATE_SIZE=${PARQUET_ROTATE_SIZE:-10000000000}
 OUT_DIR=${OUT_DIR:-costscope-data}
+INV_CURRENT="$OUT_DIR/invariants_current.json"
+INV_REPORT="$OUT_DIR/invariants.json"
+INV_ENGINE="$OUT_DIR/invariants_engine.txt"
 
 if [[ ! -f "$BASELINE" ]]; then
   echo " Baseline not found: $BASELINE" >&2
@@ -50,10 +53,10 @@ if [[ -z "$LATEST" ]]; then
 fi
 
 echo "[invariants-guard] Regenerating current invariants from $LATEST"
-if ! $BIN invariants regenerate "$LATEST" --output invariants_current.json --force --tolerance "${INVARIANTS_TOLERANCE}" >/dev/null 2>&1; then
+if ! $BIN invariants regenerate "$LATEST" --output "$INV_CURRENT" --force --tolerance "${INVARIANTS_TOLERANCE}" >/dev/null 2>&1; then
   echo "️  Regenerate failed with $BIN; trying fallback binary"
   ALT=$([[ $BIN == $DBG ]] && echo $OPT || echo $DBG)
-  if ! $ALT invariants regenerate "$LATEST" --output invariants_current.json --force --tolerance "${INVARIANTS_TOLERANCE}" >/dev/null 2>&1; then
+  if ! $ALT invariants regenerate "$LATEST" --output "$INV_CURRENT" --force --tolerance "${INVARIANTS_TOLERANCE}" >/dev/null 2>&1; then
     echo " Invariants regenerate failed with both binaries" >&2
     exit 2
   fi
@@ -61,16 +64,16 @@ if ! $BIN invariants regenerate "$LATEST" --output invariants_current.json --for
 fi
 
 echo "[invariants-guard] Diffing invariants (current vs baseline)"
-if ! $BIN invariants diff invariants_current.json --baseline "$BASELINE" --tolerance "${INVARIANTS_TOLERANCE}" --report invariants.json >/dev/null 2>&1; then
+if ! $BIN invariants diff "$INV_CURRENT" --baseline "$BASELINE" --tolerance "${INVARIANTS_TOLERANCE}" --report "$INV_REPORT" >/dev/null 2>&1; then
   echo " Invariants drift detected" >&2
   # Show top part of report
-  head -n120 invariants.json || true
+  head -n120 "$INV_REPORT" || true
   # Provide ratio hints if jq is available
   if command -v jq >/dev/null 2>&1; then
-    jq '{row_count, sum_effective_cost, sum_list_cost, sum_usage_quantity, violations}' invariants.json 2>/dev/null || true
+    jq '{row_count, sum_effective_cost, sum_list_cost, sum_usage_quantity, violations}' "$INV_REPORT" 2>/dev/null || true
   fi
   exit 3
 fi
 
 echo " Invariants guard passed (no drift) via $BIN"
-echo $BIN > invariants_engine.txt
+echo $BIN > "$INV_ENGINE"
