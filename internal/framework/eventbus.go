@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/costscope/costscope/internal/core/logging"
@@ -49,6 +50,9 @@ type EventBus struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	// Sequence counters to ensure unique IDs for events and subscriptions even within the same nanosecond
+	subSeq uint64
+	evtSeq uint64
 }
 
 // NewEventBus creates a new event bus
@@ -321,12 +325,16 @@ func (eb *EventBus) isRunning() bool {
 
 // generateEventID generates a unique event ID
 func (eb *EventBus) generateEventID() string {
-	return fmt.Sprintf("event_%d", time.Now().UnixNano())
+	// Use an atomic sequence to avoid collisions that can happen with time-based IDs at nanosecond granularity
+	n := atomic.AddUint64(&eb.evtSeq, 1)
+	return fmt.Sprintf("event_%d", n)
 }
 
 // generateSubscriptionID generates a unique subscription ID
 func (eb *EventBus) generateSubscriptionID() string {
-	return fmt.Sprintf("sub_%d", time.Now().UnixNano())
+	// Use an atomic sequence to guarantee uniqueness across rapid successive subscriptions
+	n := atomic.AddUint64(&eb.subSeq, 1)
+	return fmt.Sprintf("sub_%d", n)
 }
 
 // Health returns the health status of the event bus
