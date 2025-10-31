@@ -131,6 +131,16 @@ jobs:
               if: ${{ matrix.variant == 'slim' }}
               run: make gen-commands-drift
 
+            - name: Upload CLI drift artifacts (if any)
+              if: ${{ always() && matrix.variant == 'slim' && steps.token_check.outputs.present == 'true' && github.actor != 'nektos/act' }}
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+              with:
+                  name: cli-drift-artifacts
+                  path: |
+                      cli-drift-summary.txt
+                      cli-diff.patch
+                  if-no-files-found: ignore
+
             - name: Integration CLI drift check
               if: ${{ matrix.variant == 'slim' }}
               run: |
@@ -310,8 +320,20 @@ jobs:
                     echo "[ci] Smoke fixtures already present; skipping generation";
                   fi
 
-            - name: Run tests with casbinpoc tag
-              run: bash -c 'set -euo pipefail; go mod download; go test -tags casbinpoc ./...'
+            - name: Run tests with casbinpoc tag (verbose JSON)
+              run: |
+                  set -euo pipefail
+                  go mod download
+                  # JSON output aids log parsing and failure triage on hosted runners
+                  go test -tags casbinpoc -count=1 -json ./... | tee test-report.json
+
+            - name: Upload test report (JSON)
+              if: ${{ always() && github.actor != 'nektos/act' }}
+              uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+              with:
+                  name: casbinpoc-test-report
+                  path: test-report.json
+                  if-no-files-found: ignore
 
     helm-deploy:
         needs: build-test-scan-sign-push

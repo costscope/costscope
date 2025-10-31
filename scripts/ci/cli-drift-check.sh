@@ -28,6 +28,10 @@ if command -v gofmt >/dev/null 2>&1; then
   gofmt -w cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go || true
 fi
 
+# Normalize file permissions to avoid mode-only drift on runners where git tracks filemode
+# Generated files should be world-readable like typical source (0644), not 0600
+chmod 0644 cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go || true
+
 # Detect drift limited to generated files
 if ! git diff --quiet -- cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go; then
   echo "CLI command drift detected" | tee "$ARTIFACT_SUMMARY"
