@@ -10,6 +10,7 @@ PARITY_TOLERANCE=${PARITY_TOLERANCE:-1e-9}
 PARQUET_ROTATE_SIZE=${PARQUET_ROTATE_SIZE:-10000000000}
 INPUT=${INPUT:-tests/perf/aws-cur-synth.csv.gz}
 BIN=${BIN:-bin/costscope}
+OUT_DIR=${OUT_DIR:-costscope-data}
 
 if [[ ! -x "$BIN" ]]; then
   echo "[parity-guard] binary '$BIN' not found or not executable" >&2
@@ -20,14 +21,16 @@ if [[ ! -f "$INPUT" ]]; then
   exit 1
 fi
 
-echo "[parity-guard] Converting (fast path) → focus_fast.parquet"
-$BIN convert --provider aws --input "$INPUT" --output focus_fast.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }
+mkdir -p "$OUT_DIR"
 
-echo "[parity-guard] Converting (unified mapper) → focus_unified.parquet"
-COSTSCOPE_USE_UNIFIED_MAPPER=1 $BIN convert --provider aws --input "$INPUT" --output focus_unified.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " unified convert failed"; exit 1; }
+echo "[parity-guard] Converting (fast path) → $OUT_DIR/focus_fast.parquet"
+$BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_fast.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }
+
+echo "[parity-guard] Converting (unified mapper) → $OUT_DIR/focus_unified.parquet"
+COSTSCOPE_USE_UNIFIED_MAPPER=1 $BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_unified.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1 || { echo " unified convert failed"; exit 1; }
 
 echo "[parity-guard] Running parity-check (lite hash enabled)"
-if ! go run ./scripts/tools/parity-check --legacy focus_fast.parquet -unified focus_unified.parquet -tolerance "${PARITY_TOLERANCE}" -out parity.json >/dev/null 2>&1; then
+if ! go run ./scripts/tools/parity-check --legacy "$OUT_DIR/focus_fast.parquet" -unified "$OUT_DIR/focus_unified.parquet" -tolerance "${PARITY_TOLERANCE}" -out parity.json >/dev/null 2>&1; then
   echo " Parity mismatch" >&2
   exit 2
 fi

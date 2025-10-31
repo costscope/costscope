@@ -13,6 +13,7 @@ DBG=bin/costscope-duckdb-debug
 OPT=bin/costscope-optimized-duckdb
 BIN=$DBG
 PARQUET_ROTATE_SIZE=${PARQUET_ROTATE_SIZE:-10000000000}
+OUT_DIR=${OUT_DIR:-costscope-data}
 
 if [[ ! -f "$BASELINE" ]]; then
   echo " Baseline not found: $BASELINE" >&2
@@ -27,17 +28,19 @@ if [[ ! -x "$DBG" || ! -x "$OPT" ]]; then
   exit 1
 fi
 
+mkdir -p "$OUT_DIR"
+
 echo "[invariants-guard] Converting fast path (preferred debug=$BIN)"
-if ! $BIN convert --provider aws --input "$INPUT" --output focus_fast.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1; then
+if ! $BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_fast.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1; then
   echo "️  Debug convert failed; trying optimized binary"
   BIN=$OPT
-  if ! $BIN convert --provider aws --input "$INPUT" --output focus_fast.parquet --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1; then
+  if ! $BIN convert --provider aws --input "$INPUT" --output "$OUT_DIR/focus_fast.parquet" --streaming --rotate-size "$PARQUET_ROTATE_SIZE" >/dev/null 2>&1; then
     echo " Conversion failed with both binaries" >&2
     exit 2
   fi
 fi
 
-LATEST=$(ls -1t focus_fast*.parquet 2>/dev/null | head -n1)
+LATEST=$(ls -1t "$OUT_DIR"/focus_fast*.parquet 2>/dev/null | head -n1)
 if [[ -z "$LATEST" ]]; then
   echo " No parquet output" >&2
   exit 2

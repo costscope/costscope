@@ -105,10 +105,11 @@ data-parity-smoke: parity-smoke ## Run fast smoke parity guard on small dataset
 
 invariants-update-baseline: build-optimized-duckdb ## Recompute invariants baseline JSON from current fast path output
 	@echo "️  Recomputing invariants baseline (synthetic dataset)"
-	BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_invariants.json}; BIN=bin/costscope-optimized-duckdb; DBG=bin/costscope-duckdb-debug; \
+	BASE=$${INVARIANTS_BASELINE:-tests/fixtures/quality/baseline_invariants.json}; BIN=bin/costscope-optimized-duckdb; DBG=bin/costscope-duckdb-debug; OUT_DIR=$$(pwd)/costscope-data; \
+	mkdir -p $$OUT_DIR; \
 	echo " Converting (fast path) with rotate-size=$(PARQUET_ROTATE_SIZE)"; \
-	bin/costscope convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output focus_fast.parquet --streaming --rotate-size $(PARQUET_ROTATE_SIZE) >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }; \
-	LATEST=$$(ls -1t focus_fast*.parquet 2>/dev/null | head -n1); [ -n "$$LATEST" ] || { echo " No focus_fast parquet produced"; exit 2; }; \
+	bin/costscope convert --provider aws --input tests/perf/aws-cur-synth.csv.gz --output $$OUT_DIR/focus_fast.parquet --streaming --rotate-size $(PARQUET_ROTATE_SIZE) >/dev/null 2>&1 || { echo " fast convert failed"; exit 1; }; \
+	LATEST=$$(ls -1t $$OUT_DIR/focus_fast*.parquet 2>/dev/null | head -n1); [ -n "$$LATEST" ] || { echo " No focus_fast parquet produced"; exit 2; }; \
 	echo " Regenerating baseline from $$LATEST (preferred binary: $$BIN)"; \
 	if $$BIN invariants regenerate "$$LATEST" --output $$BASE --force --tolerance $${INVARIANTS_TOLERANCE:-0.01} > /tmp/inv_regenerate.log 2>&1; then \
 	  echo " Baseline regenerate succeeded with optimized binary"; \
