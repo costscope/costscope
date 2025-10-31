@@ -21,7 +21,8 @@ func TestEndToEndPipeline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("temp dir: %v", err)
 	}
-	baseline := filepath.Join(filepath.Dir(base), "quality", "baseline_invariants.json")
+	// Use unit-scale baseline that matches the small sample fixture to avoid false drift vs large production baseline.
+	baseline := filepath.Join(filepath.Dir(base), "quality", "baseline_unit_invariants.json")
 	rep, err := Run(context.Background(), RunConfig{Provider: "aws", InputFiles: fixtures, WorkDir: tempDir, DriftTolerance: 0.001, ValidateOutput: true, BaselinePath: baseline, InvariantTolerance: 0.01})
 	if err != nil {
 		t.Fatalf("pipeline run error: %v", err)

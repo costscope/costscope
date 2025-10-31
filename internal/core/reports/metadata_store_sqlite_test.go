@@ -40,7 +40,7 @@ func TestSQLiteMetadataStoreBasicListingAndPagination(t *testing.T) {
 	if len(listAll) != 3 {
 		t.Fatalf("expected 3, got %d", len(listAll))
 	}
-	ops := &MetadataListOptions{Limit: 1, Offset: 1}
+	opts := &MetadataListOptions{Limit: 1, Offset: 1}
 	paged, err := store.ListOptions(ctx, opts)
 	if err != nil {
 		t.Fatalf("list options: %v", err)

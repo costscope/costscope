@@ -35,8 +35,8 @@ GENERATED_COMMAND_FILES := \
 
 gen-commands: ## Generate Cobra command builders from specs (analytics, multicloud)
 	@echo "️  Generating Cobra builders from specs..."
-	go run ./scripts/tools/commandgen -receiver AnalyticsCommands -spec cmd/modules/analytics/commands/command_spec.yaml -out cmd/modules/analytics/commands/zz_generated_command_builder.go
-	go run ./scripts/tools/commandgen -receiver MulticloudCommands -spec cmd/modules/multicloud/commands/command_spec.yaml -out cmd/modules/multicloud/commands/zz_generated_command_builder.go
+	go run -buildvcs=false ./scripts/tools/commandgen -receiver AnalyticsCommands -spec cmd/modules/analytics/commands/command_spec.yaml -out cmd/modules/analytics/commands/zz_generated_command_builder.go
+	go run -buildvcs=false ./scripts/tools/commandgen -receiver MulticloudCommands -spec cmd/modules/multicloud/commands/command_spec.yaml -out cmd/modules/multicloud/commands/zz_generated_command_builder.go
 	@echo " Command builders generated"
 
 gen-commands-drift: ## Guard: fail if regenerated command builders introduce diff (delegates to script)
@@ -45,22 +45,22 @@ gen-commands-drift: ## Guard: fail if regenerated command builders introduce dif
 
 gen-integration-cli-docs: ## Generate integration CLI command summary (prototype)
 	@echo " Generating integration CLI command summary..."
-	go run ./scripts/tools/gen-integration-cli-docs -out integration_commands.json -md-out docs/integration_commands.md
+	go run -buildvcs=false ./scripts/tools/gen-integration-cli-docs -out integration_commands.json -md-out docs/integration_commands.md
 	@echo " Wrote integration_commands.json and docs/integration_commands.md"
 
 gen-integration-cli-drift: ## Check for drift in integration CLI command summary
 	@echo " Checking integration CLI command drift..."
-	go run ./scripts/tools/gen-integration-cli-docs -out integration_commands.json -md-out docs/integration_commands.md -drift-check || (echo " Drift detected" && exit 1)
+	go run -buildvcs=false ./scripts/tools/gen-integration-cli-docs -out integration_commands.json -md-out docs/integration_commands.md -drift-check || (echo " Drift detected" && exit 1)
 	@echo " No drift detected"
 
 gen-actions: ## Validate Integration Action DSL
 	@echo " Validating Integration Action DSL..."
-	go run ./scripts/tools/gen-actions -lint-only -yaml cmd/modules/integration/actions.yaml || (echo " Integration Action DSL validation failed" && exit 1)
+	go run -buildvcs=false ./scripts/tools/gen-actions -lint-only -yaml cmd/modules/integration/actions.yaml || (echo " Integration Action DSL validation failed" && exit 1)
 	@echo " Integration Action DSL valid"
 
 gen-actions-generate: ## Generate BuildDefaultActionSpecs from DSL
 	@echo "️  Generating ActionSpecs from DSL..."
-	go run ./scripts/tools/gen-actions -yaml cmd/modules/integration/actions.yaml -gen-go cmd/modules/integration/generated_actions.go
+	go run -buildvcs=false ./scripts/tools/gen-actions -yaml cmd/modules/integration/actions.yaml -gen-go cmd/modules/integration/generated_actions.go
 	@echo " Generated cmd/modules/integration/generated_actions.go"
 
 .PHONY: generate

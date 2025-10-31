@@ -16,10 +16,14 @@ fi
 ci::log "build-test-matrix variant=${VARIANT} (IS_ACT=${IS_ACT:-false})"
 
 # Under act reduce Go parallelism & test worker fanout to mitigate OOM (exit 137) events.
+# Also disable VCS stamping universally to avoid errors in shallow/ephemeral repos (e.g., act).
 if ci::is_act; then
   export GOMAXPROCS=2
-  export GOFLAGS="-p=2"
+  export GOFLAGS="${GOFLAGS:-} -p=2 -buildvcs=false"
   ci::log "[act] Applied resource throttling: GOMAXPROCS=$GOMAXPROCS GOFLAGS=$GOFLAGS"
+else
+  # Ensure -buildvcs=false is present outside act as well for consistency in containerized CI
+  export GOFLAGS="${GOFLAGS:-} -buildvcs=false"
 fi
 
 # Ensure required smoke fixtures exist before running tests (needed by focus conversion parity tests)

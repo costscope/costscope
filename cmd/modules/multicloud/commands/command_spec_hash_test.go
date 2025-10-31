@@ -10,7 +10,8 @@ import (
 
 // TestGeneratedSpecHashMulticloud ensures the generatedSpecHash constant matches the spec on disk.
 func TestGeneratedSpecHashMulticloud(t *testing.T) {
-	p := filepath.Clean("cmd/modules/multicloud/commands/command_spec.yaml")
+	// Read spec relative to this package directory to avoid GOPATH/WD ambiguity
+	p := filepath.Clean("command_spec.yaml")
 	b, err := os.ReadFile(p)
 	if err != nil {
 		if os.IsNotExist(err) {

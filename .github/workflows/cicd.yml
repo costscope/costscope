@@ -6,6 +6,8 @@ env:
     GO_VERSION: "1.24.x"
     GOVULNCHECK_VERSION: latest
     TRIVY_VERSION: "0.56.2"
+    # Disable VCS stamping globally to avoid errors in shallow/ephemeral checkouts (e.g., act)
+    GOFLAGS: "-buildvcs=false"
     # CI_IMAGE_TAG is expected to be set via Actions variables (repo/organization) or act env
     # Avoid floating tags in CI; fallback to 'latest' is handled by resolve step with warning.
     # Act detection defaults (act runner can override via -e)
