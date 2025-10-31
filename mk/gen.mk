@@ -37,6 +37,10 @@ gen-commands: ## Generate Cobra command builders from specs (analytics, multiclo
 	@echo "️  Generating Cobra builders from specs..."
 	go run -buildvcs=false ./scripts/tools/commandgen -receiver AnalyticsCommands -spec cmd/modules/analytics/commands/command_spec.yaml -out cmd/modules/analytics/commands/zz_generated_command_builder.go
 	go run -buildvcs=false ./scripts/tools/commandgen -receiver MulticloudCommands -spec cmd/modules/multicloud/commands/command_spec.yaml -out cmd/modules/multicloud/commands/zz_generated_command_builder.go
+	@if command -v gofmt >/dev/null 2>&1; then \
+		gofmt -w cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go || true; \
+	fi
+	@chmod 0644 cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go || true
 	@echo " Command builders generated"
 
 gen-commands-drift: ## Guard: fail if regenerated command builders introduce diff (delegates to script)
