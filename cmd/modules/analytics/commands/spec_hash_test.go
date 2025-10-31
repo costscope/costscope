@@ -15,7 +15,7 @@ func TestSpecHashMatchesAnalytics(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read spec: %v", err)
 	}
-	sum := sha256.Sum256(b)
+	sum := sha256.Sum256(canonicalizeSpec(b))
 	got := hex.EncodeToString(sum[:])
 	if got != generatedSpecHash {
 		t.Fatalf("spec hash mismatch: generated=%s current=%s (run commandgen)", generatedSpecHash, got)

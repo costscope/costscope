@@ -10,10 +10,6 @@ cd "$ROOT_DIR"
 ARTIFACT_SUMMARY="cli-drift-summary.txt"
 ARTIFACT_DIFF="cli-diff.patch"
 
-# Ensure VCS stamping does not fail inside ephemeral CI containers without full git metadata
-# This flag is respected by all subsequent `go` commands (go run/build/test)
-export GOFLAGS="${GOFLAGS:-} -buildvcs=false"
-
 # Regenerate builders via make (preferred); fallback only if target genuinely missing
 if make -q gen-commands >/dev/null 2>&1 || grep -q '^gen-commands:' mk/gen.mk; then
   make -s gen-commands
@@ -29,7 +25,6 @@ if command -v gofmt >/dev/null 2>&1; then
 fi
 
 # Normalize file permissions to avoid mode-only drift on runners where git tracks filemode
-# Generated files should be world-readable like typical source (0644), not 0600
 chmod 0644 cmd/modules/analytics/commands/zz_generated_command_builder.go cmd/modules/multicloud/commands/zz_generated_command_builder.go || true
 
 # Detect drift limited to generated files

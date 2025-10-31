@@ -1,1 +1,1 @@
-No CLI command drift
+CLI command drift detected
