@@ -67,6 +67,16 @@ release/
 tmp/
 !scripts/release/
 
+# GitHub Actions CLI drift artifacts (do not track in git)
+/cli-drift-summary.txt
+/cli-diff.patch
+
+# Local GH run logs/snapshots produced by helpers
+/tmp-gh/
+
+# Stray helper binaries/files that may appear at repo root
+/clonecheck
+
 # Allow canonical release documentation files to be tracked even though general
 # `release/` is ignored (we keep the rule to avoid accidentally committing
 # binaries/artifacts). These exceptions ensure CI/docs index files are present
