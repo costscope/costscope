@@ -37,7 +37,11 @@ func TestCasbinMiddleware_PathBased_Allow(t *testing.T) {
 	if _, err := os.Stat(modelPath); err != nil {
 		t.Skipf("model file not found: %v", err)
 	}
-	policy := "p, role:admin, /api/v1/*, (GET|POST)\n"
+	// Note: the example model uses g(r.sub, p.sub), so we need a role assignment
+	// mapping for the subject. Since we use a role-like subject value ("role:admin"),
+	// assign it to itself to satisfy g().
+	policy := "p, role:admin, /api/v1/*, (GET|POST)\n" +
+		"g, role:admin, role:admin\n"
 	policyPath := writeTempPolicy(t, policy)
 
 	e, err := NewEnforcerFromFiles(modelPath, policyPath)
@@ -71,7 +75,9 @@ func TestCasbinMiddleware_PathBased_Deny(t *testing.T) {
 	if _, err := os.Stat(modelPath); err != nil {
 		t.Skipf("model file not found: %v", err)
 	}
-	policy := "p, role:admin, /api/v1/*, (GET|POST)\n"
+	// Only admin is granted; viewer is not assigned to a policy allowing access.
+	policy := "p, role:admin, /api/v1/*, (GET|POST)\n" +
+		"g, role:admin, role:admin\n"
 	policyPath := writeTempPolicy(t, policy)
 
 	e, err := NewEnforcerFromFiles(modelPath, policyPath)
