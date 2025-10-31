@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # invariants_guard.sh - Run invariants drift guard comparing current regenerated invariants vs baseline.
+# Env vars:
+#   OUT_DIR               Directory to write Parquet outputs into (default: costscope-data)
+#   PARQUET_ROTATE_SIZE   Rotation size in bytes for Parquet segments (default: 10000000000)
 # Exit codes:
 #  0 success
 #  2 conversion/regenerate failure
