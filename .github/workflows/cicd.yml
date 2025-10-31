@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: ci-cd
+name: cicd
 
 env:
   # Centralized versions for consistency across jobs
@@ -15,7 +15,7 @@ env:
   ACT_FULL: "false" # quoted so expression parser treats as string
 
 concurrency:
-  group: ci-cd-${{ github.ref }}
+  group: cicd-${{ github.ref }}
   cancel-in-progress: true
 
 on:
@@ -39,8 +39,6 @@ jobs:
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
-          CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
-          CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
           # Allow ':latest' fallback only when running under act
           RESOLVE_CI_IMAGE_ALLOW_LATEST: ${{ github.actor == 'nektos/act' }}
           # Hint detect script that we're under act in this early job
@@ -48,16 +46,32 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Prefer GitHub repo variables when present; otherwise keep any pre-set env (e.g., from act runner)
+          if [ -n "${{ vars.CI_TOOLS_IMAGE }}" ]; then export CI_TOOLS_IMAGE="${{ vars.CI_TOOLS_IMAGE }}"; fi
           echo "[resolve-ci-image] Starting resolution"
           # Try normal resolution first; if it fails (e.g., env not set), set a safe fallback.
           if bash ./scripts/ci/resolve-ci-image.sh; then
             echo "[resolve-ci-image] Resolution script succeeded"
             echo "generic=false" >> "$GITHUB_OUTPUT"
+            # When running under act (token missing or actor/flag suggests act), prefer the resolved image
+            # IF CI_TOOLS_IMAGE was explicitly provided (assumed public and Node-capable). Otherwise, fall back
+            # to a Node-capable generic image to ensure Node-based actions can execute.
+            if [ -z "${ACTIONS_RUNTIME_TOKEN:-}" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ] || [ "${IS_ACT:-}" = "true" ]; then
+              if [ -n "${CI_TOOLS_IMAGE:-}" ]; then
+                echo "[resolve-ci-image] act detected but CI_TOOLS_IMAGE is set; keeping resolved image '$CI_TOOLS_IMAGE'" >&2
+              else
+                echo "image=catthehacker/ubuntu:full-latest" >> "$GITHUB_OUTPUT"
+                echo "generic=true" >> "$GITHUB_OUTPUT"
+                echo "[resolve-ci-image] Overriding resolved image for act: using catthehacker/ubuntu:full-latest (Node-capable)" >&2
+              fi
+            fi
           else
             echo "[resolve-ci-image] Resolution script failed; applying fallback image" >&2
-            if [ "${GITHUB_ACTOR:-}" = "nektos/act" ] || [ "${IS_ACT:-}" = "true" ]; then
+            # Robust ACT detection: prefer catthehacker image when ACTIONS_RUNTIME_TOKEN is missing
+            # or when actor hints at act usage.
+            if [ -z "${ACTIONS_RUNTIME_TOKEN:-}" ] || [ "${GITHUB_ACTOR:-}" = "nektos/act" ] || [ "${IS_ACT:-}" = "true" ]; then
               echo "image=catthehacker/ubuntu:full-latest" >> "$GITHUB_OUTPUT"
-              echo "[resolve-ci-image] Using fallback image for act: catthehacker/ubuntu:full-latest" >&2
+              echo "[resolve-ci-image] Using fallback image for act (token missing or actor/flag suggests act): catthehacker/ubuntu:full-latest" >&2
             else
               echo "image=ubuntu:22.04" >> "$GITHUB_OUTPUT"
               echo "[resolve-ci-image] Using generic fallback image: ubuntu:22.04" >&2
@@ -104,6 +118,11 @@ jobs:
             echo "present=false" >> "$GITHUB_OUTPUT";
             echo "[ci] ACTIONS_RUNTIME_TOKEN missing (likely act)";
           fi
+
+      - name: Ensure Node.js and tools available under act
+        if: ${{ steps.variant_guard.outputs.skipped != 'true' && steps.token_check.outputs.present != 'true' }}
+        shell: bash
+        run: bash ./scripts/ci/ensure-act-tooling.sh
 
       - name: Set up Go
         if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
@@ -318,6 +337,17 @@ jobs:
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
 
+      - name: Detect runtime token presence
+        id: token_check
+        run: |
+          if [ -n "${ACTIONS_RUNTIME_TOKEN:-}" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT";
+            echo "[ci] ACTIONS_RUNTIME_TOKEN present";
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT";
+            echo "[ci] ACTIONS_RUNTIME_TOKEN missing (likely act)";
+          fi
+
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
@@ -358,7 +388,7 @@ jobs:
           fi
 
       - name: Upload test report (JSON)
-        if: ${{ always() && github.actor != 'nektos/act' }}
+        if: ${{ always() && steps.token_check.outputs.present == 'true' && github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
         with:
           name: casbinpoc-test-report
