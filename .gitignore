@@ -26,6 +26,12 @@ security-summary.json
 /perf-*
 /perf_*
 
+# Data parity / invariants guard artifacts (root only)
+/parity.json
+/invariants.json
+/invariants_current.json
+/invariants_engine.txt
+
 # Profiling & coverage artifacts (root only)
 /cpu.prof
 /mem.prof
@@ -98,6 +104,9 @@ Thumbs.db
 *.log
 logs/
 build-errors.log
+
+# Ad-hoc test output files
+/reports.test
 
 # IDE / editor project files
 .idea/
@@ -184,6 +193,15 @@ backups/
 
 # Vulnerability scan reports (machine generated)
 /govuln_reports/
+
+# Security and scan reports (machine-generated)
+/gitleaks-report.json
+/govulncheck.json
+/gosec.json
+
+# SBOMs generated locally (release assets should be attached, not committed)
+/sbom.json
+/sbom-syft.json
 
 # Historical / archive directories
 _archive/
