@@ -8,7 +8,7 @@ This directory contains CI helper scripts used by GitHub Actions and local runs 
 
   - Deploy or dry-run the Helm chart.
   - Inputs:
-    - `KUBECONFIG_B64` (required): Base64-encoded kubeconfig. Decoded into a secure tempfile and cleaned up automatically.
+    - `KUBECONFIG_B64` (required for non-dry-run): Base64-encoded kubeconfig. Decoded into a secure tempfile and cleaned up automatically. Not required when `HELM_DRY_RUN=true` and no cluster access is desired.
     - `IMAGE_REPO` (required): Container image repository.
     - `IMAGE_TAG` (required): Container image tag.
     - `COSTSCOPE_JWT_SECRET` (optional): Secret value passed as env.
@@ -16,8 +16,20 @@ This directory contains CI helper scripts used by GitHub Actions and local runs 
   - Example:
 
     ```sh
-    KUBECONFIG_B64=$(base64 -i ~/.kube/config) IMAGE_REPO=ghcr.io/you/costscope IMAGE_TAG=sha-123 HELM_DRY_RUN=true bash ./scripts/ci/helm-deploy.sh
+    # Linux (GNU coreutils)
+    KUBECONFIG_B64=$(base64 -w 0 ~/.kube/config) IMAGE_REPO=ghcr.io/you/costscope IMAGE_TAG=sha-123 HELM_DRY_RUN=true bash ./scripts/ci/helm-deploy.sh
+
+    # macOS (BSD base64)
+    KUBECONFIG_B64=$(base64 < ~/.kube/config | tr -d '\n') IMAGE_REPO=ghcr.io/you/costscope IMAGE_TAG=sha-123 HELM_DRY_RUN=true bash ./scripts/ci/helm-deploy.sh
+
+    # Pure template/lint dry-run without a cluster (no kubeconfig required)
+    IMAGE_REPO=ghcr.io/you/costscope IMAGE_TAG=sha-123 HELM_DRY_RUN=true bash ./scripts/ci/helm-deploy.sh
     ```
+
+  - Notes:
+    - The deploy script tolerates whitespace pasted into the secret, but it's best to store a clean, single-line base64 value.
+    - If you accidentally paste the raw kubeconfig YAML into the secret, the script will detect it and proceed, but prefer encoding it as base64.
+    - When `HELM_DRY_RUN=true` and no kubeconfig is provided, the script runs `helm lint` and `helm template` locally to validate values and rendering without talking to a cluster.
 
 - `resolve-ci-image.sh`
 
