@@ -412,14 +412,25 @@ jobs:
         run: |
           set -euo pipefail
           missing=()
-          if [ -z "${KUBECONFIG_B64:-}" ]; then missing+=(KUBECONFIG_B64); fi
+          dry_run="false"
+          # If kubeconfig is missing, enable dry-run mode so we still validate chart without a cluster.
+          if [ -z "${KUBECONFIG_B64:-}" ]; then
+            dry_run="true"
+          fi
           if [ -z "${COSTSCOPE_JWT_SECRET:-}" ]; then missing+=(COSTSCOPE_JWT_SECRET); fi
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "[deploy] Missing required secrets: ${missing[*]}. Skipping helm deploy."
-          else
+
+          if [ "$dry_run" = "true" ]; then
+            echo "HELM_DRY_RUN=true" >> "$GITHUB_ENV"
             echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "[deploy] All required secrets present. Proceeding with helm deploy."
+            echo "[deploy] KUBECONFIG_B64 missing; enabling Helm dry-run (lint+template) and proceeding."
+          else
+            if [ ${#missing[@]} -gt 0 ]; then
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              echo "[deploy] Missing required secrets: ${missing[*]}. Skipping helm deploy."
+            else
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              echo "[deploy] All required secrets present. Proceeding with helm deploy."
+            fi
           fi
 
       - name: Set up Helm
