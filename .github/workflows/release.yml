@@ -101,7 +101,7 @@ jobs:
     outputs:
       image: ${{ steps.out.outputs.image }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
@@ -118,8 +118,8 @@ jobs:
       options: --user 0:0 --privileged
     steps:
       - name: Checkout
-        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
 
@@ -161,7 +161,7 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
 
@@ -198,7 +198,7 @@ jobs:
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -236,7 +236,7 @@ jobs:
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
         with:
           fetch-depth: 0
       - name: Download build artifacts
@@ -273,7 +273,7 @@ jobs:
           path: .
 
       - name: Create GitHub Release (draft)
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: ${{ needs.prepare.outputs.version }}

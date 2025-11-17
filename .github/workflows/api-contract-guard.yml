@@ -35,7 +35,7 @@ jobs:
       image: ${{ steps.out.outputs.image }}
     steps:
       - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-contract
@@ -71,9 +71,9 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
-      # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+      # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
       - if: ${{ steps.guard.outputs.skip != 'true' }}
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       # Ensure required build tools are present when running under act local runner
       # The CI container image contains required build tools; avoid runtime installs under act as well
