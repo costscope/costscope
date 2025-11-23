@@ -13,8 +13,8 @@ jobs:
       image: ${{ steps.resolve.outputs.image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - name: Resolve CI image
         id: resolve
         shell: bash
@@ -32,8 +32,8 @@ jobs:
       image: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: Run docs checks (skip link check under act)
         shell: bash

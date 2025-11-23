@@ -27,7 +27,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
       CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - id: out
         run: bash ./scripts/ci/resolve-ci-image.sh
 
@@ -42,8 +42,8 @@ jobs:
         shell: bash
     steps:
       - name: Checkout
-        # pinned actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: Validate .golangci.yml
         run: bash scripts/ci/validate-golangci-config.sh
