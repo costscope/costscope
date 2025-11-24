@@ -33,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
       - name: Set up Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
         with:
           go-version-file: go.mod
           cache: false
@@ -86,8 +86,8 @@ jobs:
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: Setup Go
-        # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
+        # pinned actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
         with:
           go-version-file: go.mod
           # Speed up dependency restores
