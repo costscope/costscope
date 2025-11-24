@@ -35,7 +35,7 @@ jobs:
       image: ${{ steps.out.outputs.image }}
       generic: ${{ steps.out.outputs.generic }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
@@ -95,7 +95,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
       - name: Skip non-slim variants under act (guard)
         id: variant_guard
@@ -335,7 +335,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
       - name: Detect runtime token presence
         id: token_check
@@ -402,7 +402,7 @@ jobs:
     # This gates out act (no secrets) and accidental runs without KUBECONFIG.
     if: ${{ github.ref == 'refs/heads/main' && github.actor != 'nektos/act' }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
       - name: Check required secrets
         id: prereq
