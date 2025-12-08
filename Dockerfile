@@ -40,7 +40,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     -o costscope .
 
 # Stage 2: Final stage
-FROM alpine:3.22
+FROM alpine:3.23
 
 # Metadata arguments (propagated as labels)
 ARG VERSION=dev
