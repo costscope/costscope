@@ -31,7 +31,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE }}
       CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - id: out
         run: bash ./scripts/ci/resolve-ci-image.sh
 
@@ -55,8 +55,8 @@ jobs:
           fi
       - name: Checkout
         if: ${{ steps.guard.outputs.skip != 'true' }}
-        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
         with:
           fetch-depth: 0
 
