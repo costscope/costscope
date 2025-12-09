@@ -78,8 +78,8 @@ jobs:
       is-act: ${{ steps.detect.outputs.is_act }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd - source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Set up Go
         id: go
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
@@ -119,7 +119,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Generate SBOM (syft via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -139,7 +139,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Run govulncheck (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -158,7 +158,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Run gosec (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -177,7 +177,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Run gitleaks (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -196,7 +196,7 @@ jobs:
     env:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Trivy FS (via tools image)
         run: |
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
@@ -213,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
@@ -239,8 +239,8 @@ jobs:
       CI_TOOLS_IMAGE: ${{ needs.require-ci-tools-image-pin.outputs.ci_tools_image }}
     steps:
       - name: Checkout (for fallback build)
-        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - if: env.RUN_UPLOADS == 'true'
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
         with:
@@ -272,7 +272,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sbom, govulncheck, gosec, secrets, trivy-fs, trivy-image, setup]
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
       - name: Record run metadata (early)
         run: ./scripts/ci/record-run-metadata.sh
       - name: Download artifacts

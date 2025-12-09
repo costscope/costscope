@@ -49,8 +49,8 @@ jobs:
       INVARIANTS_BASELINE: tests/fixtures/quality/baseline_invariants.json
     steps:
       - name: Checkout
-        # pinned actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
 
       - name: Setup Go
         # pinned actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
