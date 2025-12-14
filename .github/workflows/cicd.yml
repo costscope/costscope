@@ -35,7 +35,7 @@ jobs:
       image: ${{ steps.out.outputs.image }}
       generic: ${{ steps.out.outputs.generic }}
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
@@ -95,7 +95,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Skip non-slim variants under act (guard)
         id: variant_guard
@@ -126,7 +126,7 @@ jobs:
 
       - name: Set up Go
         if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -269,7 +269,7 @@ jobs:
       - name: Extract metadata (tags, labels)
         if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
         id: meta
-        uses: docker/metadata-action@318604b99e75e41977312d83839a89be02ca4893
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051
         with:
           images: ghcr.io/${{ github.repository_owner }}/costscope
 
@@ -335,7 +335,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Detect runtime token presence
         id: token_check
@@ -349,7 +349,7 @@ jobs:
           fi
 
       - name: Set up Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v4
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -402,7 +402,7 @@ jobs:
     # This gates out act (no secrets) and accidental runs without KUBECONFIG.
     if: ${{ github.ref == 'refs/heads/main' && github.actor != 'nektos/act' }}
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Check required secrets
         id: prereq

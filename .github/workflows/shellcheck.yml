@@ -30,8 +30,8 @@ jobs:
       image: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
 
       - name: Install shellcheck on act fallback image
         if: ${{ needs._env_init.outputs.is_act == 'true' }}
@@ -61,8 +61,8 @@ jobs:
       image: ${{ steps.out.outputs.image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+        # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-shellcheck
