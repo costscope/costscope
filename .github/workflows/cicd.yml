@@ -231,7 +231,7 @@ jobs:
 
       - name: Security scan (gosec)
         if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
-        uses: securego/gosec@6be2b51fd78feca86af91f5186b7964d76cb1256
+        uses: securego/gosec@424fc4cd9c82ea0fd6bee9cd49c2db2c3cc0c93f
         with:
           args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
 
