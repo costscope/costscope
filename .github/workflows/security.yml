@@ -125,8 +125,8 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh -- make sbom
       - if: env.RUN_UPLOADS == 'true'
-        # pinned actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 - source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        # pinned actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f - source: https://github.com/actions/upload-artifact/commits/main (2025-09-28)
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: sbom
           path: sbom.json
@@ -145,7 +145,7 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-govulncheck.sh
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: govulncheck
           path: govulncheck.json
@@ -164,7 +164,7 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-gosec.sh
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: gosec
           path: gosec.json
@@ -183,7 +183,7 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-gitleaks.sh
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: gitleaks
           path: gitleaks-report.json
@@ -202,7 +202,7 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh -- bash ./scripts/security/run-trivy-fs.sh
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: trivy-fs
           path: trivy-fs.json
@@ -225,7 +225,7 @@ jobs:
         run: |
           docker save costscope:ci | gzip > image.tar.gz
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: image-tar
           path: image.tar.gz
@@ -261,7 +261,7 @@ jobs:
           CI_TOOLS_IMAGE="${{ env.CI_TOOLS_IMAGE }}" \
           bash ./scripts/ci/run-in-ci-image.sh --with-docker-sock -- bash ./scripts/security/run-trivy-image.sh
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: trivy-image
           path: trivy-image.json
@@ -311,7 +311,7 @@ jobs:
           fi
       - name: Upload Summary Artifacts
         if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: security-summary
           path: |
@@ -328,7 +328,7 @@ jobs:
           if [ "$status" != "PASS" ]; then echo "Gate failed"; exit 1; fi
       - name: Upload SBOM to run
         if: env.RUN_UPLOADS == 'true'
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: sbom-pass-through
           path: sbom.json
