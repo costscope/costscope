@@ -113,8 +113,8 @@ jobs:
 
       - name: Cache security data
         if: ${{ needs._env_init.outputs.is_act != 'true' }}
-        # pinned actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 - source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v3
+        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb - source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
         with:
           path: |
             ~/go/pkg/mod
