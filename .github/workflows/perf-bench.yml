@@ -110,8 +110,8 @@ jobs:
         run: bash scripts/ci/prepare_gomodcache.sh
 
       - name: Cache Go modules (restore to temp)
-        # pinned actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v3
+        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
         with:
           # Restore into a runner-local temporary directory to avoid direct
           # extraction into $GOMODCACHE which can produce conflicting file types
@@ -144,8 +144,8 @@ jobs:
         run: go mod download
 
       - name: Cache golangci-lint binary
-        # pinned actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v3
+        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
         with:
           path: ${{ env.GOLANGCI_HOME }}/${{ runner.os }}-${{ runner.arch }}/${{ env.WANT_VERSION }}/golangci-lint
           key: golangci-lint-${{ runner.os }}-${{ runner.arch }}-${{ env.WANT_VERSION }}
@@ -235,8 +235,8 @@ jobs:
         run: bash scripts/ci/prepare_gomodcache.sh
 
       - name: Cache Go modules (restore to temp)
-        # pinned actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v3
+        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
         with:
           path: ${{ runner.temp }}/go-mod-cache-restore
           key: go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
