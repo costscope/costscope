@@ -56,7 +56,7 @@ jobs:
           echo "/usr/local/go/bin" >> "$GITHUB_PATH"
       - name: Set up Go
         if: ${{ steps.detect_lint.outputs.is_act != 'true' }}
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Go version
@@ -120,8 +120,8 @@ jobs:
           echo "/usr/local/go/bin" >> "$GITHUB_PATH"
       - name: Set up Go
         if: ${{ steps.detect_early.outputs.is_act != 'true' }}
-        # pinned actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        # pinned actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v4
         with:
           go-version: ${{ env.GO_VERSION }}
 

@@ -82,8 +82,8 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: Set up Go
         id: go
-        # pinned actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        # pinned actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 - source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v4
         with:
           go-version: "1.24.x"
       - name: "Sanity: go version"
@@ -102,8 +102,8 @@ jobs:
           fi
       - name: Cache Go modules
         if: ${{ steps.detect.outputs.is_act != 'true' }}
-        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb - source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
+        # pinned actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 - source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v3
         with:
           path: |
             ~/go/pkg/mod
@@ -214,7 +214,7 @@ jobs:
     needs: setup
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v4
         with:
           go-version: ${{ needs.setup.outputs.go-version }}
       - name: Build binary & image
