@@ -30,8 +30,8 @@ jobs:
         timeout-minutes: 60
         steps:
             - name: Checkout repository
-              # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+              # pinned actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
             - name: Initialize CodeQL (Go)
               # pinned github/codeql-action@528ca598d956c91826bd742262cdfc5d02b77710 — source: https://github.com/github/codeql-action/commits/main
