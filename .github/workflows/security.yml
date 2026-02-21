@@ -242,7 +242,7 @@ jobs:
         # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - if: env.RUN_UPLOADS == 'true'
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           name: image-tar
       - name: Load or build image
@@ -277,7 +277,7 @@ jobs:
         run: ./scripts/ci/record-run-metadata.sh
       - name: Download artifacts
         if: env.RUN_UPLOADS == 'true'
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
         with:
           pattern: "*"
           path: artifacts
