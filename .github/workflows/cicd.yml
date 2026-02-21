@@ -170,7 +170,7 @@ jobs:
 
       - name: Upload CLI drift artifacts (if any)
         if: ${{ always() && matrix.variant == 'slim' && steps.token_check.outputs.present == 'true' && github.actor != 'nektos/act' }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: cli-drift-artifacts
           path: |
@@ -209,14 +209,14 @@ jobs:
 
       - name: Upload invariants artifacts
         if: ${{ always() && matrix.variant == 'duckdb' && steps.token_check.outputs.present == 'true' && github.actor != 'nektos/act' && steps.detect_act.outputs.is_act != 'true' && env.IS_ACT != 'true' }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: invariants-artifacts
           path: invariants-artifacts
 
       - name: Upload E2E artifacts
         if: ${{ always() && matrix.variant == 'slim' && steps.token_check.outputs.present == 'true' && env.IS_ACT != 'true' && steps.detect_act.outputs.is_act != 'true' && github.actor != 'nektos/act' }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: e2e-pipeline-artifacts
           path: e2e-artifacts
@@ -389,7 +389,7 @@ jobs:
 
       - name: Upload test report (JSON)
         if: ${{ always() && steps.token_check.outputs.present == 'true' && github.actor != 'nektos/act' }}
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: casbinpoc-test-report
           path: test-report.json

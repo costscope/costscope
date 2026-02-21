@@ -95,7 +95,7 @@ jobs:
         # Non-blocking: artifact uploads can fail under local act (no runtime token)
         if: ${{ always() && github.actor != 'nektos/act' }}
         continue-on-error: true
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v4
         with:
           name: data-parity-guard-artifacts
           path: |
