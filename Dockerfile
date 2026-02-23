@@ -4,7 +4,7 @@
 # Multi-stage Dockerfile for CostScope
 
 # Stage 1: Build stage
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # Build arguments (can be passed during docker build)
 ARG VERSION=dev
