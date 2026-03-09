@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Minimal build and SBOM (act)
         run: |
           set -euo pipefail
@@ -49,7 +49,7 @@ jobs:
       CI_TOOLS_IMAGE: ${{ vars.CI_TOOLS_IMAGE || 'ghcr.io/costscope/ci-base@sha256:7d6d716eb9bab9f581feb498162fd8a24775fcf306a9ee724c2185b12aa9c05f' }}
       CI_IMAGE_TAG: ${{ vars.CI_IMAGE_TAG }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - id: out
         shell: bash
         run: bash ./scripts/ci/resolve-ci-image.sh
@@ -61,8 +61,8 @@ jobs:
     container: ${{ needs.resolve-ci-image.outputs.ci_tools_image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 - source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        # pinned actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd - source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
 
