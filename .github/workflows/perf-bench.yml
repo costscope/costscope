@@ -60,9 +60,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Set up Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Go version
@@ -88,7 +88,7 @@ jobs:
     outputs:
       image: ${{ steps.out.outputs.image }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
@@ -103,15 +103,15 @@ jobs:
     container: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
-        # pinned actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 — source: https://github.com/actions/checkout/commits/main (2025-09-28)
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        # pinned actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd — source: https://github.com/actions/checkout/commits/main (2025-09-28)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Prepare GOMODCACHE
         run: bash scripts/ci/prepare_gomodcache.sh
 
       - name: Cache Go modules (restore to temp)
-        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
+        # pinned actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v3
         with:
           # Restore into a runner-local temporary directory to avoid direct
           # extraction into $GOMODCACHE which can produce conflicting file types
@@ -130,8 +130,8 @@ jobs:
           fi
 
       - name: Setup Go
-        # pinned actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        # pinned actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c — source: https://github.com/actions/setup-go/commits/main (2025-09-28)
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -144,8 +144,8 @@ jobs:
         run: go mod download
 
       - name: Cache golangci-lint binary
-        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
+        # pinned actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v3
         with:
           path: ${{ env.GOLANGCI_HOME }}/${{ runner.os }}-${{ runner.arch }}/${{ env.WANT_VERSION }}/golangci-lint
           key: golangci-lint-${{ runner.os }}-${{ runner.arch }}-${{ env.WANT_VERSION }}
@@ -229,14 +229,14 @@ jobs:
     container: ${{ needs.resolve-ci-image.outputs.image }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Prepare GOMODCACHE
         run: bash scripts/ci/prepare_gomodcache.sh
 
       - name: Cache Go modules (restore to temp)
-        # pinned actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb — source: https://github.com/actions/cache/commits/main (2025-09-28)
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb # v3
+        # pinned actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae — source: https://github.com/actions/cache/commits/main (2025-09-28)
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v3
         with:
           path: ${{ runner.temp }}/go-mod-cache-restore
           key: go-mod-cache-${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
@@ -252,7 +252,7 @@ jobs:
           fi
 
       - name: Setup Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Download deps
