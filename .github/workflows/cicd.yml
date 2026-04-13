@@ -35,7 +35,7 @@ jobs:
       image: ${{ steps.out.outputs.image }}
       generic: ${{ steps.out.outputs.generic }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - id: out
         env:
           CI_IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/ci-base
@@ -95,7 +95,7 @@ jobs:
       packages: write
       id-token: write
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Skip non-slim variants under act (guard)
         id: variant_guard
@@ -126,7 +126,7 @@ jobs:
 
       - name: Set up Go
         if: ${{ steps.variant_guard.outputs.skipped != 'true' }}
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -231,7 +231,7 @@ jobs:
 
       - name: Security scan (gosec)
         if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
-        uses: securego/gosec@6be2b51fd78feca86af91f5186b7964d76cb1256
+        uses: securego/gosec@223e19b8856e00f02cc67804499a83f77e208f3c
         with:
           args: -exclude-dir scripts/tools -exclude=G304,G115 ./...
 
@@ -245,7 +245,7 @@ jobs:
 
       - name: Docker image vulnerability scan (Trivy)
         if: ${{ matrix.variant == 'slim' && steps.variant_guard.outputs.skipped != 'true' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           version: ${{ env.TRIVY_VERSION }}
           scan-type: fs
@@ -294,7 +294,7 @@ jobs:
 
       - name: Trivy scan built image
         if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
           version: ${{ env.TRIVY_VERSION }}
           image-ref: ${{ steps.imgref.outputs.image_ref }}
@@ -304,7 +304,7 @@ jobs:
 
       - name: Install cosign
         if: ${{ matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
-        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
 
       - name: Sign image with cosign
         if: ${{ github.event_name != 'pull_request' && matrix.variant == 'slim' && steps.detect_act.outputs.is_act != 'true' && needs.resolve-ci-image.outputs.generic != 'true' }}
@@ -335,7 +335,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Detect runtime token presence
         id: token_check
@@ -349,7 +349,7 @@ jobs:
           fi
 
       - name: Set up Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v4
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v4
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -402,7 +402,7 @@ jobs:
     # This gates out act (no secrets) and accidental runs without KUBECONFIG.
     if: ${{ github.ref == 'refs/heads/main' && github.actor != 'nektos/act' }}
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Check required secrets
         id: prereq
